@@ -120,11 +120,16 @@ APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   fromString(numbits, Str, radix);
 }
 
+/* Note: this is one of the few (the only) SlowCase function that
+   handles poisoning.  I did it for efficiency reasons. -- CAS 2014nov01
+ */
 APInt& APInt::AssignSlowCase(const APInt& RHS) {
   // Don't do anything for X = X
   if (this == &RHS)
     return *this;
 
+  poisoned= RHS.poisoned;
+  
   if (BitWidth == RHS.getBitWidth()) {
     // assume same bit-width single-word case is already handled
     assert(!isSingleWord());
