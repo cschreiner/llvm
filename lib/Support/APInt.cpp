@@ -105,17 +105,17 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 }
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
-  : BitWidth(numBits), VAL(0) {
+  : BitWidth(numBits), VAL(0), poisoned(false) {
   initFromArray(bigVal);
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
-  : BitWidth(numBits), VAL(0) {
+  : BitWidth(numBits), VAL(0), poisoned(false) {
   initFromArray(makeArrayRef(bigVal, numWords));
 }
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
-  : BitWidth(numbits), VAL(0) {
+  : BitWidth(numbits), VAL(0), poisoned(false) {
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
 }

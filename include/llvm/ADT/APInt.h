@@ -74,6 +74,7 @@ const unsigned int integerPartWidth =
 ///
 class APInt {
   unsigned BitWidth; ///< The number of bits in this APInt.
+  boolean poisoned;
 
   /// This union is used to store the integer value. When the
   /// integer bit-width <= 64, it uses VAL, otherwise it uses pVal.
@@ -95,7 +96,8 @@ class APInt {
   ///
   /// This constructor is used only internally for speed of construction of
   /// temporaries. It is unsafe for general use so it is not public.
-  APInt(uint64_t *val, unsigned bits) : BitWidth(bits), pVal(val) {}
+  APInt(uint64_t *val, unsigned bits) : 
+      BitWidth(bits), pVal(val), poisoned(false) {}
 
   /// \brief Determine if this APInt just has one word to store value.
   ///
@@ -233,8 +235,8 @@ public:
   /// \param numBits the bit width of the constructed APInt
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
-  APInt(unsigned numBits, uint64_t val, bool isSigned = false)
-      : BitWidth(numBits), VAL(0) {
+  APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
+      : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
     if (isSingleWord())
       VAL = val;
@@ -276,8 +278,10 @@ public:
 
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
-  APInt(const APInt &that) : BitWidth(that.BitWidth), VAL(0) {
+  APInt(const APInt &that) 
+      : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
     assert(BitWidth && "bitwidth too small");
+    poisoned= that.poisoned;
     if (isSingleWord())
       VAL = that.VAL;
     else
@@ -285,7 +289,8 @@ public:
   }
 
   /// \brief Move Constructor.
-  APInt(APInt &&that) : BitWidth(that.BitWidth), VAL(that.VAL) {
+  APInt(APInt &&that) 
+      : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
     that.BitWidth = 0;
   }
 
@@ -299,7 +304,7 @@ public:
   ///
   /// This is useful for object deserialization (pair this with the static
   ///  method Read).
-  explicit APInt() : BitWidth(1) {}
+  explicit APInt() : BitWidth(1), poisoned(false) {}
 
   /// \brief Returns whether this instance allocated memory.
   bool needsCleanup() const { return !isSingleWord(); }
