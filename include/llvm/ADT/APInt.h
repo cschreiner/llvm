@@ -74,7 +74,6 @@ const unsigned int integerPartWidth =
 ///
 class APInt {
   unsigned BitWidth; ///< The number of bits in this APInt.
-  boolean poisoned;
 
   /// This union is used to store the integer value. When the
   /// integer bit-width <= 64, it uses VAL, otherwise it uses pVal.
@@ -82,6 +81,8 @@ class APInt {
     uint64_t VAL;   ///< Used to store the <= 64 bits integer value.
     uint64_t *pVal; ///< Used to store the >64 bits integer value.
   };
+
+  bool poisoned;
 
   /// This enum is used to hold the constants we needed for APInt.
   enum {
@@ -307,10 +308,16 @@ public:
   explicit APInt() : BitWidth(1), poisoned(false) {}
 
   /// \brief sets the poisoned field
-  inline void setPoisoned( boolean aa ) { poisoned= aa; }
+  inline void setPoisoned( bool aa ) { poisoned= aa; }
 
   /// \brief get the poisoned field
-  inline boolean getPoisoned() { return poisoned; }
+  inline bool getPoisoned() { return poisoned; }
+
+  /// \brief sets poisoned flag |= the argument.  Intended for
+  /// recording the poison status after an operation that combined
+  /// this instance's value with another (possibly poisoned) value and
+  /// stored the result in this instance.
+  inline void orPoisoned( bool aa ) { poisoned|= aa; }
 
   /// \brief Returns whether this instance allocated memory.
   bool needsCleanup() const { return !isSingleWord(); }
@@ -672,9 +679,8 @@ public:
     if (isSingleWord() && RHS.isSingleWord()) {
       VAL = RHS.VAL;
       BitWidth = RHS.BitWidth;
-      APInt result= clearUnusedBits(); 
-      result.poisoned= RHS.poisoned;
-      return result;
+      poisoned= RHS.poisoned;
+      return clearUnusedBits(); 
     }
     return AssignSlowCase(RHS); // this handles poisoning
   }
@@ -735,7 +741,6 @@ public:
   /// logically zero-extended or truncated to match the bit-width of
   /// the LHS.
   APInt &operator|=(uint64_t RHS) {
-    poisoned= poisoned || RHS.poisoned;
     if (isSingleWord()) {
       VAL |= RHS;
       clearUnusedBits();
