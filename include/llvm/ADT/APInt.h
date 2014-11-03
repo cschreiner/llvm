@@ -2033,4 +2033,6 @@ inline APInt Not(const APInt &APIVal) { return ~APIVal; }
 hash_code hash_value(const APInt &Arg);
 } // End of llvm namespace
 
+// TODO2: consider if APIntPoison.h should be automatically included here.
+
 #endif
