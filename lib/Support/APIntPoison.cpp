@@ -61,9 +61,9 @@ namespace llvm {
 void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
 {{
   if ( ! noWrap )  { return; }
-  if ( result.ult(left) || result.ult(rhs) )  {
+  if ( dest.ult(lhs) || dest.ult(rhs) )  {
     // an unallowed wrap happened
-    result.poisoned= true;
+    dest.setPoisoned(true);
   }
   return;
 }}
@@ -94,9 +94,9 @@ void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
 void poisonIfNeeded_sadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
 {{
   if ( ! noWrap )  { return; }
-  if ( rhs.slt(0) ? result.sgt(left) : result.slt(this) )  {
+  if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
     // an unallowed wrap happened
-    result.poisoned= true;
+    dest.setPoisoned(true);
   }
   return;
 }}
