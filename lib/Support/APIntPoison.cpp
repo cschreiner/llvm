@@ -32,9 +32,100 @@
 
 using namespace llvm;
 
+// ############################################################################
 namespace llvm {
 
-}
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_uadd()
+ * ----------------------------------------------------------------------------
+ * Description: if unsigned wraparound is forbidden, mark the
+ *	destination as poisoned if the given add operands would create a
+ *	poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the sum to check
+ *   lhs, rhs: the two operands to check
+ *   noWrap: true if a "no wrap" flag was present on the LLVM instruction.
+ *	If this is false, no poison is possible, so no checking is performed.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
+{{
+  if ( ! noWrap )  { return; }
+  if ( result.ult(left) || result.ult(rhs) )  {
+    // an unallowed wrap happened
+    result.poisoned= true;
+  }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_sadd()
+ * ----------------------------------------------------------------------------
+ * Description: if signed wraparound is forbidden, mark the
+ *	destination as poisoned if the given add operands would create a
+ *	poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the sum to check
+ *   lhs, rhs: the two operands to check
+ *   noWrap: true if a "no wrap" flag was present on the LLVM instruction.
+ *	If this is false, no poison is possible, so no checking is performed.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_sadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
+{{
+  if ( ! noWrap )  { return; }
+  if ( rhs.slt(0) ? result.sgt(left) : result.slt(this) )  {
+    // an unallowed wrap happened
+    result.poisoned= true;
+  }
+  return;
+}}
+
+
+
+
+} // end namespace llvm
+// ############################################################################
+
+// template is 16 lines long
+/*** --------------------------------------------------------------------------
+   * function name()
+   * --------------------------------------------------------------------------
+   * Description: 
+   *
+   * Method: 
+   *
+   * Reentrancy: 
+   *
+   * Inputs: 
+   *    
+   * Outputs: 
+   *
+   * Return Value: 
+   *
+   */
+//void name()
+
 
 
 #define DEBUG_TYPE "apint"
