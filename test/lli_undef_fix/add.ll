@@ -1,6 +1,9 @@
-; RUN: llvm-as %s -o - | llvm-dis > %t1.ll
-; RUN: llvm-as %t1.ll -o - | llvm-dis > %t2.ll
-; RUN: diff %t1.ll %t2.ll
+; RUN: 
+
+; TODO: find some way to add lit code here to run this, and compare
+;	its printed output against an expected value... which may be
+;	affected by the intent that a poisoned value should crash this 
+;	program when output.
 
 ; Add two numbers together with wrapping, once with a restriction that
 ;	generates a poison value, and once without that restriction.
@@ -27,6 +30,3 @@ define i32 @main() {   ; i32()*
   ret i32 0
 }
 
-; Named metadata
-!0 = metadata !{i32 42, null, metadata !"string"}
-!foo = !{!0}
