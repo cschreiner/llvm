@@ -63,7 +63,7 @@ void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
   if ( ! noWrap )  { return; }
   if ( dest.ult(lhs) || dest.ult(rhs) )  {
     // an unallowed wrap happened
-    dest.setPoisoned(true);
+    dest.orPoisoned(true);
   }
   return;
 }}
@@ -96,7 +96,7 @@ void poisonIfNeeded_sadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
   if ( ! noWrap )  { return; }
   if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
     // an unallowed wrap happened
-    dest.setPoisoned(true);
+    dest.orPoisoned(true);
   }
   return;
 }}
