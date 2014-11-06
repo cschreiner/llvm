@@ -15,7 +15,7 @@ define i32 @main() {   ; i32()*
   %cast210 = getelementptr [13 x i8]* @.str, i64 0, i64 0
 
   ; Call puts function to write out the string to stdout.
-  call i32 @printf(i8* %cast210)
+  call i32 @printf(i8* %cast210, i8* 0 )
   ret i32 0
 }
 
