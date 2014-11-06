@@ -766,7 +766,13 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       dbgs() << "Don't know how to handle this binary operator!\n-->" << I;
       llvm_unreachable(nullptr);
       break;
-    case Instruction::Add:   R.IntVal = Src1.IntVal + Src2.IntVal; break;
+    case Instruction::Add:   
+	R.IntVal = Src1.IntVal + Src2.IntVal; 
+        R.IntVal.poisonIfNeeded_sadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
+				      I.hasNoSignedWrap() );
+        R.IntVal.poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
+				      I.hasNoUnsignedWrap() );
+	break;
     case Instruction::Sub:   R.IntVal = Src1.IntVal - Src2.IntVal; break;
     case Instruction::Mul:   R.IntVal = Src1.IntVal * Src2.IntVal; break;
     case Instruction::FAdd:  executeFAddInst(R, Src1, Src2, Ty); break;
