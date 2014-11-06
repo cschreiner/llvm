@@ -15,6 +15,9 @@ define i32 @main() {   ; i32()*
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
 
+  %poisoned_1= add nuw i8 250, 6
+  %unpoisoned_1= add i8 250, 6
+
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i32 42 )
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i32 42 )
