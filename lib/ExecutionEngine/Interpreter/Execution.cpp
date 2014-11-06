@@ -13,6 +13,7 @@
 
 #include "Interpreter.h"
 #include "llvm/ADT/APInt.h"
+#include "llvm/ADT/APIntPoison.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/IntrinsicLowering.h"
 #include "llvm/IR/Constants.h"
@@ -768,9 +769,9 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       break;
     case Instruction::Add:   
 	R.IntVal = Src1.IntVal + Src2.IntVal; 
-        R.IntVal.poisonIfNeeded_sadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
+	APIntPoison::poisonIfNeeded_sadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
 				      I.hasNoSignedWrap() );
-        R.IntVal.poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
+	ApIntPoison::poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
 				      I.hasNoUnsignedWrap() );
 	break;
     case Instruction::Sub:   R.IntVal = Src1.IntVal - Src2.IntVal; break;
@@ -1110,6 +1111,7 @@ void Interpreter::visitCallSite(CallSite CS) {
     }
 
 
+  cout << "About to call a function. \n";;
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
