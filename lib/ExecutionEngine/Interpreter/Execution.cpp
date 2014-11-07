@@ -26,6 +26,7 @@
 #include "llvm/Support/MathExtras.h"
 #include <algorithm>
 #include <cmath>
+#include <stdio.h> //;;
 using namespace llvm;
 
 #define DEBUG_TYPE "interpreter"
@@ -771,7 +772,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 	R.IntVal = Src1.IntVal + Src2.IntVal; 
 	APIntPoison::poisonIfNeeded_sadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
 				      I.hasNoSignedWrap() );
-	ApIntPoison::poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
+	APIntPoison::poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
 				      I.hasNoUnsignedWrap() );
 	break;
     case Instruction::Sub:   R.IntVal = Src1.IntVal - Src2.IntVal; break;
@@ -1111,7 +1112,7 @@ void Interpreter::visitCallSite(CallSite CS) {
     }
 
 
-  cout << "About to call a function. \n";;
+  printf( "About to call a function. \n" );;
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
