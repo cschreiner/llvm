@@ -1071,6 +1071,8 @@ void Interpreter::visitStoreInst(StoreInst &I) {
 void Interpreter::visitCallSite(CallSite CS) {
   ExecutionContext &SF = ECStack.back();
 
+  printf( "Starting Execution.cpp's Interpreter::visitCallSite(CallSite)" );; 
+
   // Check to see if this is an intrinsic function call...
   Function *F = CS.getCalledFunction();
   if (F && F->isDeclaration())
@@ -1111,8 +1113,8 @@ void Interpreter::visitCallSite(CallSite CS) {
       return;
     }
 
-
-  printf( "About to call a function. \n" );;
+  printf( "Got to Execution.cpp's Interpreter::visitCallSite(CallSite)'s " 
+      "mercury\n" );;
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
