@@ -18,6 +18,7 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include <cstring>
+#include <stdio.h> //;;
 using namespace llvm;
 
 namespace {
@@ -93,6 +94,8 @@ Interpreter::runFunction(Function *F,
     ActualArgs.push_back(ArgValues[i]);
 
   // Set up the function call.
+  printf ( 
+      "about to execute Interpreter.cpp's callFunction(F, ActualArgs);\n");;
   callFunction(F, ActualArgs);
 
   // Start executing the function.
