@@ -79,6 +79,9 @@ void Interpreter::runAtExitHandlers () {
 GenericValue
 Interpreter::runFunction(Function *F,
                          const std::vector<GenericValue> &ArgValues) {
+  printf ( "about to execute Execution.cpp's " 
+      "Interpeter::runFunction(Function*, const std::vector<GenericValue>&)\n" );;
+
   assert (F && "Function *F was null at entry to run()");
 
   // Try extra hard not to pass extra args to a function that isn't
