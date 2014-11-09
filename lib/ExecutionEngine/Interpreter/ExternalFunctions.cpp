@@ -89,6 +89,7 @@ static char getTypeID(Type *Ty) {
 // that all external functions has the same (and pretty "general") signature.
 // The typical example of such functions are "lle_X_" ones.
 static ExFunc lookupFunction(const Function *F) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute ExternalFunction.cpp's " 
       "lookupFunction(const Function*)\n" );;
 
@@ -115,6 +116,7 @@ static ExFunc lookupFunction(const Function *F) {
 
 #ifdef USE_LIBFFI
 static ffi_type *ffiTypeFor(Type *Ty) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   switch (Ty->getTypeID()) {
     case Type::VoidTyID: return &ffi_type_void;
     case Type::IntegerTyID:
@@ -136,6 +138,7 @@ static ffi_type *ffiTypeFor(Type *Ty) {
 
 static void *ffiValueFor(Type *Ty, const GenericValue &AV,
                          void *ArgDataPtr) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   switch (Ty->getTypeID()) {
     case Type::IntegerTyID:
       switch (cast<IntegerType>(Ty)->getBitWidth()) {
@@ -185,6 +188,7 @@ static void *ffiValueFor(Type *Ty, const GenericValue &AV,
 static bool ffiInvoke(RawFunc Fn, Function *F,
                       const std::vector<GenericValue> &ArgVals,
                       const DataLayout *TD, GenericValue &Result) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ffi_cif cif;
   FunctionType *FTy = F->getFunctionType();
   const unsigned NumArgs = F->arg_size();
@@ -250,6 +254,7 @@ static bool ffiInvoke(RawFunc Fn, Function *F,
 
 GenericValue Interpreter::callExternalFunction(Function *F,
                                      const std::vector<GenericValue> &ArgVals) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute ExternalFunctions.cpp's " 
       "Interpeter::callExternalFunction("
       "Function*, const std::vector<GenericValue>&)\n" );;
@@ -309,6 +314,7 @@ GenericValue Interpreter::callExternalFunction(Function *F,
 static
 GenericValue lle_X_atexit(FunctionType *FT,
                           const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(Args.size() == 1);
   TheInterpreter->addAtExitHandler((Function*)GVTOP(Args[0]));
   GenericValue GV;
@@ -320,6 +326,7 @@ GenericValue lle_X_atexit(FunctionType *FT,
 static
 GenericValue lle_X_exit(FunctionType *FT,
                         const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   TheInterpreter->exitCalled(Args[0]);
   return GenericValue();
 }
@@ -328,6 +335,7 @@ GenericValue lle_X_exit(FunctionType *FT,
 static
 GenericValue lle_X_abort(FunctionType *FT,
                          const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   //FIXME: should we report or raise here?
   //report_fatal_error("Interpreted program raised SIGABRT");
   raise (SIGABRT);
@@ -339,6 +347,7 @@ GenericValue lle_X_abort(FunctionType *FT,
 static
 GenericValue lle_X_sprintf(FunctionType *FT,
                            const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   char *OutputBuffer = (char *)GVTOP(Args[0]);
   const char *FmtStr = (const char *)GVTOP(Args[1]);
   unsigned ArgNo = 2;
@@ -422,6 +431,7 @@ GenericValue lle_X_sprintf(FunctionType *FT,
 static
 GenericValue lle_X_printf(FunctionType *FT,
                           const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   char Buffer[10000];
   std::vector<GenericValue> NewArgs;
   NewArgs.push_back(PTOGV((void*)&Buffer[0]));
@@ -435,6 +445,7 @@ GenericValue lle_X_printf(FunctionType *FT,
 static
 GenericValue lle_X_sscanf(FunctionType *FT,
                           const std::vector<GenericValue> &args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(args.size() < 10 && "Only handle up to 10 args to sscanf right now!");
 
   char *Args[10];
@@ -451,6 +462,7 @@ GenericValue lle_X_sscanf(FunctionType *FT,
 static
 GenericValue lle_X_scanf(FunctionType *FT,
                          const std::vector<GenericValue> &args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(args.size() < 10 && "Only handle up to 10 args to scanf right now!");
 
   char *Args[10];
@@ -468,6 +480,7 @@ GenericValue lle_X_scanf(FunctionType *FT,
 static
 GenericValue lle_X_fprintf(FunctionType *FT,
                            const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(Args.size() >= 2);
   char Buffer[10000];
   std::vector<GenericValue> NewArgs;
@@ -481,6 +494,7 @@ GenericValue lle_X_fprintf(FunctionType *FT,
 
 static GenericValue lle_X_memset(FunctionType *FT,
                                  const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   int val = (int)Args[1].IntVal.getSExtValue();
   size_t len = (size_t)Args[2].IntVal.getZExtValue();
   memset((void *)GVTOP(Args[0]), val, len);
@@ -493,6 +507,7 @@ static GenericValue lle_X_memset(FunctionType *FT,
 
 static GenericValue lle_X_memcpy(FunctionType *FT,
                                  const std::vector<GenericValue> &Args) {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   memcpy(GVTOP(Args[0]), GVTOP(Args[1]),
          (size_t)(Args[2].IntVal.getLimitedValue()));
 
@@ -504,6 +519,7 @@ static GenericValue lle_X_memcpy(FunctionType *FT,
 }
 
 void Interpreter::initializeExternalFunctions() {
+  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   sys::ScopedLock Writer(*FunctionsLock);
   (*FuncNames)["lle_X_atexit"]       = lle_X_atexit;
   (*FuncNames)["lle_X_exit"]         = lle_X_exit;
