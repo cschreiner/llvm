@@ -1809,7 +1809,7 @@ void Interpreter::visitVAArgInst(VAArgInst &I) {
 
   // Move the pointer to the next vararg.
   ++VAList.UIntPairVal.second;
-}
+} 
 
 void Interpreter::visitExtractElementInst(ExtractElementInst &I) {
   printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
