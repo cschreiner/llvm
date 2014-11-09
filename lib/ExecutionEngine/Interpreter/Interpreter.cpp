@@ -19,6 +19,7 @@
 #include "llvm/IR/Module.h"
 #include <cstring>
 #include <stdio.h> //;;
+#include <iostream> //;;
 using namespace llvm;
 
 namespace {
@@ -86,7 +87,7 @@ Interpreter::runFunction(Function *F,
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::runFunction(Function*, "
       "const std::vector<GenericValue>&)\n" );;
-  printf( "  function name=\"%s\"\n", F->getName() );;
+  cout << "function mame=\"" << F->getName().str() << "\"\n";;
 
   assert (F && "Function *F was null at entry to run()");
 

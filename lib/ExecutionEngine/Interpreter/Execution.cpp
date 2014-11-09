@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdio.h> //;;
+#include <iostream> //;;
 using namespace llvm;
 
 #define DEBUG_TYPE "interpreter"
@@ -1153,7 +1154,8 @@ void Interpreter::visitCallSite(CallSite CS) {
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
-  printf( "  ftn name=\"%s\" numArgs=%u\n", F->getName(), NumArgs );;
+  cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
+      NumArgs << "\n";;
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
   for (CallSite::arg_iterator i = SF.Caller.arg_begin(),
