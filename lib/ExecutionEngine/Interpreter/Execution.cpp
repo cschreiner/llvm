@@ -1154,7 +1154,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
-  cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
+  std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;

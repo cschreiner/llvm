@@ -87,7 +87,7 @@ Interpreter::runFunction(Function *F,
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::runFunction(Function*, "
       "const std::vector<GenericValue>&)\n" );;
-  cout << "function mame=\"" << F->getName().str() << "\"\n";;
+  std::cout << "function mame=\"" << F->getName().str() << "\"\n";;
 
   assert (F && "Function *F was null at entry to run()");
 
