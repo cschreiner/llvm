@@ -1805,6 +1805,15 @@ void Interpreter::visitVAArgInst(VAArgInst &I) {
     Dest.IntVal = Src.IntVal;
     break;
   IMPLEMENT_VAARG(Pointer);
+  IMPLEMENT_VAARG(Float);
+  IMPLEMENT_VAARG(Double);
+  default:
+    dbgs() << "Unhandled dest type for vaarg instruction: " << *Ty << "\n";
+    llvm_unreachable(nullptr);
+  }
+
+  // Set the Value of this Instruction.
+
   SetValue(&I, Dest, SF);
 
   // Move the pointer to the next vararg.
