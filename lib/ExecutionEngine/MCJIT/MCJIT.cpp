@@ -46,7 +46,6 @@ ExecutionEngine *MCJIT::createJIT(std::unique_ptr<Module> M,
                                   std::string *ErrorStr,
                                   RTDyldMemoryManager *MemMgr,
                                   std::unique_ptr<TargetMachine> TM) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // Try to register the program as a source of symbols to resolve against.
   //
   // FIXME: Don't do this here.
@@ -90,19 +89,16 @@ MCJIT::~MCJIT() {
 }
 
 void MCJIT::addModule(std::unique_ptr<Module> M) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   MutexGuard locked(lock);
   OwnedModules.addModule(std::move(M));
 }
 
 bool MCJIT::removeModule(Module *M) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   MutexGuard locked(lock);
   return OwnedModules.removeModule(M);
 }
 
 void MCJIT::addObjectFile(std::unique_ptr<object::ObjectFile> Obj) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   std::unique_ptr<ObjectImage> LoadedObject = Dyld.loadObject(std::move(Obj));
   if (!LoadedObject || Dyld.hasError())
     report_fatal_error(Dyld.getErrorString());
@@ -113,18 +109,15 @@ void MCJIT::addObjectFile(std::unique_ptr<object::ObjectFile> Obj) {
 }
 
 void MCJIT::addObjectFile(object::OwningBinary<object::ObjectFile> Obj) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   addObjectFile(std::move(Obj.getBinary()));
   Buffers.push_back(std::move(Obj.getBuffer()));
 }
 
 void MCJIT::addArchive(object::OwningBinary<object::Archive> A) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Archives.push_back(std::move(A));
 }
 
 void MCJIT::setObjectCache(ObjectCache* NewCache) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   MutexGuard locked(lock);
   ObjCache = NewCache;
 }
@@ -132,7 +125,6 @@ void MCJIT::setObjectCache(ObjectCache* NewCache) {
 std::unique_ptr<ObjectBufferStream> MCJIT::emitObject(Module *M) {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // This must be a module which has already been added but not loaded to this
   // MCJIT instance, since these conditions are tested by our caller,
   // generateCodeForModule.
@@ -173,7 +165,6 @@ void MCJIT::generateCodeForModule(Module *M) {
   // Get a thread lock to make sure we aren't trying to load multiple times
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // This must be a module which has already been added to this MCJIT instance.
   assert(OwnedModules.ownsModule(M) &&
          "MCJIT::generateCodeForModule: Unknown module.");
@@ -217,7 +208,6 @@ void MCJIT::generateCodeForModule(Module *M) {
 void MCJIT::finalizeLoadedModules() {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // Resolve any outstanding relocations.
   Dyld.resolveRelocations();
 
@@ -234,7 +224,6 @@ void MCJIT::finalizeLoadedModules() {
 void MCJIT::finalizeObject() {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // Generate code for module is going to move objects out of the 'added' list,
   // so we need to copy that out before using it:
   SmallVector<Module*, 16> ModsToAdd;
@@ -250,7 +239,6 @@ void MCJIT::finalizeObject() {
 void MCJIT::finalizeModule(Module *M) {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // This must be a module which has already been added to this MCJIT instance.
   assert(OwnedModules.ownsModule(M) && "MCJIT::finalizeModule: Unknown module.");
 
@@ -262,7 +250,6 @@ void MCJIT::finalizeModule(Module *M) {
 }
 
 uint64_t MCJIT::getExistingSymbolAddress(const std::string &Name) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Mangler Mang(TM->getSubtargetImpl()->getDataLayout());
   SmallString<128> FullName;
   Mang.getNameWithPrefix(FullName, Name);
@@ -273,7 +260,6 @@ Module *MCJIT::findModuleForSymbol(const std::string &Name,
                                    bool CheckFunctionsOnly) {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // If it hasn't already been generated, see if it's in one of our modules.
   for (ModulePtrSet::iterator I = OwnedModules.begin_added(),
                               E = OwnedModules.end_added();
@@ -298,7 +284,6 @@ uint64_t MCJIT::getSymbolAddress(const std::string &Name,
 {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // First, check to see if we already have this symbol.
   uint64_t Addr = getExistingSymbolAddress(Name);
   if (Addr)
@@ -347,7 +332,6 @@ uint64_t MCJIT::getSymbolAddress(const std::string &Name,
 
 uint64_t MCJIT::getGlobalValueAddress(const std::string &Name) {
   MutexGuard locked(lock);
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   uint64_t Result = getSymbolAddress(Name, false);
   if (Result != 0)
     finalizeLoadedModules();
@@ -356,7 +340,6 @@ uint64_t MCJIT::getGlobalValueAddress(const std::string &Name) {
 
 uint64_t MCJIT::getFunctionAddress(const std::string &Name) {
   MutexGuard locked(lock);
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   uint64_t Result = getSymbolAddress(Name, true);
   if (Result != 0)
     finalizeLoadedModules();
@@ -367,7 +350,6 @@ uint64_t MCJIT::getFunctionAddress(const std::string &Name) {
 void *MCJIT::getPointerToFunction(Function *F) {
   MutexGuard locked(lock);
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Mangler Mang(TM->getSubtargetImpl()->getDataLayout());
   SmallString<128> Name;
   TM->getNameWithPrefix(Name, F, Mang);
@@ -402,14 +384,12 @@ void *MCJIT::getPointerToFunction(Function *F) {
 
 void MCJIT::runStaticConstructorsDestructorsInModulePtrSet(
     bool isDtors, ModulePtrSet::iterator I, ModulePtrSet::iterator E) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   for (; I != E; ++I) {
     ExecutionEngine::runStaticConstructorsDestructors(**I, isDtors);
   }
 }
 
 void MCJIT::runStaticConstructorsDestructors(bool isDtors) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // Execute global ctors/dtors for each module in the program.
   runStaticConstructorsDestructorsInModulePtrSet(
       isDtors, OwnedModules.begin_added(), OwnedModules.end_added());
@@ -430,7 +410,6 @@ Function *MCJIT::FindFunctionNamedInModulePtrSet(const char *FnName,
 }
 
 Function *MCJIT::FindFunctionNamed(const char *FnName) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Function *F = FindFunctionNamedInModulePtrSet(
       FnName, OwnedModules.begin_added(), OwnedModules.end_added());
   if (!F)
@@ -444,7 +423,6 @@ Function *MCJIT::FindFunctionNamed(const char *FnName) {
 
 GenericValue MCJIT::runFunction(Function *F,
                                 const std::vector<GenericValue> &ArgValues) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(F && "Function *F was null at entry to run()");
 
   void *FPtr = getPointerToFunction(F);
@@ -544,7 +522,6 @@ GenericValue MCJIT::runFunction(Function *F,
 }
 
 void *MCJIT::getPointerToNamedFunction(StringRef Name, bool AbortOnFailure) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   if (!isSymbolSearchingDisabled()) {
     void *ptr = MemMgr.getPointerToNamedFunction(Name, false);
     if (ptr)
@@ -564,14 +541,12 @@ void *MCJIT::getPointerToNamedFunction(StringRef Name, bool AbortOnFailure) {
 }
 
 void MCJIT::RegisterJITEventListener(JITEventListener *L) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   if (!L)
     return;
   MutexGuard locked(lock);
   EventListeners.push_back(L);
 }
 void MCJIT::UnregisterJITEventListener(JITEventListener *L) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   if (!L)
     return;
   MutexGuard locked(lock);
@@ -583,7 +558,6 @@ void MCJIT::UnregisterJITEventListener(JITEventListener *L) {
 }
 void MCJIT::NotifyObjectEmitted(const ObjectImage& Obj) {
   MutexGuard locked(lock);
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   MemMgr.notifyObjectLoaded(this, &Obj);
   for (unsigned I = 0, S = EventListeners.size(); I < S; ++I) {
     EventListeners[I]->NotifyObjectEmitted(Obj);
@@ -591,14 +565,12 @@ void MCJIT::NotifyObjectEmitted(const ObjectImage& Obj) {
 }
 void MCJIT::NotifyFreeingObject(const ObjectImage& Obj) {
   MutexGuard locked(lock);
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   for (JITEventListener *L : EventListeners)
     L->NotifyFreeingObject(Obj);
 }
 
 uint64_t LinkingMemoryManager::getSymbolAddress(const std::string &Name) {
   uint64_t Result = ParentEngine->getSymbolAddress(Name, false);
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // If the symbols wasn't found and it begins with an underscore, try again
   // without the underscore.
   if (!Result && Name[0] == '_')
