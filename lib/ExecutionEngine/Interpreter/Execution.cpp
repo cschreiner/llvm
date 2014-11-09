@@ -2115,6 +2115,9 @@ GenericValue Interpreter::getOperandValue(Value *V, ExecutionContext &SF) {
 //
 void Interpreter::callFunction(Function *F,
                                const std::vector<GenericValue> &ArgVals) {
+  printf ( "about to execute Execution.cpp's " 
+      "Interpeter::callFunction(Function*, const std::vector<GenericValue>&)\n" );;
+
   assert((ECStack.empty() || !ECStack.back().Caller.getInstruction() ||
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&
          "Incorrect number of arguments passed into function call!");
