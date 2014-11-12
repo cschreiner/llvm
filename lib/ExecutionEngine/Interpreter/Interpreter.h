@@ -140,6 +140,10 @@ public:
   void callFunction(Function *F, const std::vector<GenericValue> &ArgVals);
   void run();                // Execute instructions until nothing left to do
 
+  static void checkFtnCallForPoisonedArgs( 
+      CallSite& cs, ExecutionContext* sf_ptr );
+
+
   // Opcode Implementations
   void visitReturnInst(ReturnInst &I);
   void visitBranchInst(BranchInst &I);
