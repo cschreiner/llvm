@@ -68,6 +68,7 @@ private:
   mutable ilist_half_node<Argument> Sentinel;
 };
 
+/// \class Function
 /// \brief Contains information about a function in the sense of a function
 /// prototype and definition, i.e. what types of arguments the fuction
 /// takes, what its return type is, and notes about how the function is
