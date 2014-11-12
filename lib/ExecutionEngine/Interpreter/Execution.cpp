@@ -197,7 +197,7 @@ static GenericValue executeICMP_EQ(GenericValue Src1, GenericValue Src2,
     dbgs() << "Unhandled type for ICMP_EQ predicate: " << *Ty << "\n";
     llvm_unreachable(nullptr);
   }
-  getOperandValue(null, null);; // see if ftn is defined above or below here
+  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
   return Dest;
 }
 
