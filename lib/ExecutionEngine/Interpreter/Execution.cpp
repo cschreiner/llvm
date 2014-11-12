@@ -1213,7 +1213,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   if ( F->isDeclaration() || true )  { ;;// only check external functions
-    Interpreter::checkFtnCallForPoisonedArgs( CS, &SF ); 
+    Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
   }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
