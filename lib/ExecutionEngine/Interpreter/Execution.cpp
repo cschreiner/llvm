@@ -1164,6 +1164,7 @@ void Interpreter::visitCallSite(CallSite CS) {
     ArgVals.push_back(getOperandValue(V, SF));
   }
 
+  // asdf ^^ and VV
   // To handle indirect calls, we must get the pointer value from the argument
   // and treat it as a function pointer.
   GenericValue SRC = getOperandValue(SF.Caller.getCalledValue(), SF);
@@ -2175,6 +2176,19 @@ void Interpreter::callFunction(Function *F,
 
   // Special handling for external functions.
   if (F->isDeclaration()) {
+    for ( std::vector<GenericValue>::interator it= ArgVals.begin(); 
+	it != ArgVals.end(); 
+	++it )  {
+      /* TODO: find some way to figure out of this GenericValue is an
+	 integer value 
+      */
+      if ( is_integer_value() )  { 
+        if ( it->IntVal.getPoisoned() )  {
+          cerr << "Attempt to call an external function with a poison value.\n";
+	  exit( EXIT_FAILURE );
+	}
+      }
+    }; // asdf
     GenericValue Result = callExternalFunction (F, ArgVals);
     // Simulate a 'ret' instruction of the appropriate type.
     popStackAndReturnValueToCaller (F->getReturnType (), Result);
