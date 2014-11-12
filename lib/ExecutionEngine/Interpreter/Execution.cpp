@@ -79,7 +79,7 @@ static void checkFtnCallForPoisonedArgs(
       cs_it != cs_it_end; 
       ++cs_it, arg_num++ )  {
     Value *val_ptr = *cs_it;
-    if ( val_ptr->getType()->getTypeID == llvm::Type::IntegerTyID )  {
+    if ( val_ptr->getType()->getTypeID() == llvm::Type::IntegerTyID )  {
       GenericValue gv= getOperandValue( val_ptr, sf_ptr );
 //asdf;;
       if ( gv.IntVal.getPoisoned() )  {
@@ -267,7 +267,6 @@ static GenericValue executeICMP_SGT(GenericValue Src1, GenericValue Src2,
     dbgs() << "Unhandled type for ICMP_SGT predicate: " << *Ty << "\n";
     llvm_unreachable(nullptr);
   }
-  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
   return Dest;
 }
 
@@ -302,6 +301,7 @@ static GenericValue executeICMP_SLE(GenericValue Src1, GenericValue Src2,
 static GenericValue executeICMP_UGE(GenericValue Src1, GenericValue Src2,
                                     Type *Ty) {
   GenericValue Dest;
+  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(uge,Ty);
     IMPLEMENT_VECTOR_INTEGER_ICMP(uge,Ty);
@@ -1207,7 +1207,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   if ( F->isDeclaration() || true )  { ;;// only check external functions
-    checkFtnCallForPoisonedArgs( CS, &SF ); 
+    checkFtnCallForPoisonedArgs( &CS, SF ); 
   }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
