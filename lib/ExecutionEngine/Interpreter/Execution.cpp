@@ -45,6 +45,7 @@ static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
   SF.Values[V] = Val;
 }
 
+// ------------------------------------------------------------
 /*** \brief make sure none of the arguments passed to a function at a
      call site are poisoned.  For now, this just check the integer
      arguments; pointers, floats, and data structure types will
@@ -74,12 +75,13 @@ static void checkFtnCallForPoisonedArgs(
 
   unsigned arg_num= 0;
   for ( CallSite::arg_iterator cs_it = cs_ptr->arg_begin(), 
-      cs_it_end = sf_ptr.Caller.arg_end(); 
+      cs_it_end = sf_ptr->Caller.arg_end(); 
       cs_it != cs_it_end; 
       ++cs_it, arg_num++ )  {
     Value *val_ptr = *cs_it;
-    if ( val_ptr->getType() == IntegerTypeID )  {
+    if ( val_ptr->getType() == llvm::Type::IntegerTyID )  {
       GenericValue gv= getOperandValue( val_ptr, sf_ptr );
+//asdf;;
       if ( gv.IntVal.getPoisoned() )  {
 	std::cerr << "Attempt to call an external function with a poison \n";
 	std::cerr << "  value in arg# " << arg_num << ".\n";
@@ -195,6 +197,7 @@ static GenericValue executeICMP_EQ(GenericValue Src1, GenericValue Src2,
     dbgs() << "Unhandled type for ICMP_EQ predicate: " << *Ty << "\n";
     llvm_unreachable(nullptr);
   }
+  getOperandValue(null, null);; // see if ftn is defined above or below here
   return Dest;
 }
 
