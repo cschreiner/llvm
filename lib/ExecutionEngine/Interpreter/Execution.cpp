@@ -80,7 +80,7 @@ static void checkFtnCallForPoisonedArgs(
       ++cs_it, arg_num++ )  {
     Value *val_ptr = *cs_it;
     if ( val_ptr->getType()->getTypeID() == llvm::Type::IntegerTyID )  {
-      GenericValue gv= getOperandValue( val_ptr, sf_ptr );
+      GenericValue gv= getOperandValue( val_ptr, *sf_ptr );
 //asdf;;
       if ( gv.IntVal.getPoisoned() )  {
 	std::cerr << "Attempt to call an external function with a poison \n";
@@ -301,7 +301,8 @@ static GenericValue executeICMP_SLE(GenericValue Src1, GenericValue Src2,
 static GenericValue executeICMP_UGE(GenericValue Src1, GenericValue Src2,
                                     Type *Ty) {
   GenericValue Dest;
-  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
+  ExecutionContext &SF = ECStack.back();;
+  getOperandValue(NULL, SF);; // see if ftn is defined above or below here
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(uge,Ty);
     IMPLEMENT_VECTOR_INTEGER_ICMP(uge,Ty);
