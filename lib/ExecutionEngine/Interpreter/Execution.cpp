@@ -79,7 +79,7 @@ static void checkFtnCallForPoisonedArgs(
       cs_it != cs_it_end; 
       ++cs_it, arg_num++ )  {
     Value *val_ptr = *cs_it;
-    if ( val_ptr->getType() == llvm::Type::IntegerTyID )  {
+    if ( val_ptr->getType()->getTypeID == llvm::Type::IntegerTyID )  {
       GenericValue gv= getOperandValue( val_ptr, sf_ptr );
 //asdf;;
       if ( gv.IntVal.getPoisoned() )  {
