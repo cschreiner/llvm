@@ -197,7 +197,6 @@ static GenericValue executeICMP_EQ(GenericValue Src1, GenericValue Src2,
     dbgs() << "Unhandled type for ICMP_EQ predicate: " << *Ty << "\n";
     llvm_unreachable(nullptr);
   }
-  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
   return Dest;
 }
 
@@ -268,6 +267,7 @@ static GenericValue executeICMP_SGT(GenericValue Src1, GenericValue Src2,
     dbgs() << "Unhandled type for ICMP_SGT predicate: " << *Ty << "\n";
     llvm_unreachable(nullptr);
   }
+  getOperandValue(NULL, NULL);; // see if ftn is defined above or below here
   return Dest;
 }
 
@@ -1207,7 +1207,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   if ( F->isDeclaration() || true )  { ;;// only check external functions
-    checkFtnCallForPoisonedArgs( CS, SF ); 
+    checkFtnCallForPoisonedArgs( CS, &SF ); 
   }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
