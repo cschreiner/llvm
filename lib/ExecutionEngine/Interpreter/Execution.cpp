@@ -45,6 +45,53 @@ static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
   SF.Values[V] = Val;
 }
 
+/*** \brief make sure none of the arguments passed to a function at a
+     call site are poisoned.  For now, this just check the integer
+     arguments; pointers, floats, and data structure types will
+     hopefully be added later.
+
+  Exits if an argument is determined to be poisoned.
+
+  TODO2: See if there are ways of improving the efficiency of this
+  code.  In particular, can the ExecutionContext* sf_ptr argument be
+  eliminated?
+ */
+/* notes on research re how to implement this function:
+  Function::getArgumentList() is a data structure of Argument type
+    presumably the iterator arg_begin() is of Argument* type
+
+  // means of getting type of an argument
+  Value can use llvm::Value::getType()
+    and then test if getTypeID() is IntegerTyID
+
+ */
+static void checkFtnCallForPoisonedArgs( 
+    CallSite* cs_ptr, ExecutionContext* sf_ptr )
+{{
+  Function* ftn_ptr = cs_ptr->getCalledFunction();
+  //const unsigned NumArgs = SF.Caller.arg_size(); 
+  // TODO2: delete if not needed
+
+  unsigned arg_num= 0;
+  for ( CallSite::arg_iterator cs_it = cs_ptr->arg_begin(), 
+      cs_it_end = sf_ptr.Caller.arg_end(); 
+      cs_it != cs_it_end; 
+      ++cs_it, arg_num++ )  {
+    Value *val_ptr = *cs_it;
+    if ( val_ptr->getType() == IntegerTypeID )  {
+      GenericValue gv= getOperandValue( val_ptr, sf_ptr );
+      if ( gv.IntVal.getPoisoned() )  {
+	std::cerr << "Attempt to call an external function with a poison \n";
+	std::cerr << "  value in arg# " << arg_num << ".\n";
+	std::cerr << "  ftn name=\"" << ftn_ptr->getName().str() << 
+	    "\", numArgs=" << cs_ptr->arg_size() << "\n";;
+	exit( EXIT_FAILURE );
+      }
+    }
+  }
+
+}}
+
 //===----------------------------------------------------------------------===//
 //                    Binary Instruction Implementations
 //===----------------------------------------------------------------------===//
@@ -1156,6 +1203,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   const unsigned NumArgs = SF.Caller.arg_size();
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
+  checkFtnCallForPoisonedArgs( CS, SF ); 
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
   for (CallSite::arg_iterator i = SF.Caller.arg_begin(),
@@ -2176,19 +2224,6 @@ void Interpreter::callFunction(Function *F,
 
   // Special handling for external functions.
   if (F->isDeclaration()) {
-    for ( std::vector<GenericValue>::interator it= ArgVals.begin(); 
-	it != ArgVals.end(); 
-	++it )  {
-      /* TODO: find some way to figure out of this GenericValue is an
-	 integer value 
-      */
-      if ( is_integer_value() )  { 
-        if ( it->IntVal.getPoisoned() )  {
-          cerr << "Attempt to call an external function with a poison value.\n";
-	  exit( EXIT_FAILURE );
-	}
-      }
-    }; // asdf
     GenericValue Result = callExternalFunction (F, ArgVals);
     // Simulate a 'ret' instruction of the appropriate type.
     popStackAndReturnValueToCaller (F->getReturnType (), Result);
