@@ -45,7 +45,9 @@ static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
   SF.Values[V] = Val;
 }
 
-// ------------------------------------------------------------
+// ---------------------------------------------------------------------------- 
+static void Interpreter::checkFtnCallForPoisonedArgs( 
+    CallSite& cs, ExecutionContext* sf_ptr )
 /*** \brief make sure none of the arguments passed to a function at a
      call site are poisoned.  For now, this just check the integer
      arguments; pointers, floats, and data structure types will
@@ -66,15 +68,13 @@ static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
     and then test if getTypeID() is IntegerTyID
 
  */
-static void checkFtnCallForPoisonedArgs( 
-    CallSite* cs_ptr, ExecutionContext* sf_ptr )
 {{
-  Function* ftn_ptr = cs_ptr->getCalledFunction();
+  Function* ftn_ptr = cs.getCalledFunction();
   //const unsigned NumArgs = SF.Caller.arg_size(); 
   // TODO2: delete if not needed
 
   unsigned arg_num= 0;
-  for ( CallSite::arg_iterator cs_it = cs_ptr->arg_begin(), 
+  for ( CallSite::arg_iterator cs_it = cs.arg_begin(), 
       cs_it_end = sf_ptr->Caller.arg_end(); 
       cs_it != cs_it_end; 
       ++cs_it, arg_num++ )  {
@@ -86,7 +86,7 @@ static void checkFtnCallForPoisonedArgs(
 	std::cerr << "Attempt to call an external function with a poison \n";
 	std::cerr << "  value in arg# " << arg_num << ".\n";
 	std::cerr << "  ftn name=\"" << ftn_ptr->getName().str() << 
-	    "\", numArgs=" << cs_ptr->arg_size() << "\n";;
+	    "\", numArgs=" << cs.arg_size() << "\n";
 	exit( EXIT_FAILURE );
       }
     }
@@ -301,8 +301,6 @@ static GenericValue executeICMP_SLE(GenericValue Src1, GenericValue Src2,
 static GenericValue executeICMP_UGE(GenericValue Src1, GenericValue Src2,
                                     Type *Ty) {
   GenericValue Dest;
-  ExecutionContext &SF = ECStack.back();;
-  getOperandValue(NULL, SF);; // see if ftn is defined above or below here
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(uge,Ty);
     IMPLEMENT_VECTOR_INTEGER_ICMP(uge,Ty);
@@ -1208,7 +1206,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   if ( F->isDeclaration() || true )  { ;;// only check external functions
-    checkFtnCallForPoisonedArgs( &CS, SF ); 
+    Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
   }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
