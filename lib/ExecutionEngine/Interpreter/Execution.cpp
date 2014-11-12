@@ -46,18 +46,25 @@ static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
 }
 
 // ---------------------------------------------------------------------------- 
-static void Interpreter::checkFtnCallForPoisonedArgs( 
-    CallSite& cs, ExecutionContext* sf_ptr )
+void Interpreter::checkFtnCallForPoisonedArgs( 
+    CallSite& cs, ExecutionContext& exCon )
+// ---------------------------------------------------------------------------- 
 /*** \brief make sure none of the arguments passed to a function at a
-     call site are poisoned.  For now, this just check the integer
+     call site are poisoned.  
+
+  Note: For now, this just check the integer
      arguments; pointers, floats, and data structure types will
      hopefully be added later.
 
-  Exits if an argument is determined to be poisoned.
-
   TODO2: See if there are ways of improving the efficiency of this
-  code.  In particular, can the ExecutionContext* sf_ptr argument be
+  code.  In particular, can the ExecutionContext* exCon argument be
   eliminated?
+
+  @param cs the call site whose arguments should be examined
+
+  @param exCon the execution context of the call site in question.
+    
+  @return Exits if an argument is determined to be poisoned.
  */
 /* notes on research re how to implement this function:
   Function::getArgumentList() is a data structure of Argument type
@@ -75,12 +82,12 @@ static void Interpreter::checkFtnCallForPoisonedArgs(
 
   unsigned arg_num= 0;
   for ( CallSite::arg_iterator cs_it = cs.arg_begin(), 
-      cs_it_end = sf_ptr->Caller.arg_end(); 
+      cs_it_end = exCon.Caller.arg_end(); 
       cs_it != cs_it_end; 
       ++cs_it, arg_num++ )  {
     Value *val_ptr = *cs_it;
     if ( val_ptr->getType()->getTypeID() == llvm::Type::IntegerTyID )  {
-      GenericValue gv= getOperandValue( val_ptr, *sf_ptr );
+      GenericValue gv= getOperandValue( val_ptr, exCon );
 //asdf;;
       if ( gv.IntVal.getPoisoned() )  {
 	std::cerr << "Attempt to call an external function with a poison \n";
@@ -1206,7 +1213,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
   if ( F->isDeclaration() || true )  { ;;// only check external functions
-    Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
+    Interpreter::checkFtnCallForPoisonedArgs( CS, &SF ); 
   }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
