@@ -1203,7 +1203,9 @@ void Interpreter::visitCallSite(CallSite CS) {
   const unsigned NumArgs = SF.Caller.arg_size();
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
-  checkFtnCallForPoisonedArgs( CS, SF ); 
+  if ( F->isDeclaration() || true )  { ;;// only check external functions
+    checkFtnCallForPoisonedArgs( CS, SF ); 
+  }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
   for (CallSite::arg_iterator i = SF.Caller.arg_begin(),
