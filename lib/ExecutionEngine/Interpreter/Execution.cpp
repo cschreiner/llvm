@@ -899,9 +899,6 @@ void Interpreter::exitCalled(GenericValue GV) {
 ///
 void Interpreter::popStackAndReturnValueToCaller(Type *RetTy,
                                                  GenericValue Result) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::popStackAndReturnValueToCaller(Type*, GenericValue)\n" );;
-
   // Pop the current stack frame.
   ECStack.pop_back();
 
@@ -927,9 +924,6 @@ void Interpreter::popStackAndReturnValueToCaller(Type *RetTy,
 }
 
 void Interpreter::visitReturnInst(ReturnInst &I) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::visitReturnInst(ReturnInst&)\n" );;
-
   ExecutionContext &SF = ECStack.back();
   Type *RetTy = Type::getVoidTy(I.getContext());
   GenericValue Result;
@@ -997,8 +991,6 @@ void Interpreter::visitIndirectBrInst(IndirectBrInst &I) {
 // results can happen.  Thus we use a two phase approach.
 //
 void Interpreter::SwitchToNewBasicBlock(BasicBlock *Dest, ExecutionContext &SF){
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::SwitchToNewBasicBlock(BasicBlock *, ExecutionContect&)\n" );;
   BasicBlock *PrevBB = SF.CurBB;      // Remember where we came from...
   SF.CurBB   = Dest;                  // Update CurBB to branch destination
   SF.CurInst = SF.CurBB->begin();     // Update new instruction ptr...
@@ -1108,8 +1100,6 @@ void Interpreter::visitGetElementPtrInst(GetElementPtrInst &I) {
 }
 
 void Interpreter::visitLoadInst(LoadInst &I) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::visitLoadInst(LoadInst&)\n" );;
   /* TODO: add something to poison the register if any of the bytes being 
      read are poisoned.
   */
@@ -1124,8 +1114,6 @@ void Interpreter::visitLoadInst(LoadInst &I) {
 }
 
 void Interpreter::visitStoreInst(StoreInst &I) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::visitStoreInst(StoreInst&)\n" );;
   /* TODO: add something to poison memory if the value being written is 
      poisoned.
    */
@@ -1143,7 +1131,6 @@ void Interpreter::visitStoreInst(StoreInst &I) {
 //===----------------------------------------------------------------------===//
 
 void Interpreter::visitCallSite(CallSite CS) {
-  printf( "Starting Execution.cpp's Interpreter::visitCallSite(CallSite)" );; 
   ExecutionContext &SF = ECStack.back();
 
 
@@ -1187,13 +1174,11 @@ void Interpreter::visitCallSite(CallSite CS) {
       return;
     }
 
-  printf( "Got to Execution.cpp's Interpreter::visitCallSite(CallSite)'s " 
-      "mercury\n" );;
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
-  std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
-      NumArgs << "\n";;
+  //std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
+  //    NumArgs << "\n";;
   if ( F->isDeclaration() )  { // only check external functions
     Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
   }
@@ -1307,8 +1292,6 @@ void Interpreter::visitAShr(BinaryOperator &I) {
 
 GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::executeTruncInst(Value*, Type*, ExecutionContect&)\n" );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   Type *SrcTy = SrcVal->getType();
   if (SrcTy->isVectorTy()) {
@@ -1556,8 +1539,6 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::executePtrToIntInst(Value*, Type*, ExecutionContect&)\n" );;
   /* TODO: put something here to poison the integer if the pointer was
      poisoned.
    */
@@ -1571,8 +1552,6 @@ GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::executeIntToPtrToInst(Value*, Type*, ExecutionContect&)\n" );;
   /* TODO: put something here to poison the pointer if the integer was
      poisoned.
    */
@@ -2178,8 +2157,6 @@ GenericValue Interpreter::getOperandValue(Value *V, ExecutionContext &SF) {
 //
 void Interpreter::callFunction(Function *F,
                                const std::vector<GenericValue> &ArgVals) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::callFunction(Function*, const std::vector<GenericValue>&)\n" );;
 
   assert((ECStack.empty() || !ECStack.back().Caller.getInstruction() ||
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&

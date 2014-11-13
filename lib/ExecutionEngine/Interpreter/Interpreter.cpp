@@ -80,10 +80,7 @@ void Interpreter::runAtExitHandlers () {
 GenericValue
 Interpreter::runFunction(Function *F,
                          const std::vector<GenericValue> &ArgValues) {
-  printf ( "about to execute Execution.cpp's " 
-      "Interpeter::runFunction(Function*, "
-      "const std::vector<GenericValue>&)\n" );;
-  std::cout << "function name=\"" << F->getName().str() << "\"\n";;
+  //std::cout << "function name=\"" << F->getName().str() << "\"\n";;
 
   assert (F && "Function *F was null at entry to run()");
 
@@ -100,8 +97,6 @@ Interpreter::runFunction(Function *F,
     ActualArgs.push_back(ArgValues[i]);
 
   // Set up the function call.
-  printf ( 
-      "about to execute Interpreter.cpp's callFunction(F, ActualArgs);\n");;
   callFunction(F, ActualArgs);
 
   // Start executing the function.
