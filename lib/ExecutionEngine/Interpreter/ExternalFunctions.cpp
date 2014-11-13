@@ -89,9 +89,6 @@ static char getTypeID(Type *Ty) {
 // that all external functions has the same (and pretty "general") signature.
 // The typical example of such functions are "lle_X_" ones.
 static ExFunc lookupFunction(const Function *F) {
-  printf ( "about to execute ExternalFunction.cpp's " 
-      "lookupFunction(const Function*)\n" );;
-
   // Function not found, look it up... start by figuring out what the
   // composite function name should be.
   std::string ExtName = "lle_";
@@ -250,12 +247,7 @@ static bool ffiInvoke(RawFunc Fn, Function *F,
 
 GenericValue Interpreter::callExternalFunction(Function *F,
                                      const std::vector<GenericValue> &ArgVals) {
-  printf ( "about to execute ExternalFunctions.cpp's " 
-      "Interpeter::callExternalFunction("
-      "Function*, const std::vector<GenericValue>&)\n" );;
   TheInterpreter = this;
-  printf ( "starting ExternalFunctions.cpp's Interpreter::callExternalFunction( Function*, const std::vector<GenericValue>& \n");;
-  
   unique_lock<sys::Mutex> Guard(*FunctionsLock);
 
   // Do a lookup to see if the function is in our cache... this should just be a
