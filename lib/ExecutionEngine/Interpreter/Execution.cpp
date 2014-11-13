@@ -1212,7 +1212,7 @@ void Interpreter::visitCallSite(CallSite CS) {
   const unsigned NumArgs = SF.Caller.arg_size();
   std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
       NumArgs << "\n";;
-  if ( F->isDeclaration() || true )  { ;;// only check external functions
+  if ( F->isDeclaration() )  { // only check external functions
     Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
   }
   ArgVals.reserve(NumArgs);
