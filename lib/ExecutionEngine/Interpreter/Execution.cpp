@@ -88,7 +88,6 @@ void Interpreter::checkFtnCallForPoisonedArgs(
     Value *val_ptr = *cs_it;
     if ( val_ptr->getType()->getTypeID() == llvm::Type::IntegerTyID )  {
       GenericValue gv= getOperandValue( val_ptr, exCon );
-//asdf;;
       if ( gv.IntVal.getPoisoned() )  {
 	std::cerr << "Attempt to call an external function with a poison \n";
 	std::cerr << "  value in arg# " << arg_num << ".\n";
@@ -737,7 +736,6 @@ static GenericValue executeCmpInst(unsigned predicate, GenericValue Src1,
 }
 
 void Interpreter::visitBinaryOperator(BinaryOperator &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   Type *Ty    = I.getOperand(0)->getType();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
@@ -854,7 +852,6 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 
 static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
                                       GenericValue Src3, const Type *Ty) {
-    printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
     GenericValue Dest;
     if(Ty->isVectorTy()) {
       assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());
@@ -870,7 +867,6 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 }
 
 void Interpreter::visitSelectInst(SelectInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   const Type * Ty = I.getOperand(0)->getType();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
@@ -885,7 +881,6 @@ void Interpreter::visitSelectInst(SelectInst &I) {
 //===----------------------------------------------------------------------===//
 
 void Interpreter::exitCalled(GenericValue GV) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // runAtExitHandlers() assumes there are no stack frames, but
   // if exit() was called, then it had a stack frame. Blow away
   // the stack before interpreting atexit handlers.
@@ -904,7 +899,6 @@ void Interpreter::exitCalled(GenericValue GV) {
 ///
 void Interpreter::popStackAndReturnValueToCaller(Type *RetTy,
                                                  GenericValue Result) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::popStackAndReturnValueToCaller(Type*, GenericValue)\n" );;
 
@@ -933,7 +927,6 @@ void Interpreter::popStackAndReturnValueToCaller(Type *RetTy,
 }
 
 void Interpreter::visitReturnInst(ReturnInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::visitReturnInst(ReturnInst&)\n" );;
 
@@ -951,12 +944,10 @@ void Interpreter::visitReturnInst(ReturnInst &I) {
 }
 
 void Interpreter::visitUnreachableInst(UnreachableInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   report_fatal_error("Program executed an 'unreachable' instruction!");
 }
 
 void Interpreter::visitBranchInst(BranchInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   BasicBlock *Dest;
 
@@ -970,7 +961,6 @@ void Interpreter::visitBranchInst(BranchInst &I) {
 }
 
 void Interpreter::visitSwitchInst(SwitchInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   Value* Cond = I.getCondition();
   Type *ElTy = Cond->getType();
@@ -990,7 +980,6 @@ void Interpreter::visitSwitchInst(SwitchInst &I) {
 }
 
 void Interpreter::visitIndirectBrInst(IndirectBrInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   void *Dest = GVTOP(getOperandValue(I.getAddress(), SF));
   SwitchToNewBasicBlock((BasicBlock*)Dest, SF);
@@ -1008,7 +997,6 @@ void Interpreter::visitIndirectBrInst(IndirectBrInst &I) {
 // results can happen.  Thus we use a two phase approach.
 //
 void Interpreter::SwitchToNewBasicBlock(BasicBlock *Dest, ExecutionContext &SF){
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::SwitchToNewBasicBlock(BasicBlock *, ExecutionContect&)\n" );;
   BasicBlock *PrevBB = SF.CurBB;      // Remember where we came from...
@@ -1043,7 +1031,6 @@ void Interpreter::SwitchToNewBasicBlock(BasicBlock *Dest, ExecutionContext &SF){
 //===----------------------------------------------------------------------===//
 
 void Interpreter::visitAllocaInst(AllocaInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
 
   Type *Ty = I.getType()->getElementType();  // Type to be allocated
@@ -1077,7 +1064,6 @@ void Interpreter::visitAllocaInst(AllocaInst &I) {
 GenericValue Interpreter::executeGEPOperation(Value *Ptr, gep_type_iterator I,
                                               gep_type_iterator E,
                                               ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   assert(Ptr->getType()->isPointerTy() &&
          "Cannot getElementOffset of a nonpointer type!");
 
@@ -1116,14 +1102,12 @@ GenericValue Interpreter::executeGEPOperation(Value *Ptr, gep_type_iterator I,
 }
 
 void Interpreter::visitGetElementPtrInst(GetElementPtrInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   SetValue(&I, executeGEPOperation(I.getPointerOperand(),
                                    gep_type_begin(I), gep_type_end(I), SF), SF);
 }
 
 void Interpreter::visitLoadInst(LoadInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::visitLoadInst(LoadInst&)\n" );;
   /* TODO: add something to poison the register if any of the bytes being 
@@ -1140,7 +1124,6 @@ void Interpreter::visitLoadInst(LoadInst &I) {
 }
 
 void Interpreter::visitStoreInst(StoreInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::visitStoreInst(StoreInst&)\n" );;
   /* TODO: add something to poison memory if the value being written is 
@@ -1160,7 +1143,6 @@ void Interpreter::visitStoreInst(StoreInst &I) {
 //===----------------------------------------------------------------------===//
 
 void Interpreter::visitCallSite(CallSite CS) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf( "Starting Execution.cpp's Interpreter::visitCallSite(CallSite)" );; 
   ExecutionContext &SF = ECStack.back();
 
@@ -1233,7 +1215,6 @@ void Interpreter::visitCallSite(CallSite CS) {
 // auxiliary function for shift operations
 static unsigned getShiftAmount(uint64_t orgShiftAmount,
                                llvm::APInt valueToShift) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   unsigned valueWidth = valueToShift.getBitWidth();
   if (orgShiftAmount < (uint64_t)valueWidth)
     return orgShiftAmount;
@@ -1244,7 +1225,6 @@ static unsigned getShiftAmount(uint64_t orgShiftAmount,
 
 
 void Interpreter::visitShl(BinaryOperator &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
@@ -1272,7 +1252,6 @@ void Interpreter::visitShl(BinaryOperator &I) {
 }
 
 void Interpreter::visitLShr(BinaryOperator &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
@@ -1300,7 +1279,6 @@ void Interpreter::visitLShr(BinaryOperator &I) {
 }
 
 void Interpreter::visitAShr(BinaryOperator &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
@@ -1329,7 +1307,6 @@ void Interpreter::visitAShr(BinaryOperator &I) {
 
 GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::executeTruncInst(Value*, Type*, ExecutionContect&)\n" );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
@@ -1352,7 +1329,6 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeSExtInst(Value *SrcVal, Type *DstTy,
                                           ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   const Type *SrcTy = SrcVal->getType();
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   if (SrcTy->isVectorTy()) {
@@ -1373,7 +1349,6 @@ GenericValue Interpreter::executeSExtInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeZExtInst(Value *SrcVal, Type *DstTy,
                                           ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   const Type *SrcTy = SrcVal->getType();
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   if (SrcTy->isVectorTy()) {
@@ -1395,7 +1370,6 @@ GenericValue Interpreter::executeZExtInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeFPTruncInst(Value *SrcVal, Type *DstTy,
                                              ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
   if (SrcVal->getType()->getTypeID() == Type::VectorTyID) {
@@ -1419,7 +1393,6 @@ GenericValue Interpreter::executeFPTruncInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeFPExtInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
   if (SrcVal->getType()->getTypeID() == Type::VectorTyID) {
@@ -1442,7 +1415,6 @@ GenericValue Interpreter::executeFPExtInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeFPToUIInst(Value *SrcVal, Type *DstTy,
                                             ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Type *SrcTy = SrcVal->getType();
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
@@ -1481,7 +1453,6 @@ GenericValue Interpreter::executeFPToUIInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeFPToSIInst(Value *SrcVal, Type *DstTy,
                                             ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   Type *SrcTy = SrcVal->getType();
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
@@ -1519,7 +1490,6 @@ GenericValue Interpreter::executeFPToSIInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
                                             ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
   if (SrcVal->getType()->getTypeID() == Type::VectorTyID) {
@@ -1552,7 +1522,6 @@ GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
                                             ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
 
   if (SrcVal->getType()->getTypeID() == Type::VectorTyID) {
@@ -1587,7 +1556,6 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::executePtrToIntInst(Value*, Type*, ExecutionContect&)\n" );;
   /* TODO: put something here to poison the integer if the pointer was
@@ -1603,7 +1571,6 @@ GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::executeIntToPtrToInst(Value*, Type*, ExecutionContect&)\n" );;
   /* TODO: put something here to poison the pointer if the integer was
@@ -1623,7 +1590,6 @@ GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
 GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
                                              ExecutionContext &SF) {
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // This instruction supports bitwise conversion of vectors to integers and
   // to vectors of other types (as long as they have the same size)
   Type *SrcTy = SrcVal->getType();
@@ -1789,7 +1755,6 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
 }
 
 void Interpreter::visitTruncInst(TruncInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
@@ -1853,7 +1818,6 @@ void Interpreter::visitBitCastInst(BitCastInst &I) {
    case Type::TY##TyID: Dest.TY##Val = Src.TY##Val; break
 
 void Interpreter::visitVAArgInst(VAArgInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
 
   // Get the incoming valist parameter.  LLI treats the valist as a
@@ -1884,7 +1848,6 @@ void Interpreter::visitVAArgInst(VAArgInst &I) {
 } 
 
 void Interpreter::visitExtractElementInst(ExtractElementInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   GenericValue Src1 = getOperandValue(I.getOperand(0), SF);
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
@@ -1918,7 +1881,6 @@ void Interpreter::visitExtractElementInst(ExtractElementInst &I) {
 }
 
 void Interpreter::visitInsertElementInst(InsertElementInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   Type *Ty = I.getType();
 
@@ -1954,7 +1916,6 @@ void Interpreter::visitInsertElementInst(InsertElementInst &I) {
 }
 
 void Interpreter::visitShuffleVectorInst(ShuffleVectorInst &I){
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
 
   Type *Ty = I.getType();
@@ -2025,7 +1986,6 @@ void Interpreter::visitShuffleVectorInst(ShuffleVectorInst &I){
 }
 
 void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   ExecutionContext &SF = ECStack.back();
   Value *Agg = I.getAggregateOperand();
   GenericValue Dest;
@@ -2068,7 +2028,6 @@ void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
 }
 
 void Interpreter::visitInsertValueInst(InsertValueInst &I) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
 
   ExecutionContext &SF = ECStack.back();
   Value *Agg = I.getAggregateOperand();
@@ -2117,7 +2076,6 @@ void Interpreter::visitInsertValueInst(InsertValueInst &I) {
 
 GenericValue Interpreter::getConstantExprValue (ConstantExpr *CE,
                                                 ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   switch (CE->getOpcode()) {
   case Instruction::Trunc:
       return executeTruncInst(CE->getOperand(0), CE->getType(), SF);
@@ -2200,7 +2158,6 @@ GenericValue Interpreter::getConstantExprValue (ConstantExpr *CE,
 }
 
 GenericValue Interpreter::getOperandValue(Value *V, ExecutionContext &SF) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(V)) {
     return getConstantExprValue(CE, SF);
   } else if (Constant *CPV = dyn_cast<Constant>(V)) {
@@ -2221,7 +2178,6 @@ GenericValue Interpreter::getOperandValue(Value *V, ExecutionContext &SF) {
 //
 void Interpreter::callFunction(Function *F,
                                const std::vector<GenericValue> &ArgVals) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::callFunction(Function*, const std::vector<GenericValue>&)\n" );;
 
@@ -2262,7 +2218,6 @@ void Interpreter::callFunction(Function *F,
 
 
 void Interpreter::run() {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
 
   while (!ECStack.empty()) {
     // Interpret a single instruction & increment the "PC".

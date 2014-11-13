@@ -36,7 +36,6 @@ extern "C" void LLVMLinkInInterpreter() { }
 ///
 ExecutionEngine *Interpreter::create(std::unique_ptr<Module> M,
                                      std::string *ErrStr) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   // Tell this Module to materialize everything and release the GVMaterializer.
   if (std::error_code EC = M->materializeAllPermanently()) {
     if (ErrStr)
@@ -54,7 +53,6 @@ ExecutionEngine *Interpreter::create(std::unique_ptr<Module> M,
 Interpreter::Interpreter(std::unique_ptr<Module> M)
   : ExecutionEngine(std::move(M)), TD(Modules.back().get()) {
 
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   memset(&ExitValue.Untyped, 0, sizeof(ExitValue.Untyped));
   setDataLayout(&TD);
   // Initialize the "backend"
@@ -70,7 +68,6 @@ Interpreter::~Interpreter() {
 }
 
 void Interpreter::runAtExitHandlers () {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   while (!AtExitHandlers.empty()) {
     callFunction(AtExitHandlers.back(), std::vector<GenericValue>());
     AtExitHandlers.pop_back();
@@ -83,7 +80,6 @@ void Interpreter::runAtExitHandlers () {
 GenericValue
 Interpreter::runFunction(Function *F,
                          const std::vector<GenericValue> &ArgValues) {
-  printf("reached file %s:%u:\n", __FILE__, __LINE__ );;
   printf ( "about to execute Execution.cpp's " 
       "Interpeter::runFunction(Function*, "
       "const std::vector<GenericValue>&)\n" );;
