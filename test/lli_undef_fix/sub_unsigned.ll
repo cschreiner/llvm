@@ -1,6 +1,6 @@
 ; RUN: 
 
-; TODO: find some way to sub lit code here to run this, and compare
+; TODO: find some way to add lit code here to run this, and compare
 ;	its printed output against an expected value... which may be
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
