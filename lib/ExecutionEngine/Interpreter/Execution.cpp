@@ -834,14 +834,26 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
       break;
-    case Instruction::Mul:   R.IntVal = Src1.IntVal * Src2.IntVal; break;
+    case Instruction::Mul:   
+      R.IntVal = Src1.IntVal * Src2.IntVal; 
+      APIntPoison::poisonIfNeeded_mul( R.IntVal, Src1.IntVal, Src2.IntVal, 
+          I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      break;
     case Instruction::FAdd:  executeFAddInst(R, Src1, Src2, Ty); break;
     case Instruction::FSub:  executeFSubInst(R, Src1, Src2, Ty); break;
     case Instruction::FMul:  executeFMulInst(R, Src1, Src2, Ty); break;
     case Instruction::FDiv:  executeFDivInst(R, Src1, Src2, Ty); break;
     case Instruction::FRem:  executeFRemInst(R, Src1, Src2, Ty); break;
-    case Instruction::UDiv:  R.IntVal = Src1.IntVal.udiv(Src2.IntVal); break;
-    case Instruction::SDiv:  R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); break;
+    case Instruction::UDiv:  
+      R.IntVal = Src1.IntVal.udiv(Src2.IntVal); 
+      APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
+	  I.isExact() );
+      break;
+    case Instruction::SDiv:  
+      R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); 
+      APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
+	  I.isExact() );
+      break;
     case Instruction::URem:  R.IntVal = Src1.IntVal.urem(Src2.IntVal); break;
     case Instruction::SRem:  R.IntVal = Src1.IntVal.srem(Src2.IntVal); break;
     case Instruction::And:   R.IntVal = Src1.IntVal & Src2.IntVal; break;
@@ -1233,6 +1245,8 @@ void Interpreter::visitShl(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.shl(getShiftAmount(shiftAmount, valueToShift));
+    APIntPoison::poisonIfNeeded_shl( Dest.IntVal, valueToShift, shiftAmount, 
+	I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1260,6 +1274,8 @@ void Interpreter::visitLShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.lshr(getShiftAmount(shiftAmount, valueToShift));
+    APIntPoison::poisonIfNeeded_lshr( 
+	Dest.IntVal, valueToShift, shiftAmount, I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1287,6 +1303,8 @@ void Interpreter::visitAShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.ashr(getShiftAmount(shiftAmount, valueToShift));
+    APIntPoison::poisonIfNeeded_lshr( 
+	Dest.IntVal, valueToShift, shiftAmount, I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
