@@ -162,8 +162,8 @@ namespace APIntPoison {
     // algorithm from:
     // https://www.securecoding.cert.org/confluence/display/seccode/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
 
-    APInt int_max= getSignedMaxValue( dest.getBitWidth() );
-    APInt int_min= getSignedMinValue( dest.getBitWidth() );
+    APInt int_max= APInt::getSignedMaxValue( dest.getBitWidth() );
+    APInt int_min= APInt::getSignedMinValue( dest.getBitWidth() );
     if ( lhs.sgt(0) ) {  /* lhs is positive */
       if (rhs.sgt(0) > 0) {  /* lhs and rhs are positive */
 	if (lhs.sgt( (int_max.sdiv(rhs) )) )  {
@@ -195,7 +195,7 @@ namespace APIntPoison {
     // http://stackoverflow.com/questions/199333/best-way-to-detect-integer-overflow-in-c-c
     unsigned lhs_digits= lhs.getBitWidth()- lhs.countLeadingZeros();
     unsigned rhs_digits= rhs.getBitWidth()- rhs.countLeadingZeros();
-    if ( (lhs_digits + rhs_digits) > result.getBitWidth() )  {
+    if ( (lhs_digits + rhs_digits) > dest.getBitWidth() )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
