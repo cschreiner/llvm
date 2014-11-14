@@ -95,7 +95,7 @@ namespace APIntPoison {
  * Reentrancy: 
  *
  * Inputs: 
- *   dest: the sum to check
+ *   dest: the difference to check
  *   lhs, rhs: the two operands to check
  *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
  *	flag was present on the LLVM instruction.
@@ -114,13 +114,88 @@ namespace APIntPoison {
 			   bool nsw, bool nuw )
 {{
   if ( nsw )  { 
-    if ( false /* TODO: fill this in */  )  {
+    if ( rhs.sgt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
       // an unallowed signed wrap happened
       dest.orPoisoned(true);
     }
   }
   if ( nuw )  { 
-    if ( false /* TODO: fill this in */  )  {
+    if ( lhs.ult(rhs) )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_mul()
+ * ----------------------------------------------------------------------------
+ * Description: if signed and/or unsigned wraparound is forbidden, mark the
+ *	destination as poisoned if the given mul operands would create a
+ *	poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the product to check
+ *   lhs, rhs: the two operands to check
+ *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
+ *	flag was present on the LLVM instruction.
+ *	If one of these is false, no poison can be generated, so no
+ *	checking is performed for that kind of wrap.  Of course, if
+ *	the result was already poisoned (probably because one of the
+ *	operands was poisoned), that poison remains.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+  void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool nsw, bool nuw )
+{{
+  if ( nsw )  { 
+    // algorithm from:
+    // https://www.securecoding.cert.org/confluence/display/seccode/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
+
+    APInt int_max= getSignedMaxValue( dest.getBitWidth() );
+    APInt int_min= getSignedMinValue( dest.getBitWidth() );
+    if ( lhs.sgt(0) ) {  /* lhs is positive */
+      if (rhs.sgt(0) > 0) {  /* lhs and rhs are positive */
+	if (lhs.sgt( (int_max.sdiv(rhs) )) )  {
+	  // an unallowed signed wrap happened
+	  dest.orPoisoned(true);
+	}
+      } else { /* lhs positive, rhs nonpositive */
+	if (rhs.slt( (int_min.sdiv(lhs) )) )  {
+	  // an unallowed signed wrap happened
+	  dest.orPoisoned(true);
+	}
+      } /* lhs positive, rhs nonpositive */
+    } else { /* lhs is nonpositive */
+      if (rhs.sgt(0) )  { /* lhs is nonpositive, rhs is positive */
+	if (lhs.slt( (int_min.sdiv(rhs) )) )  {
+	  // an unallowed signed wrap happened
+	  dest.orPoisoned(true);
+	}
+      } else { /* lhs and rhs are nonpositive */
+	if ( (lhs != 0) && (rhs.slt( (int_max.sdiv(lhs) )) ) )  {
+	  // an unallowed signed wrap happened
+	  dest.orPoisoned(true);
+	}
+      } /* End if lhs and rhs are nonpositive */
+    } /* End if lhs is nonpositive */
+  }
+  if ( nuw )  { 
+    // algorithm from: 
+    // http://stackoverflow.com/questions/199333/best-way-to-detect-integer-overflow-in-c-c
+    unsigned lhs_digits= lhs.getBitWidth()- lhs.countLeadingZeros();
+    unsigned rhs_digits= rhs.getBitWidth()- rhs.countLeadingZeros();
+    if ( (lhs_digits + rhs_digits) > result.getBitWidth() )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
