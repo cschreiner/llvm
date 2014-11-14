@@ -298,6 +298,81 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
   return;
 }}
 
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_lshr()
+ * ----------------------------------------------------------------------------
+ * Description: if an exact shift is required, mark the destination as
+ *	poisoned if the given lshr operands would create a poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the difference to check
+ *   lhs: the APInt that got shifted
+ *   shiftAmt: the number of places to shift left
+ *   exact: true if the "exact" flag was present on the LLVM instruction.  
+ *	If this is false, no poison can be generated, so no checking is
+ *	performed.  Of course, if the result was already poisoned (probably
+ *	because one of the operands was poisoned), that poison remains.
+ *     
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
+			   bool exact )
+{{
+  if ( exact )  { 
+    // did any 1 bits get shifted out?
+    if ( lhs.getLoBits(shiftAmt) != 0 )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_ashr()
+ * ----------------------------------------------------------------------------
+ * Description: if an exact shift is required, mark the destination as
+ *	poisoned if the given ashr operands would create a poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the difference to check
+ *   lhs: the APInt that got shifted
+ *   shiftAmt: the number of places to shift left
+ *   exact: true if the "exact" flag was present on the LLVM instruction.  
+ *	If this is false, no poison can be generated, so no checking is
+ *	performed.  Of course, if the result was already poisoned (probably
+ *	because one of the operands was poisoned), that poison remains.
+ *     
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
+			   bool exact )
+{{
+  if ( exact )  { 
+    // did any 1 bits get shifted out?
+    if ( lhs.getLoBits(shiftAmt) != 0 )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
 
 } // end namespace APIntPoison
 // ############################################################################
