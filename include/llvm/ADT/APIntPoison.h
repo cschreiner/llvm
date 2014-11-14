@@ -28,34 +28,35 @@ namespace llvm {
 //                              APIntPoison Namespace
 namespace APIntPoison {
 
+/* There should be exactly one function here for each LLVM instruction
+   that can generate a poison value.
+ */
 // TODO: add const designations here as appropriate.
 
 // TODO: add overloads here as appropriate, for example, one operand
 // may be an integer (signed or not).
 
-void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_sadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-// looks like we need separate checks for ++ vs a full add.
-void poisonIfNeeded_usub( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_ssub( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_umul( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_smul( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_udiv( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_sdiv( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
+void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs, 
+			 bool nsw, bool nuw );
+/* Looks like we need separate checks for ++ vs a full add.
+   Add such a function if needed.
+*/
+void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool nsw, bool nuw );
+void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool nsw, bool nuw );
 
-void poisonIfNeeded_ushl( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_sshl( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_ulshr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_slshr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_uashr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
-void poisonIfNeeded_sashr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
+void poisonIfNeeded_udiv( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
+void poisonIfNeeded_sdiv( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
+
+void poisonIfNeeded_shl( APInt& dest, APInt& lhs, APInt& rhs, 
+			 bool nsw, bool nuw );
+
+void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
+void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 
 void poisonIfNeeded_getelementptr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool noWrap );
+    APInt& dest, APInt& lhs, APInt& rhs, bool inbounds );
 
 } // End of APIntPoison namespace
 
