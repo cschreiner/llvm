@@ -51,8 +51,10 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
 			 bool nsw, bool nuw );
 
-void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
-void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
+void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
+			  bool exact );
+void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
+			  bool exact );
 
 void poisonIfNeeded_getelementptr( 
     APInt& dest, APInt& lhs, APInt& rhs, bool inbounds );
