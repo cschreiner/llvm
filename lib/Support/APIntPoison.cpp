@@ -39,7 +39,7 @@ namespace llvm {
 namespace APIntPoison {
 
 /*** --------------------------------------------------------------------------
- * function poisonIfNeeded_uadd()
+ * function poisonIfNeeded_add()
  * ----------------------------------------------------------------------------
  * Description: if unsigned wraparound is forbidden, mark the
  *	destination as poisoned if the given add operands would create a
@@ -52,8 +52,12 @@ namespace APIntPoison {
  * Inputs: 
  *   dest: the sum to check
  *   lhs, rhs: the two operands to check
- *   noWrap: true if a "no wrap" flag was present on the LLVM instruction.
- *	If this is false, no poison is possible, so no checking is performed.
+ *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
+ *	flag was present on the LLVM instruction.
+ *	If one of these is false, no poison can be generated, so no
+ *	checking is performed for that kind of wrap.  Of course, if
+ *	the result was already poisoned (probably because one of the
+ *	operands was poisoned), that poison remains.
  *    
  * Outputs: 
  *   dest: write the poison result here
@@ -61,49 +65,23 @@ namespace APIntPoison {
  * Return Value: none
  *
  */
-void poisonIfNeeded_uadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
+  void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool nsw, bool nuw )
 {{
-  if ( ! noWrap )  { return; }
-  if ( dest.ult(lhs) || dest.ult(rhs) )  {
-    // an unallowed wrap happened
-    dest.orPoisoned(true);
+  if ( nsw )  { 
+    if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
+      // an unallowed wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  if ( nuw )  { 
+    if ( dest.ult(lhs) || dest.ult(rhs) )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
   }
   return;
 }}
-
-/*** --------------------------------------------------------------------------
- * function poisonIfNeeded_sadd()
- * ----------------------------------------------------------------------------
- * Description: if signed wraparound is forbidden, mark the
- *	destination as poisoned if the given add operands would create a
- *	poison value.
- *
- * Method: 
- *
- * Reentrancy: 
- *
- * Inputs: 
- *   dest: the sum to check
- *   lhs, rhs: the two operands to check
- *   noWrap: true if a "no wrap" flag was present on the LLVM instruction.
- *	If this is false, no poison is possible, so no checking is performed.
- *    
- * Outputs: 
- *   dest: write the poison result here
- *
- * Return Value: none
- *
- */
-void poisonIfNeeded_sadd( APInt& dest, APInt& lhs, APInt& rhs, bool noWrap )
-{{
-  if ( ! noWrap )  { return; }
-  if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
-    // an unallowed wrap happened
-    dest.orPoisoned(true);
-  }
-  return;
-}}
-
 
 } // end namespace APIntPoison
 // ############################################################################
