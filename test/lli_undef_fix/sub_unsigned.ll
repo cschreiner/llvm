@@ -1,6 +1,6 @@
 ; RUN: 
 
-; TODO: find some way to add lit code here to run this, and compare
+; TODO: find some way to sub lit code here to run this, and compare
 ;	its printed output against an expected value... which may be
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
@@ -21,15 +21,15 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  %nowrap1= add i8 150, 7
-  %nowrap2= add nuw i8 150, 7
+  %nowrap1= sub i8 168, 17
+  %nowrap2= sub nuw i8 168, 17
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap1 )
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap2 )
 
-  %unpoisoned_1= add i8 250, 7
-  %poisoned_1= add nuw i8 250, 7
+  %unpoisoned_1= sub i8 25, 47
+  %poisoned_1= sub nuw i8 25, 47
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_1 )
