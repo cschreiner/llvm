@@ -825,13 +825,15 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       llvm_unreachable(nullptr);
       break;
     case Instruction::Add:   
-	R.IntVal = Src1.IntVal + Src2.IntVal; 
-	APIntPoison::poisonIfNeeded_sadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
-				      I.hasNoSignedWrap() );
-	APIntPoison::poisonIfNeeded_uadd( R.IntVal, Src1.IntVal, Src2.IntVal, 
-				      I.hasNoUnsignedWrap() );
-	break;
-    case Instruction::Sub:   R.IntVal = Src1.IntVal - Src2.IntVal; break;
+      R.IntVal = Src1.IntVal + Src2.IntVal; 
+      APIntPoison::poisonIfNeeded_add( R.IntVal, Src1.IntVal, Src2.IntVal, 
+	  I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      break;
+    case Instruction::Sub:   
+      R.IntVal = Src1.IntVal - Src2.IntVal; 
+      APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
+          I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      break;
     case Instruction::Mul:   R.IntVal = Src1.IntVal * Src2.IntVal; break;
     case Instruction::FAdd:  executeFAddInst(R, Src1, Src2, Ty); break;
     case Instruction::FSub:  executeFSubInst(R, Src1, Src2, Ty); break;
