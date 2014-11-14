@@ -41,7 +41,7 @@ namespace APIntPoison {
 /*** --------------------------------------------------------------------------
  * function poisonIfNeeded_add()
  * ----------------------------------------------------------------------------
- * Description: if unsigned wraparound is forbidden, mark the
+ * Description: if signed and/or unsigned wraparound is forbidden, mark the
  *	destination as poisoned if the given add operands would create a
  *	poison value.
  *
@@ -70,12 +70,57 @@ namespace APIntPoison {
 {{
   if ( nsw )  { 
     if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
-      // an unallowed wrap happened
+      // an unallowed signed wrap happened
       dest.orPoisoned(true);
     }
   }
   if ( nuw )  { 
     if ( dest.ult(lhs) || dest.ult(rhs) )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_sub()
+ * ----------------------------------------------------------------------------
+ * Description: if signed and/or unsigned wraparound is forbidden, mark the
+ *	destination as poisoned if the given sub operands would create a
+ *	poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the sum to check
+ *   lhs, rhs: the two operands to check
+ *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
+ *	flag was present on the LLVM instruction.
+ *	If one of these is false, no poison can be generated, so no
+ *	checking is performed for that kind of wrap.  Of course, if
+ *	the result was already poisoned (probably because one of the
+ *	operands was poisoned), that poison remains.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+  void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool nsw, bool nuw )
+{{
+  if ( nsw )  { 
+    if ( false /* TODO: fill this in */  )  {
+      // an unallowed signed wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  if ( nuw )  { 
+    if ( false /* TODO: fill this in */  )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
