@@ -65,7 +65,7 @@ namespace APIntPoison {
  * Return Value: none
  *
  */
-  void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs, 
+void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs, 
 			   bool nsw, bool nuw )
 {{
   if ( nsw )  { 
@@ -110,7 +110,7 @@ namespace APIntPoison {
  * Return Value: none
  *
  */
-  void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs, 
+void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs, 
 			   bool nsw, bool nuw )
 {{
   if ( nsw )  { 
@@ -155,7 +155,7 @@ namespace APIntPoison {
  * Return Value: none
  *
  */
-  void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
+void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
 			   bool nsw, bool nuw )
 {{
   if ( nsw )  { 
@@ -202,6 +202,102 @@ namespace APIntPoison {
   }
   return;
 }}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_div()
+ * ----------------------------------------------------------------------------
+
+ * Description: if a remainder is forbidden, mark the destination as poisoned
+ *	if the given div operands would create a poison value.
+ *	This works for both the sdiv and udiv instructions.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the difference to check
+ *   lhs, rhs: the two operands to check
+ *   exact: true if the "exact" flag was present on the LLVM instruction.
+ *	If it is false, no poison can be generated, so no
+ *	checking is performed for remainders.  Of course, if
+ *	the result was already poisoned (probably because one of the
+ *	operands was poisoned), that poison remains.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, 
+			   bool exact )
+{{
+  if ( exact )  { 
+    if ( (rhs * dest) != lhs )  {
+      // an unallowed remainder happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_shl()
+ * ----------------------------------------------------------------------------
+ * Description: if signed and/or unsigned overshift is forbidden, mark the
+ *	destination as poisoned if the given shl operands would create a
+ *	poison value.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the difference to check
+ *   lhs: the APInt that got shifted
+ *   shiftAmt: the number of places to shift left
+ *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
+ *	flag was present on the LLVM instruction.  "Wrap" for shifting 
+ *	purposes means "overshift". If one of these is false, no poison can be
+ *	generated, so no checking is performed for that kind of wrap.  Of
+ *	course, if the result was already poisoned (probably because one of
+ *	the operands was poisoned), that poison remains.
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
+			   bool nsw, bool nuw )
+{{
+  if ( nsw )  { 
+    if ( lhs.isNegative() )  {
+      // did any 1 bits get shifted out?
+      if ( lhs.getHiBits(shiftAmt) != 0 )  {
+      	// an unallowed signed wrap happened
+      	dest.orPoisoned(true);
+      }
+    } else {
+      // did any 0 bits get shifted out?
+      if ( ! lhs.getHiBits(shiftAmt).isAllOnesValue()  )  {
+      	// an unallowed signed wrap happened
+      	dest.orPoisoned(true);
+      }
+    }
+  }
+  if ( nuw )  { 
+    // did any 1 bits get shifted out?
+    if ( lhs.getHiBits(shiftAmt) != 0 )  {
+      // an unallowed unsigned wrap happened
+      dest.orPoisoned(true);
+    }
+  }
+  return;
+}}
+
 
 } // end namespace APIntPoison
 // ############################################################################
