@@ -46,10 +46,9 @@ void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs,
 void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
 			   bool nsw, bool nuw );
 
-void poisonIfNeeded_udiv( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
-void poisonIfNeeded_sdiv( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
+void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 
-void poisonIfNeeded_shl( APInt& dest, APInt& lhs, APInt& rhs, 
+void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
 			 bool nsw, bool nuw );
 
 void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
