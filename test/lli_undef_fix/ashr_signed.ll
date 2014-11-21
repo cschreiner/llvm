@@ -5,7 +5,7 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; shl signed numbers with both 0 and 1 bits being shifted out, usually
+; ashr signed numbers with both 0 and 1 bits being shifted out, usually
 ;  under conditions that don't generate poison, finally under
 ;  conditions that do.
 
@@ -22,20 +22,19 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  ; TODO: make sure these don't shift out any bits that would generate poison.
-  ; 65297 == 0xff11 == 1111 1111 0001 0001
-  ; left shift by 7 == .... ... 1000 1000 1000 0000 == 0x8880
-  %nowrap1= shl i16 65297, 7; was 178, 7
-  %nowrap2= shl nsw i16 65297, 7 ; was 178, 7
+  ; 25248 == 0x62a0  == ... 0110 0010 1010 0000
+  ; right shift by 3 == 0000 1100 0101 0100 == 0x0c54
+  %nowrap1= ashr i16 25248, 3; 
+  %nowrap2= ashr exact i16 25248, 3 ; 
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap1 )
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap2 )
 
-  ; 61186 == 0xef02 == 1110 1111 0000 0010
-  ; shift left by 7 == .... ... 1000 0001 0000 0000 == 0x8100
-  %unpoisoned_1= shl i16 61186, 7 ; was 122, 7
-  %poisoned_1= shl nsw i16 61186, 7 ; was 122, 7
+  ; 13333 == 0x3415  == ... 0011 0100 0001 0101
+  ; right shift by 3 == 0000 0110 1000 0010 == 0x0682
+  %unpoisoned_1= ashr i16 13333, 3 ; 
+  %poisoned_1= ashr exact i16 13333, 3 ; 
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %unpoisoned_1 )
