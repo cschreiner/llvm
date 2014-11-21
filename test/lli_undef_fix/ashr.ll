@@ -22,10 +22,10 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  ; 25248 == 0x62a0  == ... 0110 0010 1010 0000
-  ; right shift by 3 == 0000 1100 0101 0100 == 0x0c54
-  %nowrap1= ashr i16 25248, 3; 
-  %nowrap2= ashr exact i16 25248, 3 ; 
+  ; 58016 == 0xe2a0  == ... 1110 0010 1010 0000
+  ; right shift by 3 == 1111 1100 0101 0100 == 0xfc54
+  %nowrap1= ashr i16 58016, 3; 
+  %nowrap2= ashr exact i16 58016, 3 ; 
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap1 )
