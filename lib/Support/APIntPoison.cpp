@@ -275,14 +275,17 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
 {{
   if ( nsw )  { 
     if ( dest.isNegative() )  {
-      // did any 1 bits get shifted out?
-      if ( lhs.getHiBits(shiftAmt) != 0 )  {
+      // did any 0 bits get shifted out?
+      if ( ! lhs.getHiBits(shiftAmt).trunc(shiftAmt).isAllOnesValue()  )  {
       	// an unallowed signed wrap happened
       	dest.orPoisoned(true);
       }
     } else {
-      // did any 0 bits get shifted out?
-      if ( ! lhs.getHiBits(shiftAmt).isAllOnesValue()  )  {
+      // did any 1 bits get shifted out?
+      /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
+	 is here for now to guarantee accuracy.
+       */
+      if ( lhs.getHiBits(shiftAmt).trunc(shiftAmt) != 0 )  {
       	// an unallowed signed wrap happened
       	dest.orPoisoned(true);
       }
@@ -290,7 +293,10 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
   }
   if ( nuw )  { 
     // did any 1 bits get shifted out?
-    if ( lhs.getHiBits(shiftAmt) != 0 )  {
+    /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
+       is here for now to guarantee accuracy.
+     */
+    if ( lhs.getHiBits(shiftAmt).trunc(shiftAmt) != 0 )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
@@ -328,7 +334,10 @@ void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 {{
   if ( exact )  { 
     // did any 1 bits get shifted out?
-    if ( lhs.getLoBits(shiftAmt) != 0 )  {
+    /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
+       is here for now to guarantee accuracy.
+     */
+    if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
@@ -366,7 +375,10 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 {{
   if ( exact )  { 
     // did any 1 bits get shifted out?
-    if ( lhs.getLoBits(shiftAmt) != 0 )  {
+    /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
+       is here for now to guarantee accuracy.
+     */
+    if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
       // an unallowed unsigned wrap happened
       dest.orPoisoned(true);
     }
