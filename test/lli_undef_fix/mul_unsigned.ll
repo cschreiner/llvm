@@ -5,8 +5,9 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; Add two numbers together with wrapping, once with a restriction that
-;	generates a poison value, and once without that restriction.
+; Multiply unsigned numbers together, twice under conditions should not generate
+; poision, once under conditions that would generate poison if banned (but
+; it isn't banned), once that generates poison.
 
 ; Declare the printf() control strings as global constants.
 @unpoison_st = private unnamed_addr constant [21 x i8] c"unpoisoned: '0x%x' \0A\00"
