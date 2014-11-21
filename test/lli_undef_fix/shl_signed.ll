@@ -5,8 +5,9 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; Add two signed numbers together with wrapping, once with a restriction that
-;	generates a poison value, and once without that restriction.
+; shl signed numbers with both 0 and 1 bits being shifted out, usually
+;  under conditions that don't generate poison, finally under
+;  conditions that do.
 
 ; Declare the printf() control strings as global constants.
 @unpoison_st = private unnamed_addr constant [21 x i8] c"unpoisoned: '0x%x' \0A\00"
