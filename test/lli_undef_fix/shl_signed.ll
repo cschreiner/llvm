@@ -22,15 +22,17 @@ define i32 @main() {   ; i32()*
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
   ; TODO: make sure these don't shift out any bits that would generate poison.
-  ; 65282 == 0xff11
-  %nowrap1= shl i16 65282, 7; was 178, 7
-  %nowrap2= shl nsw i16 65282, 7 ; was 178, 7
+  ; 65297 == 0xff11 == 1111 1111 0001 0001
+  ; left shift by 7 == .... ... 1000 1000 1000 0000 == 0x8880
+  %nowrap1= shl i16 65297, 7; was 178, 7
+  %nowrap2= shl nsw i16 65297, 7 ; was 178, 7
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap1 )
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap2 )
 
-  ; 61186 == 0xef02
+  ; 61186 == 0xef02 == 1110 1111 0000 0010
+  ; shift left by 7 == .... ... 1000 0001 0000 0000 == 0x8100
   %unpoisoned_1= shl i16 61186, 7 ; was 122, 7
   %poisoned_1= shl nsw i16 61186, 7 ; was 122, 7
 
