@@ -5,7 +5,7 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; Add two numbers together with wrapping, once with a restriction that
+; Add two signed numbers together with wrapping, once with a restriction that
 ;	generates a poison value, and once without that restriction.
 
 ; Declare the printf() control strings as global constants.
@@ -17,23 +17,28 @@ declare i32 @printf(i8* nocapture readonly, ...)
 
 ; Definition of main function
 define i32 @main() {   ; i32()*
-  ; Convert [19 x i8]* to i8  *...
+  ; Convert [19 x i16]* to i16  *...
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  %nowrap1= shl i8 150, 7
-  %nowrap2= shl nuw i8 150, 7
+  ; TODO: make sure these don't shift out any bits that would generate poison.
+  ; 65297 == 0xff11 == 1111 1111 0001 0001
+  ; left shift by 7 == .... ... 1000 1000 1000 0000 == 0x8880
+  %nowrap1= shl i16 65297, 7; was 178, 7
+  %nowrap2= shl nsw i16 65297, 7 ; was 178, 7
 
   ; Call puts function to write out the string to stdout.
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap1 )
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap2 )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap1 )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %nowrap2 )
 
-  %unpoisoned_1= shl i8 250, 7
-  %poisoned_1= shl nuw i8 250, 7
+  ; 61186 == 0xef02 == 1110 1111 0000 0010
+  ; shift left by 7 == .... ... 1000 0001 0000 0000 == 0x8100
+  %unpoisoned_1= shl i16 61186, 7 ; was 122, 7
+  %poisoned_1= shl nsw i16 61186, 7 ; was 122, 7
 
   ; Call puts function to write out the string to stdout.
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_1 )
-  call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i8 %poisoned_1 )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i16 %unpoisoned_1 )
+  call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i16 %poisoned_1 )
 
   ; clean up and return
   ret i32 0
