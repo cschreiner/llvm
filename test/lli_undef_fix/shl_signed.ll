@@ -22,7 +22,7 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  ; TODO: make sure these don't shift out any bits that would generate poison.
+  ; these don't shift out any bits that would generate poison.
   ; 65297 == 0xff11 == 1111 1111 0001 0001
   ; left shift by 7 == .... ... 1000 1000 1000 0000 == 0x8880
   %nowrap1= shl i16 65297, 7; was 178, 7
