@@ -5,7 +5,7 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; ashr signed numbers with both 0 and 1 bits being shifted out, usually
+; ashr numbers with both 0 and 1 bits being shifted out, usually
 ;  under conditions that don't generate poison, finally under
 ;  conditions that do.
 
