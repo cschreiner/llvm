@@ -16,11 +16,13 @@
 #ifndef LLVM_ADT_APINTPOISON_H
 #define LLVM_ADT_APINTPOISON_H
 
-#include "llvm/ADT/APInt.h"
 #include <cassert>
 #include <climits>
 #include <cstring>
 #include <string>
+#include "llvm/IR/Value.h"
+
+#include "llvm/ADT/APInt.h"
 
 namespace llvm {
 
@@ -56,8 +58,9 @@ void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
 			  bool exact );
 
+// CAS TODO3: check the types for these arguments.
 void poisonIfNeeded_getelementptr( 
-    APInt& dest, APInt& lhs, APInt& rhs, bool inbounds );
+    Value& dest, APInt& lhs, APInt& rhs, bool inbounds );
 
 } // End of APIntPoison namespace
 

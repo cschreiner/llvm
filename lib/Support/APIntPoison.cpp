@@ -216,7 +216,7 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
  * Reentrancy: 
  *
  * Inputs: 
- *   dest: the difference to check
+ *   dest: the quotient to check
  *   lhs, rhs: the two operands to check
  *   exact: true if the "exact" flag was present on the LLVM instruction.
  *	If it is false, no poison can be generated, so no
@@ -254,7 +254,7 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs,
  * Reentrancy: 
  *
  * Inputs: 
- *   dest: the difference to check
+ *   dest: the result to check
  *   lhs: the APInt that got shifted
  *   shiftAmt: the number of places to shift left
  *   nsw, nuw: true if the "no signed wrap" (nsw) or "no unsigned wrap" (nuw) 
@@ -315,7 +315,7 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
  * Reentrancy: 
  *
  * Inputs: 
- *   dest: the difference to check
+ *   dest: the result to check
  *   lhs: the APInt that got shifted
  *   shiftAmt: the number of places to shift left
  *   exact: true if the "exact" flag was present on the LLVM instruction.  
@@ -348,15 +348,16 @@ void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 /*** --------------------------------------------------------------------------
  * function poisonIfNeeded_ashr()
  * ----------------------------------------------------------------------------
- * Description: if an exact shift is required, mark the destination as
- *	poisoned if the given ashr operands would create a poison value.
+ * Description: if an inbounds result is required, mark the destination as
+ *	poisoned if the given getelementptr operands would create a poison 
+ *	value.
  *
  * Method: 
  *
  * Reentrancy: 
  *
  * Inputs: 
- *   dest: the difference to check
+ *   dest: the result to check
  *   lhs: the APInt that got shifted
  *   shiftAmt: the number of places to shift left
  *   exact: true if the "exact" flag was present on the LLVM instruction.  
@@ -385,6 +386,26 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
   }
   return;
 }}
+
+/*** --------------------------------------------------------------------------
+   * function poisonIfNeeded_getelementptr()
+   * --------------------------------------------------------------------------
+   * Description: CAS TODO3: implement this sometime.
+   *
+   * Method: 
+   *
+   * Reentrancy: 
+   *
+   * Inputs: 
+   *    
+   * Outputs: 
+   *
+   * Return Value: 
+   *
+   */
+//void poisonIfNeeded_getelementptr()
+
+
 
 } // end namespace APIntPoison
 // ############################################################################
