@@ -274,7 +274,7 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
 			   bool nsw, bool nuw )
 {{
   if ( nsw )  { 
-    if ( lhs.isNegative() )  {
+    if ( dest.isNegative() )  {
       // did any 1 bits get shifted out?
       if ( lhs.getHiBits(shiftAmt) != 0 )  {
       	// an unallowed signed wrap happened
