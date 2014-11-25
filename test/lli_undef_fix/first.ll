@@ -1,6 +1,6 @@
-; RUN: llvm-as %s -o - | llvm-dis > %t1.ll
-; RUN: llvm-as %t1.ll -o - | llvm-dis > %t2.ll
-; RUN: diff %t1.ll %t2.ll
+; DONT_RUN: llvm-as %s -o - | llvm-dis > %t1.ll
+; DONT_RUN: llvm-as %t1.ll -o - | llvm-dis > %t2.ll
+; DONT_RUN: diff %t1.ll %t2.ll
 
 ; Declare the string constant as a global constant.
 @.str = private unnamed_addr constant [16 x i8] c"hello %x world\0A\00"

@@ -1,4 +1,4 @@
-; RUN: 
+; RUN: lit.py %s
 
 ; TODO: find some way to add lit code here to run this, and compare
 ;	its printed output against an expected value... which may be
