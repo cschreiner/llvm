@@ -204,7 +204,9 @@ APInt& APInt::operator++() {
     ++VAL;
   else
     add_1(pVal, pVal, getNumWords(), 1);
-  return clearUnusedBits();
+  APInt result= clearUnusedBits();
+  result.orPoisoned( *this );
+  return result;
 }
 
 /// sub_1 - This function subtracts a single "digit" (64-bit word), y, from
@@ -233,7 +235,9 @@ APInt& APInt::operator--() {
     --VAL;
   else
     sub_1(pVal, getNumWords(), 1);
-  return clearUnusedBits();
+  APInt result= clearUnusedBits();
+  result.orPoisoned( *this );
+  return result;
 }
 
 /// add - This function adds the integer array x to the integer array Y and
@@ -261,7 +265,9 @@ APInt& APInt::operator+=(const APInt& RHS) {
   else {
     add(pVal, pVal, RHS.pVal, getNumWords());
   }
-  return clearUnusedBits();
+  APInt result= clearUnusedBits();
+  result.orPoisoned( *this );
+  return result;
 }
 
 /// Subtracts the integer array y from the integer array x
@@ -287,7 +293,9 @@ APInt& APInt::operator-=(const APInt& RHS) {
     VAL -= RHS.VAL;
   else
     sub(pVal, pVal, RHS.pVal, getNumWords());
-  return clearUnusedBits();
+  APInt result= clearUnusedBits();
+  result.orPoisoned( *this );
+  return result;
 }
 
 /// Multiplies an integer array, x, by a uint64_t integer and places the result
@@ -363,6 +371,7 @@ APInt& APInt::operator*=(const APInt& RHS) {
   if (isSingleWord()) {
     VAL *= RHS.VAL;
     clearUnusedBits();
+    orPoisoned( RHS );
     return *this;
   }
 
@@ -404,6 +413,7 @@ APInt& APInt::operator&=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL &= RHS.VAL;
+    orPoisoned( RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
@@ -416,11 +426,13 @@ APInt& APInt::operator|=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL |= RHS.VAL;
+    orPoisoned( RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] |= RHS.pVal[i];
+  orPoisoned( RHS );
   return *this;
 }
 
@@ -429,6 +441,7 @@ APInt& APInt::operator^=(const APInt& RHS) {
   if (isSingleWord()) {
     VAL ^= RHS.VAL;
     this->clearUnusedBits();
+    orPoisoned( RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
@@ -471,26 +484,35 @@ APInt APInt::operator*(const APInt& RHS) const {
     return APInt(BitWidth, VAL * RHS.VAL);
   APInt Result(*this);
   Result *= RHS;
+  Result.orPoisoned( *this, RHS );
   return Result;
 }
 
 APInt APInt::operator+(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
-    return APInt(BitWidth, VAL + RHS.VAL);
+  if (isSingleWord()) {
+    APInt result(BitWidth, VAL + RHS.VAL);
+    result.orPoisoned( *this, RHS );
+    return result;
+  }
   APInt Result(BitWidth, 0);
   add(Result.pVal, this->pVal, RHS.pVal, getNumWords());
   Result.clearUnusedBits();
+  Result.orPoisoned( *this, RHS );
   return Result;
 }
 
 APInt APInt::operator-(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
-    return APInt(BitWidth, VAL - RHS.VAL);
+  if (isSingleWord()) {
+    APInt result(BitWidth, VAL - RHS.VAL);
+    result.orPoisoned( *this, RHS );
+    return result;
+  }
   APInt Result(BitWidth, 0);
   sub(Result.pVal, this->pVal, RHS.pVal, getNumWords());
   Result.clearUnusedBits();
+  Result.orPoisoned( *this, RHS );
   return Result;
 }
 
