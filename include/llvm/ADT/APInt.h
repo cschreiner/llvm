@@ -322,12 +322,12 @@ public:
    /// \brief ors the given APInt instance's poison flag into this
    /// instance's. This is intended to facilitate making the result of a unary
    /// arithmetic operation inherit the poison status of its operands.
-   inline void orPoisoned( APInt& aa ) { poisoned|= aa.poisoned; }
+   inline void orPoisoned( const APInt& aa ) { poisoned|= aa.poisoned; }
 
    /// \brief ors the given APInt two instances' poison flag into this
    /// instance's. This is intended to facilitate making the result of a
    /// binary arithmetic operation inherit the poison status of its operands.
-   inline void orPoisoned( APInt& aa, APInt& bb ) { 
+   inline void orPoisoned( const APInt& aa, const APInt& bb ) { 
       poisoned|= aa.poisoned | bb.poisoned; 
    }
 
