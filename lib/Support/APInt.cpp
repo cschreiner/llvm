@@ -2002,7 +2002,6 @@ void APInt::udivrem(const APInt &LHS, const APInt &RHS,
   if (lhsWords == 0) {
     Quotient = 0;                // 0 / Y ===> 0
     Remainder = 0;               // 0 % Y ===> 0
-    OR_POISON;
     Quotient.orPoisoned( LHS, RHS );
     Remainder.orPoisoned( LHS, RHS );
     return;
@@ -2066,14 +2065,14 @@ APInt APInt::sadd_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this+RHS;
   Overflow = isNonNegative() == RHS.isNonNegative() &&
              Res.isNonNegative() != isNonNegative();
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
 APInt APInt::uadd_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this+RHS;
   Overflow = Res.ult(RHS);
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
@@ -2081,14 +2080,14 @@ APInt APInt::ssub_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this - RHS;
   Overflow = isNonNegative() != RHS.isNonNegative() &&
              Res.isNonNegative() != isNonNegative();
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
 APInt APInt::usub_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this-RHS;
   Overflow = Res.ugt(*this);
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
@@ -2105,7 +2104,7 @@ APInt APInt::smul_ov(const APInt &RHS, bool &Overflow) const {
     Overflow = Res.sdiv(RHS) != *this || Res.sdiv(*this) != RHS;
   else
     Overflow = false;
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
@@ -2116,7 +2115,7 @@ APInt APInt::umul_ov(const APInt &RHS, bool &Overflow) const {
     Overflow = Res.udiv(RHS) != *this || Res.udiv(*this) != RHS;
   else
     Overflow = false;
-  Res.orPoison( *this, RHS );
+  Res.orPoisoned( *this, RHS );
   return Res;
 }
 
