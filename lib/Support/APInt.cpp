@@ -1866,16 +1866,13 @@ void APInt::divide(const APInt LHS, unsigned lhsWords,
 APInt APInt::udiv(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   APInt Quotient;
-  #define OR_POISON_AND_RETURN(result) \
-    (result).orPoisoned( this->getPoisoned() );  \
-    (result).orPoisoned( RHS.getPoisoned() );  \
-    return (result);
 
   // First, deal with the easy case
   if (isSingleWord()) {
     assert(RHS.VAL != 0 && "Divide by zero?");
     Quotient= APInt(BitWidth, VAL / RHS.VAL);
-    OR_POISON_AND_RETURN(Quotient);
+    Quotient.orPoisoned( *this, RHS );
+    return Quotient;
   }
 
   // Get some facts about the LHS and RHS number of bits and words
@@ -1889,27 +1886,30 @@ APInt APInt::udiv(const APInt& RHS) const {
   if (!lhsWords)  {
     // 0 / X ===> 0
     Quotient= APInt(BitWidth, 0);
-    OR_POISON_AND_RETURN( Quotient );
+    Quotient.orPoisoned( *this, RHS );
+    return Quotient;
   } else if (lhsWords < rhsWords || this->ult(RHS)) {
     // X / Y ===> 0, iff X < Y
     Quotient= APInt(BitWidth, 0);
-    OR_POISON_AND_RETURN( Quotient );
+    Quotient.orPoisoned( *this, RHS );
+    return Quotient;
   } else if (*this == RHS) {
     // X / X ===> 1
     Quotient= APInt(BitWidth, 1);
-    OR_POISON_AND_RETURN( Quotient );
+    Quotient.orPoisoned( *this, RHS );
+    return Quotient;
   } else if (lhsWords == 1 && rhsWords == 1) {
     // All high words are zero, just use native divide
     Quotient= APInt(BitWidth, this->pVal[0] / RHS.pVal[0]);
-    OR_POISON_AND_RETURN( Quotient );
+    Quotient.orPoisoned( *this, RHS );
+    return Quotient;
   }
 
   // We have to compute it the hard way. Invoke the Knuth divide algorithm.
   Quotient= APInt(1,0); // to hold result.
   divide(*this, lhsWords, RHS, rhsWords, &Quotient, nullptr);
-  OR_POISON_AND_RETURN( Quotient );
-
-#undef OR_POISON_AND_RETURN
+  Quotient.orPoisoned( *this, RHS );
+  return Quotient;
 }
 
 APInt APInt::sdiv(const APInt &RHS) const {
@@ -1929,15 +1929,12 @@ APInt APInt::sdiv(const APInt &RHS) const {
 APInt APInt::urem(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   APInt result;
-  #define OR_POISON_AND_RETURN(result) \
-    (result).orPoisoned( this->getPoisoned() );  \
-    (result).orPoisoned( RHS.getPoisoned() );  \
-    return (result);
 
   if (isSingleWord()) {
     assert(RHS.VAL != 0 && "Remainder by zero?");
     result= APInt(BitWidth, VAL % RHS.VAL);
-    OR_POISON_AND_RETURN( result );
+    result.orPoisoned( *this, RHS );
+    return result;
   }
 
   // Get some facts about the LHS
@@ -1953,31 +1950,34 @@ APInt APInt::urem(const APInt& RHS) const {
   if (lhsWords == 0) {
     // 0 % Y ===> 0
     result= APInt(BitWidth, 0);
-    OR_POISON_AND_RETURN( result );
+    result.orPoisoned( *this, RHS );
+    return result;
   } else if (lhsWords < rhsWords || this->ult(RHS)) {
     // X % Y ===> X, iff X < Y
-    OR_POISON_AND_RETURN( *this );
+    result.orPoisoned( *this, RHS );
+    return result;
   } else if (*this == RHS) {
     // X % X == 0;
     result= APInt(BitWidth, 0);
-    OR_POISON_AND_RETURN( result );
+    result.orPoisoned( *this, RHS );
+    return result;
   } else if (lhsWords == 1) {
     // All high words are zero, just use native remainder
     result= APInt(BitWidth, pVal[0] % RHS.pVal[0]);
-    OR_POISON_AND_RETURN( result );
+    result.orPoisoned( *this, RHS );
+    return result;
   }
 
   // We have to compute it the hard way. Invoke the Knuth divide algorithm.
   result= APInt (1,0);
   divide(*this, lhsWords, RHS, rhsWords, nullptr, &result);
-  OR_POISON_AND_RETURN( result );
-
-  #undef OR_POISON_AND_RETURN;
+  result.orPoisoned( *this, RHS );
+  return result;
 }
 
 APInt APInt::srem(const APInt &RHS) const {
   /* Because this is defined in terms of urem, poison prapogation is handled
-      with udiv.  
+      with urem.  
   */
   if (isNegative()) {
     if (RHS.isNegative())
@@ -1991,11 +1991,6 @@ APInt APInt::srem(const APInt &RHS) const {
 
 void APInt::udivrem(const APInt &LHS, const APInt &RHS,
                     APInt &Quotient, APInt &Remainder) {
-  #define OR_POISON \
-     Quotient.orPoisoned( LHS.getPoisoned ); \
-     Quotient.orPoisoned( RHS.getPoisoned ); \
-     Remainder.orPoisoned( LHS.getPoisoned ); \
-     Remainder.orPoisoned( RHS.getPoisoned ); \
 
   // Get some size facts about the dividend and divisor
   unsigned lhsBits  = LHS.getActiveBits();
@@ -2008,18 +2003,24 @@ void APInt::udivrem(const APInt &LHS, const APInt &RHS,
     Quotient = 0;                // 0 / Y ===> 0
     Remainder = 0;               // 0 % Y ===> 0
     OR_POISON;
+    Quotient.orPoisoned( LHS, RHS );
+    Remainder.orPoisoned( LHS, RHS );
     return;
   }
 
   if (lhsWords < rhsWords || LHS.ult(RHS)) {
     Remainder = LHS;            // X % Y ===> X, iff X < Y
     Quotient = 0;               // X / Y ===> 0, iff X < Y
+    Quotient.orPoisoned( LHS, RHS );
+    Remainder.orPoisoned( LHS, RHS );
     return;
   }
 
   if (LHS == RHS) {
     Quotient  = 1;              // X / X ===> 1
     Remainder = 0;              // X % X ===> 0;
+    Quotient.orPoisoned( LHS, RHS );
+    Remainder.orPoisoned( LHS, RHS );
     return;
   }
 
@@ -2029,15 +2030,22 @@ void APInt::udivrem(const APInt &LHS, const APInt &RHS,
     uint64_t rhsValue = RHS.isSingleWord() ? RHS.VAL : RHS.pVal[0];
     Quotient = APInt(LHS.getBitWidth(), lhsValue / rhsValue);
     Remainder = APInt(LHS.getBitWidth(), lhsValue % rhsValue);
+    Quotient.orPoisoned( LHS, RHS );
+    Remainder.orPoisoned( LHS, RHS );
     return;
   }
 
   // Okay, lets do it the long way
   divide(LHS, lhsWords, RHS, rhsWords, &Quotient, &Remainder);
+  Quotient.orPoisoned( LHS, RHS );
+  Remainder.orPoisoned( LHS, RHS );
 }
 
 void APInt::sdivrem(const APInt &LHS, const APInt &RHS,
                     APInt &Quotient, APInt &Remainder) {
+  /* Because this is defined in terms of udivrem, poison prapogation is handled
+      with udivrem.  
+  */
   if (LHS.isNegative()) {
     if (RHS.isNegative())
       APInt::udivrem(-LHS, -RHS, Quotient, Remainder);
@@ -2058,12 +2066,14 @@ APInt APInt::sadd_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this+RHS;
   Overflow = isNonNegative() == RHS.isNonNegative() &&
              Res.isNonNegative() != isNonNegative();
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
 APInt APInt::uadd_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this+RHS;
   Overflow = Res.ult(RHS);
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
@@ -2071,12 +2081,14 @@ APInt APInt::ssub_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this - RHS;
   Overflow = isNonNegative() != RHS.isNonNegative() &&
              Res.isNonNegative() != isNonNegative();
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
 APInt APInt::usub_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this-RHS;
   Overflow = Res.ugt(*this);
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
@@ -2093,6 +2105,7 @@ APInt APInt::smul_ov(const APInt &RHS, bool &Overflow) const {
     Overflow = Res.sdiv(RHS) != *this || Res.sdiv(*this) != RHS;
   else
     Overflow = false;
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
@@ -2103,6 +2116,7 @@ APInt APInt::umul_ov(const APInt &RHS, bool &Overflow) const {
     Overflow = Res.udiv(RHS) != *this || Res.udiv(*this) != RHS;
   else
     Overflow = false;
+  Res.orPoison( *this, RHS );
   return Res;
 }
 
