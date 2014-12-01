@@ -483,10 +483,13 @@ APInt APInt::XorSlowCase(const APInt& RHS) const {
 
 APInt APInt::operator*(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
-    return APInt(BitWidth, VAL * RHS.VAL);
-  APInt Result(*this);
-  Result *= RHS;
+  APInt Result; 
+  if (isSingleWord()) {
+    Result= APInt(BitWidth, VAL * RHS.VAL);
+  } else {
+    Result= APInt (*this);
+    Result *= RHS;
+  }
   Result.orPoisoned( *this, RHS );
   return Result;
 }
