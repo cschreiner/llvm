@@ -380,6 +380,7 @@ APInt& APInt::operator*=(const APInt& RHS) {
   unsigned lhsWords = !lhsBits ? 0 : whichWord(lhsBits - 1) + 1;
   if (!lhsWords)
     // 0 * X ===> 0
+    orPoisoned( RHS );
     return *this;
 
   // Get some bit facts about RHS and check for zero
@@ -388,6 +389,7 @@ APInt& APInt::operator*=(const APInt& RHS) {
   if (!rhsWords) {
     // X * 0 ===> 0
     clearAllBits();
+    orPoisoned( RHS );
     return *this;
   }
 
@@ -406,6 +408,7 @@ APInt& APInt::operator*=(const APInt& RHS) {
 
   // delete dest array and return
   delete[] dest;
+  orPoisoned( RHS );
   return *this;
 }
 
