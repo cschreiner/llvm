@@ -34,6 +34,7 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/IR/Instructions.h"
 #include <cmath>
 #include <cstring>
 #include <iostream>
