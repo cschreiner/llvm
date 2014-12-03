@@ -27,6 +27,7 @@
 #include "llvm/Support/Mutex.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
+#include "llvm/IR/Instructions.h"
 #include <map>
 #include <string>
 #include <vector>
