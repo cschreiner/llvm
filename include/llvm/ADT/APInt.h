@@ -136,6 +136,11 @@ class APInt {
   /// word that are not used by the APInt. This is needed after the most
   /// significant word is assigned a value to ensure that those bits are
   /// zero'd out.
+  ///
+  /// Because this function is often called immediately by public
+  /// functions immediately before they return, it is extra important
+  /// that it MUST preserve all fields other than the unused high
+  /// order bits it clears.
   APInt &clearUnusedBits() {
     // Compute how many bits are used in the final word
     unsigned wordBits = BitWidth % APINT_BITS_PER_WORD;
@@ -574,6 +579,7 @@ public:
     for (unsigned I = V.getBitWidth(); I < NewLen; I <<= 1)
       Val |= Val << I;
 
+    Val.poisoned= V.poisoned;
     return Val;
   }
 
@@ -759,6 +765,7 @@ public:
     } else {
       pVal[0] |= RHS;
     }
+    orPoisoned( RHS );
     return *this;
   }
 
@@ -801,6 +808,8 @@ public:
   ///
   /// \returns *this after shifting left by shiftAmt
   APInt &operator<<=(unsigned shiftAmt) {
+    // poison preservation done by called functions
+
     // CAS TODO: make sure this has a poisonIfNeeded_*(~) function
     *this = shl(shiftAmt);
     return *this;
@@ -915,7 +924,7 @@ public:
   /// \brief Left logical shift operator.
   ///
   /// Shifts this APInt left by \p Bits and returns the result.
-  // CAS TODO: make sure this inherits poison.
+  // poison preservation done by called functions
   APInt operator<<(unsigned Bits) const { return shl(Bits); }
 
   /// \brief Left logical shift operator.
