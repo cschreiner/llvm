@@ -953,12 +953,14 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
   }
 
   bool poison= IntVal.getPoisoned();
-  if ( poison && In_ptr->isVolatile() )  {
-    std::cerr << 
-	"Attempt to write a poison value to a volatile memory location. \n";
-    std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
-        ", val=" << IntVal << ".\n";
-    exit( EXIT_FAILURE );
+  if ( poison && In_ptr != NULL )  {
+    if ( In_ptr->isVolatile() )  {
+      std::cerr << 
+	  "Attempt to write a poison value to a volatile memory location. \n";
+      std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
+	  ", val=" << IntVal << ".\n";
+      exit( EXIT_FAILURE );
+    }
   }
   for ( unsigned int ii= 0; ii < StoreBytes; ii++ )  {
     poisonedMem[Dst+ii]= poison;
