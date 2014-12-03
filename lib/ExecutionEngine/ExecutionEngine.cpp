@@ -951,7 +951,7 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
   }
 
   bool poison= IntVal.getPoisoned();
-  for ( int ii= 0; ii < StoreBytes; ii++ )  {
+  for ( unsigned int ii= 0; ii < StoreBytes; ii++ )  {
     poisonedMem[Dst+ii]= poison;
   }
 }
@@ -1032,7 +1032,7 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
   /* TODO: check that this always finds no poison if a location is read that
 	is not found in the poisonedMem data structure.  
   */
-  for ( int ii= 0; ii < StoreBytes; ii++ )  {
+  for ( unsigned int ii= 0; ii < LoadBytes; ii++ )  {
     if ( poisonedMem[Src+ii] )  {
       IntVal.setPoisoned(true);   
     }
