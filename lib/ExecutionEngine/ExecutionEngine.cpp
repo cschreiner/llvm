@@ -919,6 +919,12 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
   return Result;
 }
 
+// added by CAS:
+/* This data structure tracks which virtual machine memory locations are
+	poisoned.  
+*/
+static std::map<uint8_t*, bool> poisonedMem;
+
 /// StoreIntToMemory - Fills the StoreBytes bytes of memory starting from Dst
 /// with the integer held in IntVal.
 static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
@@ -942,6 +948,11 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
     }
 
     memcpy(Dst, Src + sizeof(uint64_t) - StoreBytes, StoreBytes);
+  }
+
+  bool poison= IntVal.getPoisoned();
+  for ( int ii= 0; ii < StoreBytes; ii++ )  {
+    poisonedMem[Dst+ii]= poison;
   }
 }
 
@@ -1016,6 +1027,15 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
     }
 
     memcpy(Dst + sizeof(uint64_t) - LoadBytes, Src, LoadBytes);
+  }
+
+  /* TODO: check that this always finds no poison if a location is read that
+	is not found in the poisonedMem data structure.  
+  */
+  for ( int ii= 0; ii < StoreBytes; ii++ )  {
+    if ( poisonedMem[Src+ii] )  {
+      IntVal.setPoisoned(true);   
+    }
   }
 }
 
