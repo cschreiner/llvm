@@ -284,14 +284,14 @@ void *ArgvArray::reset(LLVMContext &C, ExecutionEngine *EE,
 
     // Endian safe: Array[i] = (PointerTy)Dest;
     EE->StoreValueToMemory(PTOGV(Dest.get()),
-                           (GenericValue*)(&Array[i*PtrSize]), SBytePtr);
+                           (GenericValue*)(&Array[i*PtrSize]), SBytePtr, NULL);
     Values.push_back(std::move(Dest));
   }
 
   // Null terminate it
   EE->StoreValueToMemory(PTOGV(nullptr),
                          (GenericValue*)(&Array[InputArgv.size()*PtrSize]),
-                         SBytePtr);
+                         SBytePtr, NULL);
   return Array.get();
 }
 
@@ -958,7 +958,7 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
       std::cerr << 
 	  "Attempt to write a poison value to a volatile memory location. \n";
       std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
-	  ", val=" << IntVal << ".\n";
+	  ", val=" << IntVal.toString() << ".\n";
       exit( EXIT_FAILURE );
     }
   }
@@ -1158,7 +1158,7 @@ void ExecutionEngine::InitializeMemory(const Constant *Init, void *Addr) {
 
   if (Init->getType()->isFirstClassType()) {
     GenericValue Val = getConstantValue(Init);
-    StoreValueToMemory(Val, (GenericValue*)Addr, Init->getType());
+    StoreValueToMemory(Val, (GenericValue*)Addr, Init->getType(), NULL);
     return;
   }
 
