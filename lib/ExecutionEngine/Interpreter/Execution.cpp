@@ -1135,7 +1135,7 @@ void Interpreter::visitStoreInst(StoreInst &I) {
   GenericValue Val = getOperandValue(I.getOperand(0), SF);
   GenericValue SRC = getOperandValue(I.getPointerOperand(), SF);
   StoreValueToMemory(Val, (GenericValue *)GVTOP(SRC),
-                     I.getOperand(0)->getType());
+                     I.getOperand(0)->getType(), &I);
   if (I.isVolatile() && PrintVolatile)
     dbgs() << "Volatile store: " << I;
 }

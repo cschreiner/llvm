@@ -36,6 +36,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include <cmath>
 #include <cstring>
+#include <iostream>
 using namespace llvm;
 
 #define DEBUG_TYPE "jit"
@@ -928,7 +929,7 @@ static std::map<uint8_t*, bool> poisonedMem;
 /// StoreIntToMemory - Fills the StoreBytes bytes of memory starting from Dst
 /// with the integer held in IntVal.
 static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
-                             unsigned StoreBytes) {
+                             unsigned StoreBytes, const StoreInst* In_ptr) {
   assert((IntVal.getBitWidth()+7)/8 >= StoreBytes && "Integer too small!");
   const uint8_t *Src = (const uint8_t *)IntVal.getRawData();
 
@@ -951,13 +952,20 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
   }
 
   bool poison= IntVal.getPoisoned();
+  if ( poison && In_ptr->isVolatile() )  {
+    std::cerr << 
+	"Attempt to write a poison value to a volatile memory location. \n";
+    std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
+        ", val=" << IntVal << ".\n";
+    exit( EXIT_FAILURE );
+  }
   for ( unsigned int ii= 0; ii < StoreBytes; ii++ )  {
     poisonedMem[Dst+ii]= poison;
   }
 }
 
 void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
-                                         GenericValue *Ptr, Type *Ty) {
+      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr) {
   const unsigned StoreBytes = getDataLayout()->getTypeStoreSize(Ty);
 
   switch (Ty->getTypeID()) {
@@ -965,7 +973,7 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
     dbgs() << "Cannot store value of type " << *Ty << "!\n";
     break;
   case Type::IntegerTyID:
-    StoreIntToMemory(Val.IntVal, (uint8_t*)Ptr, StoreBytes);
+    StoreIntToMemory(Val.IntVal, (uint8_t*)Ptr, StoreBytes, In_ptr);
     break;
   case Type::FloatTyID:
     *((float*)Ptr) = Val.FloatVal;
