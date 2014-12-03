@@ -316,7 +316,7 @@ public:
   inline void setPoisoned( bool aa ) { poisoned= aa; }
 
   /// \brief get the poisoned field
-  inline bool getPoisoned() { return poisoned; }
+  inline bool getPoisoned() const { return poisoned; }
 
   /// \brief sets poisoned flag |= the argument.  Intended for
   /// recording the poison status after an operation that combined
