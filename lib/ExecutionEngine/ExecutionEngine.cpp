@@ -1003,7 +1003,7 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
       if (cast<VectorType>(Ty)->getElementType()->isIntegerTy()) {
         unsigned numOfBytes =(Val.AggregateVal[i].IntVal.getBitWidth()+7)/8;
         StoreIntToMemory(Val.AggregateVal[i].IntVal, 
-          (uint8_t*)Ptr + numOfBytes*i, numOfBytes);
+          (uint8_t*)Ptr + numOfBytes*i, numOfBytes, NULL);
       }
     }
     break;
