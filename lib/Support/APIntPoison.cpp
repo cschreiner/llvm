@@ -66,7 +66,7 @@ namespace APIntPoison {
  *
  */
 void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs, 
-			   bool nsw, bool nuw )
+			 bool nsw, bool nuw )
 {{
   if ( nsw )  { 
     if ( rhs.slt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
@@ -111,7 +111,7 @@ void poisonIfNeeded_add( APInt& dest, APInt& lhs, APInt& rhs,
  *
  */
 void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs, 
-			   bool nsw, bool nuw )
+			 bool nsw, bool nuw )
 {{
   if ( nsw )  { 
     if ( rhs.sgt(0) ? dest.sgt(lhs) : dest.slt(lhs) )  {
@@ -156,7 +156,7 @@ void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs,
  *
  */
 void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
-			   bool nsw, bool nuw )
+			 bool nsw, bool nuw )
 {{
   if ( nsw )  { 
     // algorithm from:
@@ -231,7 +231,7 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
  *
  */
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, 
-			   bool exact )
+			 bool exact )
 {{
   if ( exact )  { 
     if ( (rhs * dest) != lhs )  {
@@ -271,8 +271,11 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs,
  *
  */
 void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
-			   bool nsw, bool nuw )
+			 bool nsw, bool nuw )
 {{
+  // if nothing was shifted, no poison can be generated.
+  if ( shiftAmt == 0 )  { return; }
+
   if ( nsw )  { 
     if ( dest.isNegative() )  {
       // did any 0 bits get shifted out?
@@ -330,16 +333,18 @@ void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
  *
  */
 void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
-			   bool exact )
+			  bool exact )
 {{
   if ( exact )  { 
     // did any 1 bits get shifted out?
     /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
        is here for now to guarantee accuracy.
      */
-    if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
-      // an unallowed unsigned wrap happened
-      dest.orPoisoned(true);
+    if ( shiftAmt != 0 )  {
+      if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
+	// an unallowed unsigned wrap happened
+	dest.orPoisoned(true);
+      }
     }
   }
   return;
@@ -372,16 +377,18 @@ void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
  *
  */
 void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
-			   bool exact )
+			  bool exact )
 {{
   if ( exact )  { 
     // did any 1 bits get shifted out?
     /* CAS TODO3: this trunc(~) call here may be unnecessary, but it
        is here for now to guarantee accuracy.
      */
-    if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
-      // an unallowed unsigned wrap happened
-      dest.orPoisoned(true);
+    if ( shiftAmt != 0 )  {
+      if ( lhs.getLoBits(shiftAmt).trunc(shiftAmt) != 0 )  {
+	// an unallowed unsigned wrap happened
+	dest.orPoisoned(true);
+      }
     }
   }
   return;
