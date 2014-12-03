@@ -958,7 +958,7 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
       std::cerr << 
 	  "Attempt to write a poison value to a volatile memory location. \n";
       std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
-	  ", val=" << IntVal.toString() << ".\n";
+	  ", val=" << IntVal.toString( 10, false ) << ".\n";
       exit( EXIT_FAILURE );
     }
   }
