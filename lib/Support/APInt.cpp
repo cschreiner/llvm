@@ -166,8 +166,7 @@ APInt& APInt::operator=(uint64_t RHS) {
     pVal[0] = RHS;
     memset(pVal+1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
   }
-  poisoned= RHS.poisoned.; 
-  clearUnusedBits();
+  return clearUnusedBits();
 }
 
 /// Profile - This method 'profiles' an APInt for use with FoldingSet.
@@ -459,8 +458,9 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
   uint64_t* val = getMemory(numWords);
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] & RHS.pVal[i];
-  orPoisoned(RHS);
-  return APInt(val, getBitWidth());
+  APInt Result= APInt(val, getBitWidth());
+  Result.orPoisoned( *this, RHS );
+  return Result;
 }
 
 APInt APInt::OrSlowCase(const APInt& RHS) const {
@@ -468,8 +468,9 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
   uint64_t *val = getMemory(numWords);
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] | RHS.pVal[i];
-  orPoisoned(RHS);
-  return APInt(val, getBitWidth());
+  APInt Result= APInt(val, getBitWidth());
+  Result.orPoisoned( *this, RHS );
+  return Result;
 }
 
 APInt APInt::XorSlowCase(const APInt& RHS) const {
@@ -481,7 +482,7 @@ APInt APInt::XorSlowCase(const APInt& RHS) const {
   APInt Result(val, getBitWidth());
   // 0^0==1 so clear the high bits in case they got set.
   Result.clearUnusedBits();
-  orPoisoned(RHS);
+  Result.orPoisoned(RHS);
   return Result;
 }
 
@@ -1582,7 +1583,7 @@ APInt::ms APInt::magic() const {
   mag.m = q2 + 1;
   if (d.isNegative()) mag.m = -mag.m;   // resulting magic number
   mag.s = p - d.getBitWidth();          // resulting shift
-  mag.poisoned= poisoned;
+  mag.m.poisoned= poisoned;
   return mag;
 }
 
@@ -1633,7 +1634,7 @@ APInt::mu APInt::magicu(unsigned LeadingZeros) const {
            (q1.ult(delta) || (q1 == delta && r1 == 0)));
   magu.m = q2 + 1; // resulting magic number
   magu.s = p - d.getBitWidth();  // resulting shift
-  magu.poisoned= poisoned;
+  magu.m.poisoned= poisoned;
   return magu;
 }
 
@@ -1994,8 +1995,8 @@ void APInt::divide(const APInt LHS, unsigned lhsWords,
     delete [] Q;
     delete [] R;
   }
-  Quotient.orPoison( LHS, RHS );
-  Remainder.orPoison( LHS, RHS );
+  Quotient->orPoisoned( LHS, RHS );
+  Remainder->orPoisoned( LHS, RHS );
 }
 
 APInt APInt::udiv(const APInt& RHS) const {
