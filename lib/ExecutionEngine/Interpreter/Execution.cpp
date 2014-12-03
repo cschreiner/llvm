@@ -1114,9 +1114,6 @@ void Interpreter::visitGetElementPtrInst(GetElementPtrInst &I) {
 }
 
 void Interpreter::visitLoadInst(LoadInst &I) {
-  /* TODO: add something to poison the register if any of the bytes being 
-     read are poisoned.
-  */
   ExecutionContext &SF = ECStack.back();
   GenericValue SRC = getOperandValue(I.getPointerOperand(), SF);
   GenericValue *Ptr = (GenericValue*)GVTOP(SRC);
@@ -1128,9 +1125,6 @@ void Interpreter::visitLoadInst(LoadInst &I) {
 }
 
 void Interpreter::visitStoreInst(StoreInst &I) {
-  /* TODO: add something to poison memory if the value being written is 
-     poisoned.
-   */
   ExecutionContext &SF = ECStack.back();
   GenericValue Val = getOperandValue(I.getOperand(0), SF);
   GenericValue SRC = getOperandValue(I.getPointerOperand(), SF);
