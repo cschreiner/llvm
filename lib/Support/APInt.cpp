@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <iostream> //;;
 using namespace llvm;
 
 #define DEBUG_TYPE "apint"
@@ -460,6 +461,7 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] & RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
+  delete[] val;
   return Result;
 }
 
@@ -470,6 +472,7 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] | RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
+  delete[] val;
   return Result;
 }
 
@@ -978,17 +981,25 @@ double APInt::roundToDouble(bool isSigned) const {
 
 // Truncate to new width.
 APInt APInt::trunc(unsigned width) const {
+  std::cout << "starting APInt::trunc(unsigned), arg new width= " << 
+      width << ", old width=" <<
+      BitWidth << ",signed val=" << toString( 10, true ) << ",\n" <<
+      "   unsigned val=" << toString( 10, false ) << "\n";;
   assert(width < BitWidth && "Invalid APInt Truncate request");
   assert(width && "Can't truncate to 0 bits");
-  APInt Result;
+  //;;APInt Result;
 
   if (width <= APINT_BITS_PER_WORD)  {
-    Result= APInt(width, getRawData()[0]);
-    Result.poisoned= poisoned;
-    return Result;
+    std::cout << "using short case \n";;
+    //;; Result= APInt(width, getRawData()[0]);
+    //;; Result.poisoned= poisoned;
+    //;; return Result;
+    return APInt(width, getRawData()[0]);
   }
+  std::cout << "using long case \n";;
 
-  Result= APInt(getMemory(getNumWords(width)), width);
+  //;;Result= APInt(getMemory(getNumWords(width)), width);
+  APInt Result(getMemory(getNumWords(width)), width);;
 
   // Copy full words.
   unsigned i;
@@ -1000,7 +1011,7 @@ APInt APInt::trunc(unsigned width) const {
   if (bits != 0)
     Result.pVal[i] = pVal[i] << bits >> bits;
 
-  Result.poisoned= poisoned;
+  //;;Result.poisoned= poisoned;
   return Result;
 }
 
@@ -1078,8 +1089,10 @@ APInt APInt::zextOrTrunc(unsigned width) const {
   // poison preservation done by called functions
   if (BitWidth < width)
     return zext(width);
-  if (BitWidth > width)
+  if (BitWidth > width)  {
+    std::cout << "about to call trunc(unsigned) at 2014dec13_061540\n";;
     return trunc(width);
+  }
   return *this;
 }
 
@@ -1087,8 +1100,10 @@ APInt APInt::sextOrTrunc(unsigned width) const {
   // poison preservation done by called functions
   if (BitWidth < width)
     return sext(width);
-  if (BitWidth > width)
+  if (BitWidth > width)  {
+    std::cout << "about to call trunc(unsigned) at 2014dec13_061552\n";;
     return trunc(width);
+  }
   return *this;
 }
 
@@ -1208,6 +1223,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
+  delete[] val;
   return Result;
 }
 
@@ -1257,6 +1273,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
+    delete[] val;
     return Result;
   }
 
@@ -1272,6 +1289,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
       val[i] = 0;
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
+    delete[] val;
     return Result;
   }
 
@@ -1289,6 +1307,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
+  delete[] val;
   return Result;
 }
 
@@ -1335,6 +1354,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
+    delete[] val;
     return Result;
   }
 
@@ -1351,6 +1371,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
+    delete[] val;
     return Result;
   }
 
@@ -1365,6 +1386,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
+  delete[] val;
   return Result;
 }
 
