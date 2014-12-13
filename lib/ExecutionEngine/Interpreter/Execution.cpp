@@ -1198,7 +1198,6 @@ void Interpreter::visitCallSite(CallSite CS) {
     ArgVals.push_back(getOperandValue(V, SF));
   }
 
-  // asdf ^^ and VV
   // To handle indirect calls, we must get the pointer value from the argument
   // and treat it as a function pointer.
   GenericValue SRC = getOperandValue(SF.Caller.getCalledValue(), SF);
