@@ -3055,8 +3055,8 @@ static Value *SimplifyGEPInst(ArrayRef<Value *> Ops, const Query &Q, unsigned) {
 
     Type *Ty = PtrTy->getElementType();
     if (Q.DL && Ty->isSized()) {
-      Value *P;
-      uint64_t C;
+      Value *P= NULL; // CAS: TODO2: check that initialization is reasonable
+      uint64_t C= 0; // CAS: TODO2: check that initialization is reasonable
       uint64_t TyAllocSize = Q.DL->getTypeAllocSize(Ty);
       // getelementptr P, N -> P if P points to a type of zero size.
       if (TyAllocSize == 0)
