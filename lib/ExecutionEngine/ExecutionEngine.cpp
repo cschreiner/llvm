@@ -37,7 +37,7 @@
 #include "llvm/IR/Instructions.h"
 #include <cmath>
 #include <cstring>
-#include <iostream>
+#include <iostream> // CAS: TODO: should this be here?
 using namespace llvm;
 
 #define DEBUG_TYPE "jit"
@@ -354,6 +354,7 @@ static bool isTargetNullPtr(ExecutionEngine *EE, void *Loc) {
 int ExecutionEngine::runFunctionAsMain(Function *Fn,
                                        const std::vector<std::string> &argv,
                                        const char * const * envp) {
+  std::cout << " starting ExecutionEngine::runFunctionAsMain() \n";;
   std::vector<GenericValue> GVArgs;
   GenericValue GVArgc;
   GVArgc.IntVal = APInt(32, argv.size());
@@ -560,6 +561,7 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
     case Instruction::Trunc: {
       GenericValue GV = getConstantValue(Op0);
       uint32_t BitWidth = cast<IntegerType>(CE->getType())->getBitWidth();
+      std::cout << "about to call trunc(unsigned) at 2014dec13_054858\n";;
       GV.IntVal = GV.IntVal.trunc(BitWidth);
       return GV;
     }
