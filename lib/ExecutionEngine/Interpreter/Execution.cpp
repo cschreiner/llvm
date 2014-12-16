@@ -1319,7 +1319,7 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     std::cout << "in Interpreter::executeTruncInst: src=" << 
-	Src.IntVal.toString() << ", width= " << DBitWidth << ". \n";;
+	Src.IntVal.toString(10, false) << ", width= " << DBitWidth << ". \n";;
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
   }
   return Dest;
