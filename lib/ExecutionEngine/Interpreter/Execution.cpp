@@ -1307,19 +1307,33 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   Type *SrcTy = SrcVal->getType();
+  std::cout << "starting Interpreter::executeTruncInst(~) \n";;
   if (SrcTy->isVectorTy()) {
+    std::cout << "   found vector \n";;
     Type *DstVecTy = DstTy->getScalarType();
     unsigned DBitWidth = cast<IntegerType>(DstVecTy)->getBitWidth();
+    std::cout << "   DBitWidth= " << DBitWidth << "\n";;
     unsigned NumElts = Src.AggregateVal.size();
     // the sizes of src and dst vectors must be equal
     Dest.AggregateVal.resize(NumElts);
     for (unsigned i = 0; i < NumElts; i++)
       Dest.AggregateVal[i].IntVal = Src.AggregateVal[i].IntVal.trunc(DBitWidth);
   } else {
+    std::cout << "   found scalar \n";;
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
+    std::cout << "   DBitWidth= " << DBitWidth << "\n";;
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
+    std::cout << "   Src.IntVal signed=" << 
+        Src.IntVal.toString( 10, true ) << "\n";;
+    std::cout << "   Src.IntVal unsigned=" << 
+        Src.IntVal.toString( 10, false ) << "\n";;
+    std::cout << "   Dest.IntVal signed=" << 
+        Dest.IntVal.toString( 10, true ) << "\n";;
+    std::cout << "   Dest.IntVal unsigned=" << 
+        Dest.IntVal.toString( 10, false ) << "\n";;
   }
+  std::cout << "finishing Interpreter::executeTruncInst(~) \n";;
   return Dest;
 }
 
@@ -1677,8 +1691,10 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
           Elt.IntVal = TempSrc.AggregateVal[i].IntVal;
           Elt.IntVal = Elt.IntVal.lshr(ShiftAmt);
           // it could be DstBitSize == SrcBitSize, so check it
-          if (DstBitSize < SrcBitSize)
+          if (DstBitSize < SrcBitSize)  {;;
+	    std::cout << "about to call trunc(unsigned) from 2014dec12_054506\n";; 
             Elt.IntVal = Elt.IntVal.trunc(DstBitSize);
+	  }
           ShiftAmt += isLittleEndian ? DstBitSize : -DstBitSize;
           TempDst.AggregateVal.push_back(Elt);
         }
@@ -2070,6 +2086,7 @@ GenericValue Interpreter::getConstantExprValue (ConstantExpr *CE,
                                                 ExecutionContext &SF) {
   switch (CE->getOpcode()) {
   case Instruction::Trunc:
+      std::cout << "about to executeTruncInst() \n";;
       return executeTruncInst(CE->getOperand(0), CE->getType(), SF);
   case Instruction::ZExt:
       return executeZExtInst(CE->getOperand(0), CE->getType(), SF);
