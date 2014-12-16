@@ -2241,8 +2241,8 @@ void Interpreter::run() {
       const GenericValue &Val = SF.Values[&I];;
       std::cout << "in Interpreter::run(): " << 
 	  "i" << Val.IntVal.getBitWidth() << " "
-          << Val.IntVal.toStringUnsigned(10)
-          << " (0x" << Val.IntVal.toStringUnsigned(16) << ")\n";;
+	  << Val.IntVal.toString(10,false)
+	  << " (0x" << Val.IntVal.toString(16,false) << ")\n";;
     }
     visit(I);   // Dispatch to one of the visit* methods...
 #if 0
