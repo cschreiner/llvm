@@ -1318,6 +1318,8 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
   } else {
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
+    std::cout << "in Interpreter::executeTruncInst: src=" << 
+	Src.IntVal.toString() << ", width= " << DBitWidth << ". \n";;
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
   }
   return Dest;
@@ -1763,6 +1765,7 @@ void Interpreter::visitZExtInst(ZExtInst &I) {
 
 void Interpreter::visitFPTruncInst(FPTruncInst &I) {
   ExecutionContext &SF = ECStack.back();
+  // TODO2: do we need a debugging instruction here? -- CAS 2014dec16;;
   SetValue(&I, executeFPTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
 
@@ -2218,6 +2221,13 @@ void Interpreter::run() {
     ++NumDynamicInsts;
 
     DEBUG(dbgs() << "About to interpret: " << I);
+    {
+      const GenericValue &Val = SF.Values[&I];;
+      std::cout << "in Interpreter::run(): " << 
+	  "i" << Val.IntVal.getBitWidth() << " "
+          << Val.IntVal.toStringUnsigned(10)
+          << " (0x" << Val.IntVal.toStringUnsigned(16) << ")\n";;
+    }
     visit(I);   // Dispatch to one of the visit* methods...
 #if 0
     // This is not safe, as visiting the instruction could lower it and free I.
