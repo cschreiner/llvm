@@ -1322,7 +1322,7 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
     std::cout << "   found scalar \n";;
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
-    std::cout << "   src=" << Src.IntVal.toString() << ", width= " << 
+    std::cout << "   src=" << Src.IntVal.toString(10,false) << ", width= " << 
 	DBitWidth << ". \n";;
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
     std::cout << "   Src.IntVal signed=" << 
