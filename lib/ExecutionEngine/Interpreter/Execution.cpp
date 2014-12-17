@@ -1765,6 +1765,14 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
 
 void Interpreter::visitTruncInst(TruncInst &I) {
   ExecutionContext &SF = ECStack.back();
+  {
+    GenericValue Src = getOperandValue(I.getOperand(0), SF);;
+    Type *destType= I.getType();
+    IntegerType *destInstType= cast<IntegerType>(destType);;
+    std::cout << "starting visitTruncInst(TruncInst &I), src=" << 
+        Src.IntVal.toString(10,false) << 
+        " /w width=" << destInstType->getBitWidth() << ".\n";;
+  }
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
 
