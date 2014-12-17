@@ -19,6 +19,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Type.h"
+#include "llvm/Support/raw_ostream.h"
 #include <string>
 using namespace llvm;
 
@@ -107,11 +108,12 @@ std::string Instruction::toString() {
   result+= "\", ";
   result+= std::to_string( getNumOperands() ) + " args";
   {
-  unsigned ii;
+    unsigned ii;
     for ( ii= 0; ii < getNumOperands(); ii++ )  {
-      result+= ", "+ std::to_string(ii) + "=\""+ 
-          getOperand(ii)->getName().str()+ "\"";
-       
+      std::string nullSt("");
+      raw_string_ostream ss( nullSt );
+      getOperand(ii)->print( ss ); 
+      result+= ", "+ std::to_string(ii) + "=\""+ ss.str()+ "\"";
     }
   }
   result+= ".";
