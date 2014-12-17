@@ -79,6 +79,16 @@ public:
   /// MovePos.
   void moveBefore(Instruction *MovePos);
 
+
+  //===--------------------------------------------------------------------===//
+  // Conversion 
+  //===--------------------------------------------------------------------===//
+
+  /// toString - converts this instance to a string.  This is usually
+  /// used for informational or debugging purposes.  Only key fields
+  /// are included in the resulting string.
+  std::string toString();
+
   //===--------------------------------------------------------------------===//
   // Subclass classification.
   //===--------------------------------------------------------------------===//
@@ -119,7 +129,7 @@ public:
   }
 
   /// @brief Determine if the OpCode is one of the CastInst instructions.
-  static inline bool isCast(unsigned OpCode) {
+  static inline bool isCast(unsigned OpCode) { 
     return OpCode >= CastOpsBegin && OpCode < CastOpsEnd;
   }
 

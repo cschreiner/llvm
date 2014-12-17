@@ -97,6 +97,18 @@ void Instruction::moveBefore(Instruction *MovePos) {
                                              this);
 }
 
+/// toString - converts this instance to a string.  This is usually
+/// used for informational or debugging purposes.  Only key fields
+/// are included in the resulting string.
+std::string Instruction::toString() {
+  std::string result= "Instruction: opcode=\"";
+  result+= Instruction::getOpcodeName();
+  result+= "\"";
+  // TODO3: add info on the operands.
+  return result; 
+}
+
+
 /// Set or clear the unsafe-algebra flag on this instruction, which must be an
 /// operator which supports this flag. See LangRef.html for the meaning of this
 /// flag.
