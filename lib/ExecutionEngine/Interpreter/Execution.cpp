@@ -2248,7 +2248,7 @@ void Interpreter::run() {
     {
       const GenericValue &Val = SF.Values[&I];;
       std::cout << "in Execution.cpp/Interpreter::run(): " << 
-	"About to interpret: " << I << "\n" <<
+	"About to interpret: " << I.toString() << "\n" <<
 	  "   i" << Val.IntVal.getBitWidth() << " "
 	  << Val.IntVal.toString(10,false)
 	  << " (0x" << Val.IntVal.toString(16,false) << ")\n";;
