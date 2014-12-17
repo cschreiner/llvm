@@ -19,6 +19,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Type.h"
+#include <string>
 using namespace llvm;
 
 Instruction::Instruction(Type *ty, unsigned it, Use *Ops, unsigned NumOps,
@@ -103,7 +104,17 @@ void Instruction::moveBefore(Instruction *MovePos) {
 std::string Instruction::toString() {
   std::string result= "Instruction: opcode=\"";
   result+= Instruction::getOpcodeName();
-  result+= "\"";
+  result+= "\", ";
+  result+= std::to_string( getNumOperands() ) + " args";
+  {
+  unsigned ii;
+    for ( ii= 0; ii < getNumOperands(); ii++ )  {
+      result+= ", "+ std::to_string(ii) + "=\""+ 
+          getOperand(ii)->getName().str()+ "\"";
+       
+    }
+  }
+  result+= ".";
   // TODO3: add info on the operands.
   return result; 
 }
