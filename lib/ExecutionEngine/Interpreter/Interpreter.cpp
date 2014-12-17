@@ -80,7 +80,16 @@ void Interpreter::runAtExitHandlers () {
 GenericValue
 Interpreter::runFunction(Function *F,
                          const std::vector<GenericValue> &ArgValues) {
-  //std::cout << "function name=\"" << F->getName().str() << "\"\n";;
+  {
+    std::cout << "Interpreter::runFunction(~): ftn name=\"" << 
+        F->getName().str() << "\" " << ArgValues.size() << " args";;
+    int ii;
+    for ( ii= 0; ii < ArgValues.size(); ii++ )  {;;
+      std::cout << ", arg" << ii << "=\"" << 
+	  ArgValues[ii].IntVal.toString(10, false) << "\"";;
+    }
+    std::cout << ".\n";;
+  }
 
   assert (F && "Function *F was null at entry to run()");
 
