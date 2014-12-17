@@ -2247,8 +2247,9 @@ void Interpreter::run() {
     DEBUG(dbgs() << "About to interpret: " << I);
     {
       const GenericValue &Val = SF.Values[&I];;
-      std::cout << "in Interpreter::run(): " << 
-	  "i" << Val.IntVal.getBitWidth() << " "
+      std::cout << "in Execution.cpp/Interpreter::run(): " << 
+	"About to interpret: " << I << "\n" <<
+	  "   i" << Val.IntVal.getBitWidth() << " "
 	  << Val.IntVal.toString(10,false)
 	  << " (0x" << Val.IntVal.toString(16,false) << ")\n";;
     }
