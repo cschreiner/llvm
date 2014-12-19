@@ -2231,7 +2231,8 @@ void Interpreter::callFunction(Function *F,
   for (Function::arg_iterator AI = F->arg_begin(), E = F->arg_end(); 
        AI != E; ++AI, ++i)  {
     SetValue(AI, ArgVals[i], StackFrame);
-    std::cout << "   key \"" << AI << "\" set to \"" << ArgVals[i] << "\"\n";;
+    std::cout << "   key \"" << AI << "\"'s IntVal set to \"" << 
+	ArgVals[i].IntVal << "\"\n";;
   }
 
   // Handle varargs arguments...
