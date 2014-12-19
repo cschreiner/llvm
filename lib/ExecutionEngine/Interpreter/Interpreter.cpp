@@ -83,7 +83,7 @@ Interpreter::runFunction(Function *F,
   {
     std::cout << "Interpreter::runFunction(~): ftn name=\"" << 
         F->getName().str() << "\" " << ArgValues.size() << " args";;
-    int ii;
+    size_type ii;
     for ( ii= 0; ii < ArgValues.size(); ii++ )  {;;
       std::cout << ", arg" << ii << "=\"" << 
 	  ArgValues[ii].IntVal.toString(10, false) << "\"";;
