@@ -2232,7 +2232,7 @@ void Interpreter::callFunction(Function *F,
        AI != E; ++AI, ++i)  {
     SetValue(AI, ArgVals[i], StackFrame);
     std::cout << "   key \"" << AI << "\"'s IntVal set to \"" << 
-	ArgVals[i].IntVal << "\"\n";;
+	ArgVals[i].IntVal.toString( 10, false ) << "\"\n";;
   }
 
   // Handle varargs arguments...
