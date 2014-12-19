@@ -2201,6 +2201,9 @@ void Interpreter::callFunction(Function *F,
   assert((ECStack.empty() || !ECStack.back().Caller.getInstruction() ||
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&
          "Incorrect number of arguments passed into function call!");
+
+  std::cout << "starting Execution/Interpreter::callFunction(~)... \n";
+
   // Make a new stack frame... and fill it in.
   ECStack.push_back(ExecutionContext());
   ExecutionContext &StackFrame = ECStack.back();
@@ -2226,8 +2229,10 @@ void Interpreter::callFunction(Function *F,
   // Handle non-varargs arguments...
   unsigned i = 0;
   for (Function::arg_iterator AI = F->arg_begin(), E = F->arg_end(); 
-       AI != E; ++AI, ++i)
+       AI != E; ++AI, ++i)  {
     SetValue(AI, ArgVals[i], StackFrame);
+    std::cout << "   key \"" << AI << "\" set to \"" << ArgVals[i] << "\"\n";;
+  }
 
   // Handle varargs arguments...
   StackFrame.VarArgs.assign(ArgVals.begin()+i, ArgVals.end());
