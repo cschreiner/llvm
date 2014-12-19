@@ -990,10 +990,19 @@ APInt APInt::trunc(unsigned width) const {
   //;;APInt Result;
 
   if (width <= APINT_BITS_PER_WORD)  {
-    std::cout << "using short case \n";;
+    std::cout << "   using short case \n";;
     //;; Result= APInt(width, getRawData()[0]);
     //;; Result.poisoned= poisoned;
     //;; return Result;
+    //;; or
+    //;; return APInt(width, getRawData()[0]);
+    /* temporary trap: see if the earlier value of 81 is related to the later
+       value of 81 in csmith-derived program run44a_o0.ll...
+     */
+    if ( (*this) == 81 ) {;;
+       std::cout << "   found 81, changing to 75\n";;
+       return APInt(width, 75 );;
+    }
     return APInt(width, getRawData()[0]);
   }
   std::cout << "using long case \n";;
