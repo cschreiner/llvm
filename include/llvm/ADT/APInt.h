@@ -23,6 +23,7 @@
 #include <climits>
 #include <cstring>
 #include <string>
+#include <iostream> //;;
 
 namespace llvm {
 class Deserializer;
@@ -1578,7 +1579,7 @@ public:
   /// SmallVector/SmallString to the methods above to avoid thrashing the heap
   /// for the string.
   /// Caller is responsible for taking appropriate action if *this is poisoned.
-  inline std::string toString() const {
+  inline std::string toStringSigned() const {
      return toString( 10, true );    
   }
 
