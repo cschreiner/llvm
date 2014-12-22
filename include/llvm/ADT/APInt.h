@@ -251,7 +251,11 @@ public:
     else
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
-    std::cout << "stopping APInt::APInt(~), val=" << toString(10,false) << ".\n";;
+    std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
+        toString(10,false) << ".\n";;
+    if ( *this == 81 ) {;;
+       std::cout << "   just created an 81\n";;
+    }
   }
 
   /// \brief Construct an APInt of numBits width, initialized as bigVal[].
