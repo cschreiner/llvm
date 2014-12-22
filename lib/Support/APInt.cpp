@@ -107,18 +107,24 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
   : BitWidth(numBits), VAL(0), poisoned(false) {
+  std::cout << "starting APInt::APInt( unsigned, ArrayRef<uint64_t>)...\n";;
   initFromArray(bigVal);
+  std::cout << "stopping APInt::APInt(~), val=" << toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
   : BitWidth(numBits), VAL(0), poisoned(false) {
+  std::cout << "starting APInt::APInt( unsigned, uint64_t[])...\n";;
   initFromArray(makeArrayRef(bigVal, numWords));
+  std::cout << "stopping APInt::APInt(~), val=" << toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
+  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
+  std::cout << "stopping APInt::APInt(~), val=" << toString(10,false) << ".\n";;
 }
 
 /* Note: this is one of the few (the only) SlowCase function that

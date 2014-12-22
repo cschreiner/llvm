@@ -244,11 +244,13 @@ public:
   APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
+    std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
     if (isSingleWord())
       VAL = val;
     else
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
+    std::cout << "stopping APInt::APInt(~), val=" << toString(10,false) << ".\n";;
   }
 
   /// \brief Construct an APInt of numBits width, initialized as bigVal[].
@@ -1557,6 +1559,28 @@ public:
   /// for the string.
   /// Caller is responsible for taking appropriate action if *this is poisoned.
   std::string toString(unsigned Radix, bool Signed) const;
+
+  /// \brief Return the APInt as a std::string in base 10, assuming 
+  /// unsignedness.
+  ///
+  /// Note that this is an inefficient method.  It is better to pass in a
+  /// SmallVector/SmallString to the methods above to avoid thrashing the heap
+  /// for the string.
+  /// Caller is responsible for taking appropriate action if *this is poisoned.
+  inline std::string toString() const {
+     return toString( 10, false );    
+  }
+
+  /// \brief Return the APInt as a std::string in base 10, assuming 
+  /// signedness.
+  ///
+  /// Note that this is an inefficient method.  It is better to pass in a
+  /// SmallVector/SmallString to the methods above to avoid thrashing the heap
+  /// for the string.
+  /// Caller is responsible for taking appropriate action if *this is poisoned.
+  inline std::string toString() const {
+     return toString( 10, true );    
+  }
 
   /// \returns a byte-swapped representation of this APInt Value.
   // CAS TODO: make sure this inherits poison.
