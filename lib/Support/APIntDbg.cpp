@@ -35,7 +35,6 @@
 
 // ############################################################################
 namespace llvm {
-namespace APInt {
 
   /// \brief Create a new APInt of numBits width, initialized as val.
   ///
@@ -48,7 +47,7 @@ namespace APInt {
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
 
-  APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
+  APInt::APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
     bool inDebugMode= false;
@@ -73,7 +72,7 @@ namespace APInt {
 
   /// Simply makes *this a copy of that.
 
-  APInt(const APInt &that) 
+  APInt::APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
     assert(BitWidth && "bitwidth too small");
     poisoned= that.poisoned;
@@ -85,7 +84,7 @@ namespace APInt {
 
   /// \brief Move Constructor.
 
-  APInt(APInt &&that) 
+  APInt::APInt(APInt &&that) 
       : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
     that.BitWidth = 0;
   }
@@ -93,7 +92,6 @@ namespace APInt {
 
 
 // ############################################################################
-} // namespace APInt
 } // namespace llvm
 
 
