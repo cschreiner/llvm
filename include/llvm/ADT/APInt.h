@@ -294,7 +294,7 @@ public:
 
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
-  APInt(const APInt &that) 
+  APInt(const APInt &that);;
   #if 0 // moved to APIntDbg.cpp
   APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
