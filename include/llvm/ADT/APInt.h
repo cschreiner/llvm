@@ -242,12 +242,12 @@ public:
   /// \param numBits the bit width of the constructed APInt
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
-  APInt(unsigned numBits, uint64_t val, bool isSigned = false);;
+  APInt(unsigned numBits, uint64_t val, bool isSigned = false); //;;
   #if 0 // moved to APIntDbg.cpp
   APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
-    std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
+    std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";; 
     if (isSingleWord())
       VAL = val;
     else
@@ -294,7 +294,7 @@ public:
 
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
-  APInt(const APInt &that);;
+  APInt(const APInt &that); //;;
   #if 0 // moved to APIntDbg.cpp
   APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
@@ -308,7 +308,7 @@ public:
   #endif
 
   /// \brief Move Constructor.
-  APInt(APInt &&that);;
+  APInt(APInt &&that); //;;
   #if 0 // moved to APIntDbg.cpp
   APInt(APInt &&that) 
       : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
