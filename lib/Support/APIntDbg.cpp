@@ -47,7 +47,7 @@ namespace llvm {
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
 
-  APInt::APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
+  APInt::APInt(unsigned numBits, uint64_t val, bool isSigned ) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
     bool inDebugMode= false;
