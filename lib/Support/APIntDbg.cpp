@@ -51,7 +51,7 @@ namespace llvm {
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
     bool inDebugMode= false;
-    if ( NULL == getenv("APIntDbg") )  {
+    if ( NULL != getenv("APIntDbg") )  {
       inDebugMode= true;
       std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
     }
