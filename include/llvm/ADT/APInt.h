@@ -253,8 +253,8 @@ public:
     clearUnusedBits();
     std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
         toString(10,false) << ".\n";;
-    if ( *this == 81 ) {;;
-       std::cout << "   just created an 81\n";;
+    if ( this->uge(80) ) {;;
+       std::cout << "   just created something >=80, \n";;
     }
   }
 
