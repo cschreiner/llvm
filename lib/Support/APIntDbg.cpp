@@ -34,7 +34,8 @@
 #include <stdlib.h>
 
 // ############################################################################
-namespace llvm::APInt {
+namespace llvm {
+namespace APInt {
 
   /// \brief Create a new APInt of numBits width, initialized as val.
   ///
@@ -92,6 +93,7 @@ namespace llvm::APInt {
 
 
 // ############################################################################
+} // namespace APInt
 } // namespace llvm
 
 
