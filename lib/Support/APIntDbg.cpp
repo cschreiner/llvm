@@ -31,6 +31,7 @@
 #endif
 
 #include <iostream>
+#include <stdlib.h>
 
 // ############################################################################
 namespace llvm::APInt {
@@ -49,16 +50,22 @@ namespace llvm::APInt {
   APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
-    std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
+    bool inDebugMode= false;
+    if ( NULL == getenv("APIntDbg") )  {
+      inDebugMode= true;
+      std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
+    }
     if (isSingleWord())
       VAL = val;
     else
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
-    std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
-        toString(10,false) << ".\n";;
-    if ( this->uge(81) ) {;;
-       std::cout << "   just created something >=81, \n";;
+    if ( inDebugMode )  {
+      std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
+	  toString(10,false) << ".\n";;
+      if ( this->uge(81) ) {;;
+	 std::cout << "   just created something >=81, \n";;
+      }
     }
   }
 
