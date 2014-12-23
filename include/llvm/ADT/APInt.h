@@ -242,6 +242,8 @@ public:
   /// \param numBits the bit width of the constructed APInt
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
+  APInt(unsigned numBits, uint64_t val, bool isSigned = false);;
+  #if 0 // moved to APIntDbg.cpp
   APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
@@ -257,6 +259,7 @@ public:
        std::cout << "   just created something >=80, \n";;
     }
   }
+  #endif
 
   /// \brief Construct an APInt of numBits width, initialized as bigVal[].
   ///
@@ -292,6 +295,8 @@ public:
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
   APInt(const APInt &that) 
+  #if 0 // moved to APIntDbg.cpp
+  APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
     assert(BitWidth && "bitwidth too small");
     poisoned= that.poisoned;
@@ -300,12 +305,16 @@ public:
     else
       initSlowCase(that);
   }
+  #endif
 
   /// \brief Move Constructor.
+  APInt(APInt &&that);;
+  #if 0 // moved to APIntDbg.cpp
   APInt(APInt &&that) 
       : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
     that.BitWidth = 0;
   }
+  #endif
 
   /// \brief Destructor.
   ~APInt() {
