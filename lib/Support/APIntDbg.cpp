@@ -35,6 +35,14 @@
 
 // ############################################################################
 namespace llvm {
+  /// \brief Fast internal constructor
+  ///
+  /// This constructor is used only internally for speed of construction of
+  /// temporaries. It is unsafe for general use so it is not public.
+  APInt::APInt(uint64_t *val, unsigned bits) : 
+      BitWidth(bits), pVal(val), poisoned(false) {
+    std::cout << "starting APInt::APInt( uint64_t* val, unsigned bits )\n";;
+  }
 
   /// \brief Create a new APInt of numBits width, initialized as val.
   ///

@@ -98,8 +98,11 @@ class APInt {
   ///
   /// This constructor is used only internally for speed of construction of
   /// temporaries. It is unsafe for general use so it is not public.
+  APInt(uint64_t *val, unsigned bits);; 
+  #if 0 //;;
   APInt(uint64_t *val, unsigned bits) : 
       BitWidth(bits), pVal(val), poisoned(false) {}
+  #endif
 
   /// \brief Determine if this APInt just has one word to store value.
   ///
