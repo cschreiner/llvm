@@ -831,6 +831,16 @@ void ValueHandleBase::ValueIsRAUWd(Value *Old, Value *New) {
         break;
       }
 #endif
+
+}
+
+std::string Value::toString()  {
+  // TODO2: sanity check this to make sure there isn't a memory leak here.
+  // TODO3: find a more efficient way to do this than creating a dummy string.
+  std::string nullSt(""); 
+  raw_string_ostream ss( nullSt ); 
+  print(ss);
+  return ss.str();
 }
 
 // Pin the vtable to this file.
