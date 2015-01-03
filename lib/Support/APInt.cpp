@@ -50,6 +50,7 @@ inline static uint64_t* getMemory(unsigned numWords) {
 /// A utility function that converts a character to a digit.
 inline static unsigned getDigit(char cdigit, uint8_t radix) {
   unsigned r;
+  std::cout << "   getting digit '" << cdigit << "'\n";;
 
   if (radix == 16 || radix == 36) {
     r = cdigit - '0';
@@ -2369,6 +2370,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
     unsigned digit = getDigit(*p, radix);
+    std::cout << "   got unsigned digit=" << digit << "\n";;
     assert(digit < radix && "Invalid character in digit string");
 
     // Shift or multiply the value by the radix
