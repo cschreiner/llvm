@@ -2375,7 +2375,6 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
     unsigned digit = getDigit(*p, radix);
-    std::cout << "   got unsigned digit=" << digit << "\n";;
     assert(digit < radix && "Invalid character in digit string");
 
     // Shift or multiply the value by the radix
@@ -2392,7 +2391,8 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
     else
       apdigit.pVal[0] = digit;
     *this += apdigit;
-    std::cout << "   fromString(~): so far=\"" << toString(10,false) << "\"\n";;
+    std::cout << "   got APInt digit=" << apdigit.toString(10,false) << "\n";;
+    std::cout << "   so far=\"" << toString(10,false) << "\"\n";;
   }
   // If its negative, put it in two's complement form
   if (isNeg) {
