@@ -124,6 +124,9 @@ APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
   std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
+  std::cout << "   numbits=\"" << numbits << "\"\n";;
+  std::cout << "   string=\"" << Str.str() << "\"\n";;
+  std::cout << "   radix=\"" << radix << "\"\n";;
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
   std::cout << "stopping APInt::APInt(~), val=" << 
