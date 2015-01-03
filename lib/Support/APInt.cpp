@@ -124,7 +124,7 @@ APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
-  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
+  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t) edited 2015jan03...\n";;
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
   std::cout << "stopping APInt::APInt(~), val=" << 
@@ -2354,6 +2354,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   assert(((slen-1)*4 <= numbits || radix != 16) && "Insufficient bit width");
   assert((((slen-1)*64)/22 <= numbits || radix != 10) &&
          "Insufficient bit width");
+  std::cout << "   fromString(~): isNeg=" << isNeg << "\n";;
 
   // Allocate memory
   if (!isSingleWord())
