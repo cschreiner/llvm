@@ -50,6 +50,7 @@ inline static uint64_t* getMemory(unsigned numWords) {
 /// A utility function that converts a character to a digit.
 inline static unsigned getDigit(char cdigit, uint8_t radix) {
   unsigned r;
+  std::cout << "   getting digit '" << cdigit << "'\n";;
 
   if (radix == 16 || radix == 36) {
     r = cdigit - '0';
@@ -123,7 +124,8 @@ APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
-  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
+  //std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
+  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t) edited 2015jan03...\n";;
   std::cout << "   numbits=\"" << numbits << "\"\n";;
   std::cout << "   string=\"" << Str.str() << "\"\n";;
   std::cout << "   radix=\"" << radix << "\"\n";;
@@ -2356,6 +2358,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   assert(((slen-1)*4 <= numbits || radix != 16) && "Insufficient bit width");
   assert((((slen-1)*64)/22 <= numbits || radix != 10) &&
          "Insufficient bit width");
+  std::cout << "   fromString(~): isNeg=" << isNeg << "\n";;
 
   // Allocate memory
   if (!isSingleWord())
@@ -2372,6 +2375,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
     unsigned digit = getDigit(*p, radix);
+    std::cout << "   got unsigned digit=" << digit << "\n";;
     assert(digit < radix && "Invalid character in digit string");
 
     // Shift or multiply the value by the radix
