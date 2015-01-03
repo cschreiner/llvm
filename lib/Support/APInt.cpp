@@ -2392,6 +2392,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
     else
       apdigit.pVal[0] = digit;
     *this += apdigit;
+    std::cout << "   fromString(~): so far=\"" << toString(10,false) << "\"\n";;
   }
   // If its negative, put it in two's complement form
   if (isNeg) {
