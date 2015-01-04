@@ -18,7 +18,6 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include <cstring>
-#include <stdio.h> //;;
 #include <iostream> //;;
 using namespace llvm;
 
@@ -80,16 +79,18 @@ void Interpreter::runAtExitHandlers () {
 GenericValue
 Interpreter::runFunction(Function *F,
                          const std::vector<GenericValue> &ArgValues) {
+  #if 0 //;;
   {
     std::cout << "Interpreter::runFunction(~): ftn name=\"" << 
         F->getName().str() << "\" " << ArgValues.size() << " args";;
     std::vector<GenericValue>::size_type ii;
     for ( ii= 0; ii < ArgValues.size(); ii++ )  {;;
       std::cout << ", arg" << ii << "=\"" << 
-	  ArgValues[ii].IntVal.toString(10, false) << "\"";;
+    	  ArgValues[ii].IntVal.toString(10, false) << "\"";;
     }
     std::cout << ".\n";;
   }
+  #endif
 
   assert (F && "Function *F was null at entry to run()");
 

@@ -1307,34 +1307,19 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
                                            ExecutionContext &SF) {
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   Type *SrcTy = SrcVal->getType();
-  std::cout << "starting Interpreter::executeTruncInst(~) \n";;
   if (SrcTy->isVectorTy()) {
-    std::cout << "   found vector \n";;
     Type *DstVecTy = DstTy->getScalarType();
     unsigned DBitWidth = cast<IntegerType>(DstVecTy)->getBitWidth();
-    std::cout << "   DBitWidth= " << DBitWidth << "\n";;
     unsigned NumElts = Src.AggregateVal.size();
     // the sizes of src and dst vectors must be equal
     Dest.AggregateVal.resize(NumElts);
     for (unsigned i = 0; i < NumElts; i++)
       Dest.AggregateVal[i].IntVal = Src.AggregateVal[i].IntVal.trunc(DBitWidth);
   } else {
-    std::cout << "   found scalar \n";;
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
-    std::cout << "   src=" << Src.IntVal.toString(10,false) << ", width= " << 
-	DBitWidth << ". \n";;
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
-    std::cout << "   Src.IntVal signed=" << 
-        Src.IntVal.toString( 10, true ) << "\n";;
-    std::cout << "   Src.IntVal unsigned=" << 
-        Src.IntVal.toString( 10, false ) << "\n";;
-    std::cout << "   Dest.IntVal signed=" << 
-        Dest.IntVal.toString( 10, true ) << "\n";;
-    std::cout << "   Dest.IntVal unsigned=" << 
-        Dest.IntVal.toString( 10, false ) << "\n";;
   }
-  std::cout << "finishing Interpreter::executeTruncInst(~) \n";;
   return Dest;
 }
 
@@ -1692,8 +1677,7 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
           Elt.IntVal = TempSrc.AggregateVal[i].IntVal;
           Elt.IntVal = Elt.IntVal.lshr(ShiftAmt);
           // it could be DstBitSize == SrcBitSize, so check it
-          if (DstBitSize < SrcBitSize)  {;;
-	    std::cout << "about to call trunc(unsigned) from 2014dec12_054506\n";; 
+          if (DstBitSize < SrcBitSize)  {
             Elt.IntVal = Elt.IntVal.trunc(DstBitSize);
 	  }
           ShiftAmt += isLittleEndian ? DstBitSize : -DstBitSize;
@@ -1765,14 +1749,16 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
 
 void Interpreter::visitTruncInst(TruncInst &I) {
   ExecutionContext &SF = ECStack.back();
+  #if 0
   {
     GenericValue Src = getOperandValue(I.getOperand(0), SF);;
-    Type *destType= I.getType();
+    Type *destType= I.getType();;
     IntegerType *destInstType= cast<IntegerType>(destType);;
     std::cout << "starting visitTruncInst(TruncInst &I), src=" << 
         Src.IntVal.toString(10,false) << 
         " /w width=" << destInstType->getBitWidth() << ".\n";;
   }
+  #endif
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
 
@@ -1788,7 +1774,6 @@ void Interpreter::visitZExtInst(ZExtInst &I) {
 
 void Interpreter::visitFPTruncInst(FPTruncInst &I) {
   ExecutionContext &SF = ECStack.back();
-  // TODO2: do we need a debugging instruction here? -- CAS 2014dec16;;
   SetValue(&I, executeFPTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
 
@@ -2096,7 +2081,6 @@ GenericValue Interpreter::getConstantExprValue (ConstantExpr *CE,
                                                 ExecutionContext &SF) {
   switch (CE->getOpcode()) {
   case Instruction::Trunc:
-      std::cout << "about to executeTruncInst() \n";;
       return executeTruncInst(CE->getOperand(0), CE->getType(), SF);
   case Instruction::ZExt:
       return executeZExtInst(CE->getOperand(0), CE->getType(), SF);
@@ -2231,8 +2215,8 @@ void Interpreter::callFunction(Function *F,
   for (Function::arg_iterator AI = F->arg_begin(), E = F->arg_end(); 
        AI != E; ++AI, ++i)  {
     SetValue(AI, ArgVals[i], StackFrame);
-    std::cout << "   key \"" << AI << "\"'s IntVal set to \"" << 
-	ArgVals[i].IntVal.toString( 10, false ) << "\"\n";;
+    //std::cout << "   key \"" << AI << "\"'s IntVal set to \"" << 
+    //	ArgVals[i].IntVal.toString( 10, false ) << "\"\n";;
   }
 
   // Handle varargs arguments...
@@ -2251,6 +2235,7 @@ void Interpreter::run() {
     ++NumDynamicInsts;
 
     DEBUG(dbgs() << "About to interpret: " << I);
+    #if 0
     {
       const GenericValue &Val = SF.Values[&I];;
       std::cout << "in Execution.cpp/Interpreter::run(): " << 
@@ -2260,6 +2245,7 @@ void Interpreter::run() {
 	  << Val.IntVal.toString(10,false)
 	  << " (0x" << Val.IntVal.toString(16,false) << ")\n";;
     }
+    #endif
     visit(I);   // Dispatch to one of the visit* methods...
 #if 0
     // This is not safe, as visiting the instruction could lower it and free I.

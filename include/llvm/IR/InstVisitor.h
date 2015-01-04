@@ -162,8 +162,8 @@ public:
 #define HANDLE_INST(NUM, OPCODE, CLASS)				\
     RetTy visit##OPCODE(CLASS &I) {				\
       if (NUM == Instruction::Call) {				\
-        std::cout << "About to delegate \"" << #OPCODE <<	\
-	    "\" instruction \n";;				\
+	//std::cout << "About to delegate \"" << #OPCODE <<	\
+	//   "\" instruction \n";;				\
         return delegateCallInst(I);				\
       } else							\
         return static_cast<SubClass*>(this)->			\
