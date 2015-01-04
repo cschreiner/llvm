@@ -475,7 +475,7 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] & RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
-  delete[] val;
+  //;;CAS: delete[] val;
   return Result;
 }
 
@@ -486,7 +486,7 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] | RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
-  delete[] val;
+  //;;CAS: delete[] val;
   return Result;
 }
 
@@ -1238,7 +1238,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  delete[] val;
+  //;;CAS: delete[] val;
   return Result;
 }
 
@@ -1288,7 +1288,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    delete[] val;
+    //;;CAS: delete[] val;
     return Result;
   }
 
@@ -1304,7 +1304,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
       val[i] = 0;
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
-    delete[] val;
+    //;;CAS: delete[] val;
     return Result;
   }
 
@@ -1322,7 +1322,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  delete[] val;
+  //;;CAS: delete[] val;
   return Result;
 }
 
@@ -1369,7 +1369,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    delete[] val;
+    //;;CAS: delete[] val;
     return Result;
   }
 
@@ -1386,7 +1386,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    delete[] val;
+    //;;CAS: delete[] val;
     return Result;
   }
 
@@ -1401,7 +1401,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  delete[] val;
+  //;;CAS: delete[] val;
   return Result;
 }
 
