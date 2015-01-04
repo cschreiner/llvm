@@ -2371,6 +2371,8 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // constantly construct/destruct it.
   APInt apdigit(getBitWidth(), 0);
   APInt apradix(getBitWidth(), radix);
+  std::cout << "   shift= " << shift << 
+      ", apradix=" << apradix.toString(10,false) << "\n";;
 
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
