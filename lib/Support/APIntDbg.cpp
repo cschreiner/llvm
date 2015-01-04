@@ -41,7 +41,7 @@ namespace llvm {
   /// temporaries. It is unsafe for general use so it is not public.
   APInt::APInt(uint64_t *val, unsigned bits) : 
       BitWidth(bits), pVal(val), poisoned(false) {
-    std::cout << "starting APInt::APInt( uint64_t* val, unsigned bits )\n";;
+    //std::cout << "starting APInt::APInt( uint64_t* val, unsigned bits )\n";;
   }
 
   /// \brief Create a new APInt of numBits width, initialized as val.
@@ -61,7 +61,7 @@ namespace llvm {
     bool inDebugMode= false;
     if ( NULL != getenv("APIntDbg") )  {
       inDebugMode= true;
-      std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
+      //std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";;
     }
     if (isSingleWord())
       VAL = val;
@@ -69,11 +69,8 @@ namespace llvm {
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
     if ( inDebugMode )  {
-      std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
-	  toString(10,false) << ".\n";;
-      if ( this->uge(81) ) {;;
-	 std::cout << "   just created something >=81, \n";;
-      }
+      //std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
+      //	  toString(10,false) << ".\n";;
     }
   }
 

@@ -50,7 +50,6 @@ inline static uint64_t* getMemory(unsigned numWords) {
 /// A utility function that converts a character to a digit.
 inline static unsigned getDigit(char cdigit, uint8_t radix) {
   unsigned r;
-  std::cout << "   getting digit '" << cdigit << "'\n";;
 
   if (radix == 16 || radix == 36) {
     r = cdigit - '0';
@@ -108,31 +107,31 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
   : BitWidth(numBits), VAL(0), poisoned(false) {
-  std::cout << "starting APInt::APInt( unsigned, ArrayRef<uint64_t>)...\n";;
+  //std::cout << "starting APInt::APInt( unsigned, ArrayRef<uint64_t>)...\n";;
   initFromArray(bigVal);
-  std::cout << "stopping APInt::APInt(~), val=" << 
-      toString(10,false) << ".\n";;
+  //std::cout << "stopping APInt::APInt(~), val=" << 
+  //    toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
   : BitWidth(numBits), VAL(0), poisoned(false) {
-  std::cout << "starting APInt::APInt( unsigned, uint64_t[])...\n";;
+   //std::cout << "starting APInt::APInt( unsigned, uint64_t[])...\n";;
   initFromArray(makeArrayRef(bigVal, numWords));
-  std::cout << "stopping APInt::APInt(~), val=" << 
-      toString(10,false) << ".\n";;
+  //std::cout << "stopping APInt::APInt(~), val=" << 
+  //    toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
   //std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
-  std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t) edited 2015jan03...\n";;
-  std::cout << "   numbits=\"" << numbits << "\"\n";;
-  std::cout << "   string=\"" << Str.str() << "\"\n";;
-  std::cout << "   radix=\"" << radix << "\"\n";;
+  //std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
+  //std::cout << "   numbits=\"" << numbits << "\"\n";;
+  //std::cout << "   string=\"" << Str.str() << "\"\n";;
+  //std::cout << "   radix=\"" << radix << "\"\n";;
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
-  std::cout << "stopping APInt::APInt(~), val=" << 
-      toString(10,false) << ".\n";;
+  //std::cout << "stopping APInt::APInt(~), val=" << 
+  //    toString(10,false) << ".\n";;
 }
 
 /* Note: this is one of the few (the only) SlowCase function that
@@ -996,34 +995,25 @@ double APInt::roundToDouble(bool isSigned) const {
 
 // Truncate to new width.
 APInt APInt::trunc(unsigned width) const {
-  std::cout << "starting APInt::trunc(unsigned), arg new width= " << 
-      width << ", old width=" <<
-      BitWidth << ",signed val=" << toString( 10, true ) << ",\n" <<
-      "   unsigned val=" << toString( 10, false ) << "\n";;
+  //std::cout << "starting APInt::trunc(unsigned), arg new width= " << 
+  //   width << ", old width=" <<
+  //   BitWidth << ",signed val=" << toString( 10, true ) << ",\n" <<
+  //   "   unsigned val=" << toString( 10, false ) << "\n";;
   assert(width < BitWidth && "Invalid APInt Truncate request");
   assert(width && "Can't truncate to 0 bits");
-  //;;APInt Result;
+  APInt Result;
 
   if (width <= APINT_BITS_PER_WORD)  {
-    std::cout << "   using short case \n";;
-    //;; Result= APInt(width, getRawData()[0]);
-    //;; Result.poisoned= poisoned;
-    //;; return Result;
-    //;; or
+    Result= APInt(width, getRawData()[0]);
+    Result.poisoned= poisoned;
+    return Result;
+    //;; or (delete when done)
     //;; return APInt(width, getRawData()[0]);
-    /* temporary trap: see if the earlier value of 81 is related to the later
-       value of 81 in csmith-derived program run44a_o0.ll...
-     */
-    if ( (*this) == 81 ) {;;
-       std::cout << "   found 81, changing to 75\n";;
-       return APInt(width, 75 );;
-    }
-    return APInt(width, getRawData()[0]);
   }
-  std::cout << "using long case \n";;
 
-  //;;Result= APInt(getMemory(getNumWords(width)), width);
-  APInt Result(getMemory(getNumWords(width)), width);;
+  Result= APInt(getMemory(getNumWords(width)), width);
+  //;; or (delete when done)
+  //;;APInt Result(getMemory(getNumWords(width)), width);;
 
   // Copy full words.
   unsigned i;
@@ -1035,8 +1025,9 @@ APInt APInt::trunc(unsigned width) const {
   if (bits != 0)
     Result.pVal[i] = pVal[i] << bits >> bits;
 
-  //;;Result.poisoned= poisoned;
-  return Result;
+  Result.poisoned= poisoned;
+  //;; or (delete when done)
+  //;;return Result;
 }
 
 // Sign extend to a new width.
@@ -1114,7 +1105,7 @@ APInt APInt::zextOrTrunc(unsigned width) const {
   if (BitWidth < width)
     return zext(width);
   if (BitWidth > width)  {
-    std::cout << "about to call trunc(unsigned) at 2014dec13_061540\n";;
+    //std::cout << "about to call trunc(unsigned) at 2014dec13_061540\n";;
     return trunc(width);
   }
   return *this;
@@ -1125,7 +1116,7 @@ APInt APInt::sextOrTrunc(unsigned width) const {
   if (BitWidth < width)
     return sext(width);
   if (BitWidth > width)  {
-    std::cout << "about to call trunc(unsigned) at 2014dec13_061552\n";;
+    //std::cout << "about to call trunc(unsigned) at 2014dec13_061552\n";;
     return trunc(width);
   }
   return *this;
@@ -2359,7 +2350,7 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   assert(((slen-1)*4 <= numbits || radix != 16) && "Insufficient bit width");
   assert((((slen-1)*64)/22 <= numbits || radix != 10) &&
          "Insufficient bit width");
-  std::cout << "   fromString(~): isNeg=" << isNeg << "\n";;
+  //std::cout << "   fromString(~): isNeg=" << isNeg << "\n";;
 
   // Allocate memory
   if (!isSingleWord())
@@ -2372,8 +2363,8 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // constantly construct/destruct it.
   APInt apdigit(getBitWidth(), 0);
   APInt apradix(getBitWidth(), radix);
-  std::cout << "   shift= " << shift << 
-      ", apradix=" << apradix.toString(10,false) << "\n";;
+  //std::cout << "   shift= " << shift << 
+  //    ", apradix=" << apradix.toString(10,false) << "\n";;
 
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
@@ -2394,8 +2385,8 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
     else
       apdigit.pVal[0] = digit;
     *this += apdigit;
-    std::cout << "   got APInt digit=" << apdigit.toString(10,false) << "\n";;
-    std::cout << "   so far=\"" << toString(10,false) << "\"\n";;
+    //std::cout << "   got APInt digit=" << apdigit.toString(10,false) << "\n";;
+    //std::cout << "   so far=\"" << toString(10,false) << "\"\n";;
   }
   // If its negative, put it in two's complement form
   if (isNeg) {
