@@ -2186,7 +2186,7 @@ void Interpreter::callFunction(Function *F,
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&
          "Incorrect number of arguments passed into function call!");
 
-  std::cout << "starting Execution/Interpreter::callFunction(~)... \n";
+  //std::cout << "starting Execution/Interpreter::callFunction(~)... \n";;
 
   // Make a new stack frame... and fill it in.
   ECStack.push_back(ExecutionContext());

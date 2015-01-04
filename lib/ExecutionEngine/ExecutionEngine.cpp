@@ -354,7 +354,6 @@ static bool isTargetNullPtr(ExecutionEngine *EE, void *Loc) {
 int ExecutionEngine::runFunctionAsMain(Function *Fn,
                                        const std::vector<std::string> &argv,
                                        const char * const * envp) {
-  std::cout << " starting ExecutionEngine::runFunctionAsMain() \n";;
   std::vector<GenericValue> GVArgs;
   GenericValue GVArgc;
   GVArgc.IntVal = APInt(32, argv.size());
