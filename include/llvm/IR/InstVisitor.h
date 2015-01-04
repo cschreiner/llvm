@@ -171,6 +171,7 @@ public:
 	  return static_cast<SubClass*>(this)->			\
 	      visit##CLASS(static_cast<CLASS&>(I));		\
       }
+#endif
 #include "llvm/IR/Instruction.def"
 
   // Specific Instruction type classes... note that all of the casts are
