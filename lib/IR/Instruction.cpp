@@ -110,12 +110,12 @@ std::string Instruction::toString() {
   {
     unsigned ii;
     for ( ii= 0; ii < getNumOperands(); ii++ )  {
-      //;;std::string nullSt("");
-      //;;raw_string_ostream ss( nullSt );
-      //;;getOperand(ii)->print( ss ); 
-      //;;result+= ", "+ std::to_string(ii) + "=\""+ ss.str()+ "\"";
-      result+= ", "+ std::to_string(ii) + "=\""+ getOperand(ii)->toString()+ 
-	   "\"";;
+      std::string nullSt("");
+      raw_string_ostream ss( nullSt );
+      getOperand(ii)->print( ss ); 
+      result+= ", "+ std::to_string(ii) + "=\""+ ss.str()+ "\"";
+      //result+= ", "+ std::to_string(ii) + "=\""+ getOperand(ii)->toString()+ 
+      //    "\"";;
     }
   }
   result+= ".";
