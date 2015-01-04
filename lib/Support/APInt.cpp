@@ -391,10 +391,11 @@ APInt& APInt::operator*=(const APInt& RHS) {
   // Get some bit facts about LHS and check for zero
   unsigned lhsBits = getActiveBits();
   unsigned lhsWords = !lhsBits ? 0 : whichWord(lhsBits - 1) + 1;
-  if (!lhsWords)
+  if (!lhsWords) {
     // 0 * X ===> 0
     orPoisoned( RHS );
     return *this;
+  }
 
   // Get some bit facts about RHS and check for zero
   unsigned rhsBits = RHS.getActiveBits();
