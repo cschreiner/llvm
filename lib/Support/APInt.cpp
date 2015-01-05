@@ -260,9 +260,9 @@ static bool add(uint64_t *dest, const uint64_t *x, const uint64_t *y,
 /// @brief Addition assignment operator.
 APInt& APInt::operator+=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
+  if (isSingleWord()) {
     VAL += RHS.VAL;
-  else {
+  } else {
     add(pVal, pVal, RHS.pVal, getNumWords());
   }
   orPoisoned(RHS);
@@ -1543,7 +1543,7 @@ APInt APInt::multiplicativeInverse(const APInt& modulo) const {
   // algorithm.
   if (r[i] != 1)  {
     Result= APInt(BitWidth, 0);
-    Result.poisoned= poisoned;
+    Result.poisoned= poisoned || modulo.poisoned;
     return Result;
   }
 
@@ -1552,7 +1552,7 @@ APInt APInt::multiplicativeInverse(const APInt& modulo) const {
   // one if necessary. A simple addition of the modulo suffices because
   // abs(t[i]) is known to be less than *this/2 (see the link above).
   Result= t[i].isNegative() ? t[i] + modulo : t[i];
-  Result.poisoned= poisoned;
+  Result.poisoned= poisoned || modulo.poisoned;
   return Result;
 } 
 
