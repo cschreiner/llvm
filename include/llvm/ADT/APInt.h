@@ -23,7 +23,6 @@
 #include <climits>
 #include <cstring>
 #include <string>
-#include <iostream> //;;
 
 namespace llvm {
 class Deserializer;
@@ -98,11 +97,8 @@ class APInt {
   ///
   /// This constructor is used only internally for speed of construction of
   /// temporaries. It is unsafe for general use so it is not public.
-  APInt(uint64_t *val, unsigned bits); //;; 
-  #if 0 //;;
   APInt(uint64_t *val, unsigned bits) : 
       BitWidth(bits), pVal(val), poisoned(false) {}
-  #endif
 
   /// \brief Determine if this APInt just has one word to store value.
   ///
@@ -245,24 +241,15 @@ public:
   /// \param numBits the bit width of the constructed APInt
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
-  APInt(unsigned numBits, uint64_t val, bool isSigned = false); //;;
-  #if 0 // moved to APIntDbg.cpp
   APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
-    std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";; 
     if (isSingleWord())
       VAL = val;
     else
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
-    std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
-        toString(10,false) << ".\n";;
-    if ( this->uge(80) ) {;;
-       std::cout << "   just created something >=80, \n";;
-    }
   }
-  #endif
 
   /// \brief Construct an APInt of numBits width, initialized as bigVal[].
   ///
@@ -297,8 +284,6 @@ public:
 
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
-  APInt(const APInt &that); //;;
-  #if 0 // moved to APIntDbg.cpp
   APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
     assert(BitWidth && "bitwidth too small");
@@ -308,16 +293,12 @@ public:
     else
       initSlowCase(that);
   }
-  #endif
 
   /// \brief Move Constructor.
-  APInt(APInt &&that); //;;
-  #if 0 // moved to APIntDbg.cpp
   APInt(APInt &&that) 
       : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
     that.BitWidth = 0;
   }
-  #endif
 
   /// \brief Destructor.
   ~APInt() {
