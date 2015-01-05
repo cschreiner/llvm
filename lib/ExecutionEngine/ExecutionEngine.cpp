@@ -1041,12 +1041,16 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
     memcpy(Dst + sizeof(uint64_t) - LoadBytes, Src, LoadBytes);
   }
 
-  /* TODO: check that this always finds no poison if a location is read that
-	is not found in the poisonedMem data structure.  
-  */
   for ( unsigned int ii= 0; ii < LoadBytes; ii++ )  {
-    if ( poisonedMem[Src+ii] )  {
-      IntVal.setPoisoned(true);   
+    /* TODO3: there may be an efficiency improvement opportunity here if there
+	is a way to combine the map's internal search for .count(~) and the 
+	[] fetch. Alternately, maybe there is a different kind of a map that
+	doesn't use a binary tree that would run faster.
+    */
+    if ( poisonedMem.count(Src+ii) > 0 )  {
+      if ( poisonedMem[Src+ii] )  {
+	IntVal.setPoisoned(true);   
+      }
     }
   }
 }
