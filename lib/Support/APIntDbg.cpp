@@ -58,6 +58,7 @@ namespace llvm {
   APInt::APInt(unsigned numBits, uint64_t val, bool isSigned ) 
       : BitWidth(numBits), VAL(0), poisoned(false) {
     assert(BitWidth && "bitwidth too small");
+    //std::cout << "starting APInt::APInt( unsigned, uint64_t, bool)...\n";; 
     bool inDebugMode= false;
     if ( NULL != getenv("APIntDbg") )  {
       inDebugMode= true;
@@ -68,10 +69,8 @@ namespace llvm {
     else
       initSlowCase(numBits, val, isSigned);
     clearUnusedBits();
-    if ( inDebugMode )  {
-      //std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
-      //	  toString(10,false) << ".\n";;
-    }
+    //std::cout << "stopping APInt::APInt(unsigned, uint64_t, bool), val=" << 
+    //    toString(10,false) << ".\n";;
   }
 
 
