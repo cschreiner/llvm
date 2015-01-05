@@ -475,7 +475,7 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] & RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
-  //;;CAS: delete[] val;
+  // Note: the APInt instance will free val's memory.
   return Result;
 }
 
@@ -486,7 +486,7 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
     val[i] = pVal[i] | RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
   Result.orPoisoned( *this, RHS );
-  //;;CAS: delete[] val;
+  // Note: the APInt instance will free val's memory.
   return Result;
 }
 
@@ -1026,8 +1026,7 @@ APInt APInt::trunc(unsigned width) const {
     Result.pVal[i] = pVal[i] << bits >> bits;
 
   Result.poisoned= poisoned;
-  //;; or (delete when done)
-  //;;return Result;
+  return Result;
 }
 
 // Sign extend to a new width.
@@ -1238,7 +1237,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  //;;CAS: delete[] val;
+  // Note: the APInt instance will free val's memory.
   return Result;
 }
 
@@ -1288,7 +1287,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    //;;CAS: delete[] val;
+    // Note: the APInt instance will free val's memory.
     return Result;
   }
 
@@ -1304,7 +1303,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
       val[i] = 0;
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
-    //;;CAS: delete[] val;
+    // Note: the APInt instance will free val's memory.
     return Result;
   }
 
@@ -1322,7 +1321,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  //;;CAS: delete[] val;
+  // Note: the APInt instance will free val's memory.
   return Result;
 }
 
@@ -1369,7 +1368,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    //;;CAS: delete[] val;
+    // Note: the APInt instance will free val's memory.
     return Result;
   }
 
@@ -1386,7 +1385,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     Result= APInt(val, BitWidth);
     Result.clearUnusedBits();
     Result.poisoned= poisoned;
-    //;;CAS: delete[] val;
+    // Note: the APInt instance will free val's memory.
     return Result;
   }
 
@@ -1401,7 +1400,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
   Result= APInt(val, BitWidth);
   Result.clearUnusedBits();
   Result.poisoned= poisoned;
-  //;;CAS: delete[] val;
+  // Note: the APInt instance will free val's memory.
   return Result;
 }
 
