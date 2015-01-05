@@ -25,7 +25,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
-#include <iostream> //;;
 using namespace llvm;
 
 #define DEBUG_TYPE "apint"
@@ -107,31 +106,18 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
   : BitWidth(numBits), VAL(0), poisoned(false) {
-  //std::cout << "starting APInt::APInt( unsigned, ArrayRef<uint64_t>)...\n";;
   initFromArray(bigVal);
-  //std::cout << "stopping APInt::APInt(~), val=" << 
-  //    toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
   : BitWidth(numBits), VAL(0), poisoned(false) {
-   //std::cout << "starting APInt::APInt( unsigned, uint64_t[])...\n";;
   initFromArray(makeArrayRef(bigVal, numWords));
-  //std::cout << "stopping APInt::APInt(~), val=" << 
-  //    toString(10,false) << ".\n";;
 }
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
   : BitWidth(numbits), VAL(0), poisoned(false) {
-  //std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
-  //std::cout << "starting APInt::APInt( unsigned, StringRef, uint8_t)...\n";;
-  //std::cout << "   numbits=\"" << numbits << "\"\n";;
-  //std::cout << "   string=\"" << Str.str() << "\"\n";;
-  //std::cout << "   radix=\"" << radix << "\"\n";;
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
-  //std::cout << "stopping APInt::APInt(~), val=" << 
-  //    toString(10,false) << ".\n";;
 }
 
 /* Note: this is one of the few (the only) SlowCase function that
@@ -995,10 +981,6 @@ double APInt::roundToDouble(bool isSigned) const {
 
 // Truncate to new width.
 APInt APInt::trunc(unsigned width) const {
-  //std::cout << "starting APInt::trunc(unsigned), arg new width= " << 
-  //   width << ", old width=" <<
-  //   BitWidth << ",signed val=" << toString( 10, true ) << ",\n" <<
-  //   "   unsigned val=" << toString( 10, false ) << "\n";;
   assert(width < BitWidth && "Invalid APInt Truncate request");
   assert(width && "Can't truncate to 0 bits");
   APInt Result;
@@ -1007,13 +989,9 @@ APInt APInt::trunc(unsigned width) const {
     Result= APInt(width, getRawData()[0]);
     Result.poisoned= poisoned;
     return Result;
-    //;; or (delete when done)
-    //;; return APInt(width, getRawData()[0]);
   }
 
   Result= APInt(getMemory(getNumWords(width)), width);
-  //;; or (delete when done)
-  //;;APInt Result(getMemory(getNumWords(width)), width);;
 
   // Copy full words.
   unsigned i;
@@ -1104,7 +1082,6 @@ APInt APInt::zextOrTrunc(unsigned width) const {
   if (BitWidth < width)
     return zext(width);
   if (BitWidth > width)  {
-    //std::cout << "about to call trunc(unsigned) at 2014dec13_061540\n";;
     return trunc(width);
   }
   return *this;
@@ -1115,7 +1092,6 @@ APInt APInt::sextOrTrunc(unsigned width) const {
   if (BitWidth < width)
     return sext(width);
   if (BitWidth > width)  {
-    //std::cout << "about to call trunc(unsigned) at 2014dec13_061552\n";;
     return trunc(width);
   }
   return *this;
@@ -2349,7 +2325,6 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   assert(((slen-1)*4 <= numbits || radix != 16) && "Insufficient bit width");
   assert((((slen-1)*64)/22 <= numbits || radix != 10) &&
          "Insufficient bit width");
-  //std::cout << "   fromString(~): isNeg=" << isNeg << "\n";;
 
   // Allocate memory
   if (!isSingleWord())
@@ -2362,8 +2337,6 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // constantly construct/destruct it.
   APInt apdigit(getBitWidth(), 0);
   APInt apradix(getBitWidth(), radix);
-  //std::cout << "   shift= " << shift << 
-  //    ", apradix=" << apradix.toString(10,false) << "\n";;
 
   // Enter digit traversal loop
   for (StringRef::iterator e = str.end(); p != e; ++p) {
@@ -2384,8 +2357,6 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
     else
       apdigit.pVal[0] = digit;
     *this += apdigit;
-    //std::cout << "   got APInt digit=" << apdigit.toString(10,false) << "\n";;
-    //std::cout << "   so far=\"" << toString(10,false) << "\"\n";;
   }
   // If its negative, put it in two's complement form
   if (isNeg) {
