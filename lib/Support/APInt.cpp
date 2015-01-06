@@ -200,10 +200,41 @@ static bool add_1(uint64_t dest[], uint64_t x[], unsigned len, uint64_t y) {
   return y;
 }
 
+/// @brief returns a random number with width w such that 
+/// desiredBitWidth <= w <= 64
+///
+/// TODO: consider using a better random number generator than rand().
+inline static uint64_t wideRand( unsigned desiredBitWidth ) {
+  assert( desiredBitWidth <= APINT_BITS_PER_WORD && 
+      "requesting too many random bits" );
+  unsigned widthSoFarInBits= 0;
+  uint64_t result= 0;
+  while ( widthSoFarInBits < desiredBitWidth ) {
+     result= (result << ( sizeof(unsigned) * 8 ) ) | (unsigned)rand();
+     widthSoFarInBits+= 8* sizeof(unsigned);
+  }
+  return result;
+}
+
 /// @brief set this APInt to a random value
 void APInt::setRandomly() {
-   // TODO: fill this in
+   poisoned= false;
+   if ( isSingleWord() ) {
+      VAL= wideRand( BitWidth );
+      clearUnusedBits(); 
+      return;
+   }
    
+   unsigned widthSoFarInBits= 0;
+   unsigned index= 0;
+   while ( widthSoFarInBits < BitWidth ) {
+      pVal[ index ]= wideRand(APINT_BITS_PER_WORD);
+      widthSoFarInBits+= APINT_BITS_PER_WORD;
+      index++;
+   }
+   pVal[ index ]= wideRand( APINT_BITS_PER_WORD );
+
+   clearUnusedBits();
    return;
 }
 
