@@ -200,6 +200,13 @@ static bool add_1(uint64_t dest[], uint64_t x[], unsigned len, uint64_t y) {
   return y;
 }
 
+/// @brief set this APInt to a random value
+void APInt::setRandomly() {
+   // TODO: fill this in
+   
+   return;
+}
+
 /// @brief Prefix increment operator. Increments the APInt by one.
 APInt& APInt::operator++() {
   if (isSingleWord())
