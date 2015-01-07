@@ -1,8 +1,7 @@
 
 
 random: random.cpp
-	clang++ -v random.cpp -lc++ -lc++abi -lm \
-	    -lc -lgcc_s -lgcc
+	clang++ -stdlib=libc++ -std=c++11 -lc++ random.cpp -o random
 
 #	clang++ `llvm-config --cxxflags` -c random.cpp
 #	clang++ `llvm-config --ldflags` \
