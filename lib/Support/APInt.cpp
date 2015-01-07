@@ -204,7 +204,7 @@ static bool add_1(uint64_t dest[], uint64_t x[], unsigned len, uint64_t y) {
 /// desiredBitWidth <= w <= 64
 ///
 /// TODO: consider using a better random number generator than rand().
-inline static uint64_t wideRand( unsigned desiredBitWidth ) {
+inline uint64_t APInt::wideRand( unsigned desiredBitWidth ) {
   assert( desiredBitWidth <= APINT_BITS_PER_WORD && 
       "requesting too many random bits" );
   unsigned widthSoFarInBits= 0;

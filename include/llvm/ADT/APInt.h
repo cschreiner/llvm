@@ -607,6 +607,13 @@ public:
     return &pVal[0];
   }
 
+  /// \brief returns a random number with width w such that 
+  /// desiredBitWidth <= w <= 64
+  /// this is a helper function for setRandomly() and similar methods.
+private:
+  inline uint64_t wideRand( unsigned desiredBitWidth );
+public:
+
   /// \brief set this APInt to a random value
   void setRandomly(); 
 
