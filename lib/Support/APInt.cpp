@@ -217,7 +217,7 @@ inline static uint64_t wideRand( unsigned desiredBitWidth ) {
 }
 
 /// @brief set this APInt to a random value
-void APInt::setRandomly() {
+void APInt::setRandom() {
    poisoned= false;
    if ( isSingleWord() ) {
       VAL= wideRand( BitWidth );
@@ -941,8 +941,9 @@ APInt llvm::APIntOps::RoundDoubleToAPInt(double Double, unsigned width) {
 
   // If the client didn't provide enough bits for us to shift the mantissa into
   // then the result is undefined, just return 0
-  if (width <= exp - 52)
+  if (width <= exp - 52)  {
     return APInt(width, 0);
+  }
 
   // Otherwise, we have to shift the mantissa bits up to the right location
   APInt Tmp(width, mantissa);
