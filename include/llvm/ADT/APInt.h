@@ -608,20 +608,27 @@ public:
   }
 
   /// \brief set this APInt to a random value
-  void setRandomly(); 
+  void setRandom(); 
 
   /// \brief create a new APInt with a random value
   inline static APInt getRandom( unsigned numBits, bool isSigned = false ) {
      APInt Result( numBits, 0, isSigned );
-     Result.setRandomly();
+     Result.setRandom();
      return Result;
   }
 
    /// \brief set this APInt to an LLVM undef value.  For now, this is
    /// simulated with a random value.
    inline void setToUndef() {
-      setRandomly();
+      setRandom();
    }
+
+  /// \brief create a new APInt with an undefined value
+  inline static APInt getUndef( unsigned numBits, bool isSigned = false ) {
+     APInt Result( numBits, 0, isSigned );
+     Result.setToUndef();
+     return Result;
+  }
 
   /// @}
   /// \name Unary Operators
