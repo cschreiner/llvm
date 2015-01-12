@@ -967,12 +967,12 @@ public:
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT shl(unsigned shiftAmt) const {
     assert(shiftAmt <= BitWidth && "Invalid shift amount");
     APInt result;
-    if (isSingleWord()) {
-      if (shiftAmt >= BitWidth)  {
-        result= APInt(BitWidth, 0); // avoid undefined shift results
-      } else {
-	result= APInt(BitWidth, VAL << shiftAmt);
-      }
+    if (shiftAmt >= BitWidth)  {
+       // TODO2: clean this up
+       //was: result= APInt(BitWidth, 0); // avoid undefined shift results
+       result= getUndef( BitWidth );
+    } else if (isSingleWord()) {
+      result= APInt(BitWidth, VAL << shiftAmt);
     } else {
       result= shlSlowCase(shiftAmt);
     }

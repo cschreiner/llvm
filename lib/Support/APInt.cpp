@@ -942,7 +942,8 @@ APInt llvm::APIntOps::RoundDoubleToAPInt(double Double, unsigned width) {
   // If the client didn't provide enough bits for us to shift the mantissa into
   // then the result is undefined, just return 0
   if (width <= exp - 52)  {
-    return APInt(width, 0);
+    // was: return APInt(width, 0); TODO2: clean this up
+    return getUndef( width );
   }
 
   // Otherwise, we have to shift the mantissa bits up to the right location
@@ -1172,8 +1173,8 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   // Handle single word shifts with built-in ashr
   if (isSingleWord()) {
     if (shiftAmt == BitWidth)  {
-      Result= APInt(BitWidth, 0); // undefined
-      // TODO2: replace the above value of 0 with a random value.
+      // was: Result= APInt(BitWidth, 0); // undefined // TODO2: clean this up
+      Result= getUndef( BitWidth );
       Result.poisoned= poisoned;
       return Result;
     } else {
@@ -1189,11 +1190,15 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   // We return -1 if it was negative, 0 otherwise. We check this early to avoid
   // issues in the algorithm below.
   if (shiftAmt == BitWidth) {
-    if (isNegative())  {
-      Result= APInt(BitWidth, -1ULL, true);
-    } else {
-      Result= APInt(BitWidth, 0);
-    }
+    #if 0 // this was: (TODO2: clean this up)
+      if (isNegative())  {
+	Result= APInt(BitWidth, -1ULL, true);
+      } else {
+	Result= APInt(BitWidth, 0);
+      }
+    #else // the new, hopefully better code
+      Result.getUndef( BitWidth, isNegative() );
+    #endif
     Result.poisoned= poisoned;
     return Result;
   }
@@ -1277,11 +1282,17 @@ APInt APInt::lshr(unsigned shiftAmt) const {
     return Result;
   }
 
-  // If all the bits were shifted out, the result is 0. This avoids issues
-  // with shifting by the size of the integer type, which produces undefined
-  // results. We define these "undefined results" to always be 0.
+  // If all the bits were shifted out, the result is undefined. 
   if (shiftAmt >= BitWidth)  {
-    Result= APInt(BitWidth, 0);
+    #if 0 // this was: (TODO2: clean this up)
+      // If all the bits were shifted out, the result is 0. This avoids
+      // issues with shifting by the size of the integer type, which
+      // produces undefined results. We define these "undefined results" to
+      // always be 0.
+      Result= APInt(BitWidth, 0);
+    #else // the new, better code
+      Result= getUndef( BitWidth );
+    #endif
     Result.poisoned= poisoned;
     return Result;
   }
@@ -1289,7 +1300,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   // If none of the bits are shifted out, the result is *this. This avoids
   // issues with shifting by the size of the integer type, which produces
   // undefined results in the code below. This is also an optimization.
-  // poison preservation happens automatically.
+  // Poison preservation happens automatically.
   if (shiftAmt == 0)  
     return *this;
 
@@ -1344,7 +1355,9 @@ APInt APInt::lshr(unsigned shiftAmt) const {
 /// @brief Left-shift function.
 APInt APInt::shl(const APInt &shiftAmt) const {
   APInt Result;
-  // It's undefined behavior in C to shift by BitWidth or greater.
+  /* It's undefined behavior in C to shift by BitWidth or greater.  This is
+	dealt with by the shl(~) method.  
+  */
   Result= shl((unsigned)shiftAmt.getLimitedValue(BitWidth));
   Result.orPoisoned( *this, shiftAmt );
   return Result;
@@ -1358,7 +1371,8 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
   // results. We define these "undefined results" to always be 0.
   // TODO2: change the "undefined" value to be a random value.
   if (shiftAmt == BitWidth)  {
-     Result= APInt(BitWidth, 0);
+     // was: Result= APInt(BitWidth, 0); TODO2: clean this up
+     Result= getUndef( BitWidth );
      Result.poisoned= poisoned;
      return Result;
   }
