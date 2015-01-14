@@ -943,7 +943,7 @@ APInt llvm::APIntOps::RoundDoubleToAPInt(double Double, unsigned width) {
   // then the result is undefined, just return 0
   if (width <= exp - 52)  {
     // was: return APInt(width, 0); TODO2: clean this up
-    return getUndef( width );
+    return APInt::getUndef( width );
   }
 
   // Otherwise, we have to shift the mantissa bits up to the right location
