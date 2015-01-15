@@ -1118,7 +1118,8 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     Result.IntVal= APInt::getUndef( 32 );; // TODO: make this working code
     // CAS TODO: fill in code here
     /* CAS TODO: verify that LLVM IR allows a whole struct to be
-       loaded into a register.
+       loaded into a register.  Also make sure we can store a whole
+       struct out of a register. (Do we need to?)
      */
   }
   default:
