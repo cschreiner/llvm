@@ -1118,13 +1118,24 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
         LoadIntFromMemory(Result.AggregateVal[i].IntVal,
           (uint8_t*)Ptr+((elemBitWidth+7)/8)*i, (elemBitWidth+7)/8);
     }
-  break;
+    break;
+  }
+  case Type::StructTyID: {
+    SmallString<256> Msg;;
+    raw_svector_ostream OS(Msg);;
+    OS << "attempting to load a struct \n";;
+    report_fatal_error(OS.str());;
+    Result.IntVal= APInt::getUndef( 32 );; // TODO: make this working code
+    // CAS TODO: fill in code here
+    /* CAS TODO: verify that LLVM IR allows a whole struct to be
+       loaded into a register.  Also make sure we can store a whole
+       struct out of a register. (Do we need to?)
+     */
   }
   default:
     SmallString<256> Msg;
     raw_svector_ostream OS(Msg);
     OS << "Cannot load value of type " << *Ty << "!";
-    report_fatal_error(OS.str());
   }
 }
 
