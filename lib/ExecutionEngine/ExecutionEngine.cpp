@@ -1125,12 +1125,19 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     raw_svector_ostream OS(Msg);;
     OS << "attempting to load a struct \n";;
     report_fatal_error(OS.str());;
-    Result.IntVal= APInt::getUndef( 32 );; // TODO: make this working code
+    /* Load a dummy value into the register, see if this is what the users of
+      the register expect.  Usually the value to be read is 96 bits long.
+      The dummy value selected is the year of founding the University of Utah.
+      TODO: make this fully working code.
+    */
+    APInt dummy= new APInt( 96, 1850 );; 
+    Result.IntVal= dummy;;
     // CAS TODO: fill in code here
     /* CAS TODO: verify that LLVM IR allows a whole struct to be
        loaded into a register.  Also make sure we can store a whole
        struct out of a register. (Do we need to?)
      */
+    break;
   }
   default:
     SmallString<256> Msg;
