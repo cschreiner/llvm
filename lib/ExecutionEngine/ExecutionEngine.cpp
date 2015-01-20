@@ -1130,7 +1130,7 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
       The dummy value selected is the year of founding the University of Utah.
       TODO: make this fully working code.
     */
-    APInt dummy= new APInt( 96, 1850 );; 
+    APInt dummy( 96, 1850 );; 
     Result.IntVal= dummy;;
     // CAS TODO: fill in code here
     /* CAS TODO: verify that LLVM IR allows a whole struct to be
