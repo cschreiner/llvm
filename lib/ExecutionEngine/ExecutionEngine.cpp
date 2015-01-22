@@ -37,7 +37,7 @@
 #include "llvm/IR/Instructions.h"
 #include <cmath>
 #include <cstring>
-#include <iostream> // CAS: TODO: should this be here?
+#include <iostream> // CAS: TODO: should this be here when debugging is done?
 using namespace llvm;
 
 #define DEBUG_TYPE "jit"
@@ -560,7 +560,6 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
     case Instruction::Trunc: {
       GenericValue GV = getConstantValue(Op0);
       uint32_t BitWidth = cast<IntegerType>(CE->getType())->getBitWidth();
-      std::cout << "about to call trunc(unsigned) at 2014dec13_054858\n";;
       GV.IntVal = GV.IntVal.trunc(BitWidth);
       return GV;
     }
@@ -1121,10 +1120,13 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     break;
   }
   case Type::StructTyID: {
-    SmallString<256> Msg;;
-    raw_svector_ostream OS(Msg);;
-    OS << "attempting to load a struct \n";;
-    report_fatal_error(OS.str());;
+    #if 0 //;;
+      SmallString<256> Msg;;
+      raw_svector_ostream OS(Msg);;
+      OS << "attempting to load a struct \n";;
+      report_fatal_error(OS.str());;
+    #endif //;;
+    std::cout << "attempting to load a struct \n";;
     /* Load a dummy value into the register, see if this is what the users of
       the register expect.  Usually the value to be read is 96 bits long.
       The dummy value selected is the year of founding the University of Utah.
