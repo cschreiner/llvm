@@ -23,7 +23,8 @@ entry:
   %2 = bitcast %struct.S2* %retval to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %1, i8* %2, i64 12, i32 1, i1 false)
   %3 = load { i64, i32 }* %tmp
-  call i32 (i8*, ...)* @printf( i8* %i96_printf_st_i8, i8 %3 ) ;;
+  %reg3_i8= bitcast { i64, i32 } %3 to i8 ;;
+  call i32 (i8*, ...)* @printf( i8* %i96_printf_st_i8, i8 %reg3_i8 ) ;;
   ret { i64, i32 } %3
 }
 
