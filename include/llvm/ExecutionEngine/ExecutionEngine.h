@@ -481,7 +481,9 @@ protected:
 
 private:
   void LoadStructFromMemory(GenericValue &Result, GenericValue *Ptr,
-			    Type *Ty);
+      Type *Ty);
+  void StoreStructToMemory(const GenericValue &Val,
+      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr);
 };
 
 namespace EngineKind {

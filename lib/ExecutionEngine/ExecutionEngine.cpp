@@ -970,27 +970,33 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
 /// StoreStructToMemory -- Writes a struct out from a register.  This is
 /// intended to be a helper function for StoreValueToMemory(~), and
 /// takes the same parameters as that function.
-void ExecutionEngine::StoreStructToMemory(const GenericValue &Val,
-      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr) {
+/// 
+/// \param Src the value to read from
+/// \param Dest the address to write to
+/// \param Ty information about the data type being written
+/// \param In_ptr information about the instruction invoking the Store 
+///	operation
+void ExecutionEngine::StoreStructToMemory(const GenericValue &Src,
+      GenericValue *Dest, Type *Ty, const StoreInst* In_ptr)  
 {{ 
   // TODO: check all this.  See how it works.
   std::cout << "starting StoreStructToMemory(~)\n";;
-  std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
-  Dest.AggregateVal.resize( Src->AggregateVal.size() );
-  std::cout << "   Dest was resized to " << Dest.AggregateVal.size() << "\n";;
+  std::cout << "   Src has size=" << Src.AggregateVal.size() << "\n";;
+  std::cout << "   Dest has size " << getDataLayout()->getTypeStoreSize(Ty) << 
+      "\n";;
   std::cout << "   got to venus \n";;
 
   // TODO: check all this:
-  int8_t* valPtr= (int8_t*)Src;
+  int8_t* destPtr= (int8_t*)Dest;
   unsigned elemIdx= 0;
   for ( elemIdx= 0; elemIdx < Ty->getStructNumElements(); elemIdx++ )  {
     Type* elemType= Ty->getStructElementType(elemIdx); 
-    StoreValueToMemory( Val.AggregateVal[elemIdx], 
-	(GenericValue*)valPtr, elemType, In_ptr );
+    StoreValueToMemory( Src.AggregateVal[elemIdx], 
+	(GenericValue*)destPtr, elemType, In_ptr );
     std::cout << "   elem " << elemIdx << " is of type \"" << 
 	elemType->getTypeID() << "\", " << 
 	getDataLayout()->getTypeStoreSize( elemType ) << " bytes long. \n";;
-    valPtr+= getDataLayout()->getTypeStoreSize( elemType );
+    destPtr+= getDataLayout()->getTypeStoreSize( elemType );
   }
 
   std::cout << "stopping LoadStructFromMemory(~)\n";;
