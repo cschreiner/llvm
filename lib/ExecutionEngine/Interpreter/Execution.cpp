@@ -1749,14 +1749,14 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
 
 void Interpreter::visitTruncInst(TruncInst &I) {
   ExecutionContext &SF = ECStack.back();
-  #if 0
+  #if 0 /* enable for debugging */
   {
-    GenericValue Src = getOperandValue(I.getOperand(0), SF);;
-    Type *destType= I.getType();;
-    IntegerType *destInstType= cast<IntegerType>(destType);;
+    GenericValue Src = getOperandValue(I.getOperand(0), SF);
+    Type *destType= I.getType();
+    IntegerType *destInstType= cast<IntegerType>(destType);
     std::cout << "starting visitTruncInst(TruncInst &I), src=" << 
         Src.IntVal.toString(10,false) << 
-        " /w width=" << destInstType->getBitWidth() << ".\n";;
+        " /w width=" << destInstType->getBitWidth() << ".\n";
   }
   #endif
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
@@ -2031,7 +2031,7 @@ void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
 }
 
 void Interpreter::visitInsertValueInst(InsertValueInst &I) {
-
+  // asdf ;;
   ExecutionContext &SF = ECStack.back();
   Value *Agg = I.getAggregateOperand();
 
