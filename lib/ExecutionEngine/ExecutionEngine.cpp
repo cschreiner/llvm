@@ -1014,8 +1014,9 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
     std::reverse((uint8_t*)Ptr, StoreBytes + (uint8_t*)Ptr);
 }
 
-/// LoadIntFromMemory - Loads the integer stored in the LoadBytes bytes starting
-/// from Src into IntVal, which is assumed to be wide enough and to hold zero.
+/// LoadIntFromMemory - Loads the integer stored in the LoadBytes
+/// bytes starting from Src into IntVal, which is assumed to be wide
+/// enough and to hold zero.
 static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
   assert((IntVal.getBitWidth()+7)/8 >= LoadBytes && "Integer too small!");
   uint8_t *Dst = reinterpret_cast<uint8_t *>(
