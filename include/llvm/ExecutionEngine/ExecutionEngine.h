@@ -478,6 +478,10 @@ protected:
   GenericValue getConstantValue(const Constant *C);
   void LoadValueFromMemory(GenericValue &Result, GenericValue *Ptr,
                            Type *Ty);
+
+private:
+  void LoadStructFromMemory(GenericValue &Result, GenericValue *Ptr,
+			    Type *Ty);
 };
 
 namespace EngineKind {

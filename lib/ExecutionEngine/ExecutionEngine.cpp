@@ -1064,10 +1064,10 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
 /// \param Src read data from here (this is the Ptr parameter from
 ///	LoadValueFromMemory(~))
 /// \param Ty information on the type of the data to move
-static void LoadStructFromMemory(GenericValue &Dest,
-				 GenericValue *Src,
-				 Type *Ty)  
-{{
+void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
+			  GenericValue *Src,
+			  Type *Ty)  
+{{ // asdf
   // TODO: see how this works
   std::cout << "starting LoadStructFromMemory(~)\n";;
   std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
@@ -1076,11 +1076,11 @@ static void LoadStructFromMemory(GenericValue &Dest,
   std::cout << "   got to venus \n";;
 
   // TODO: check all this:
-  void* valPtr= Src;
-  int elemIdx= 0;
+  int8_t* valPtr= (int8_t*)Src;
+  unsigned elemIdx= 0;
   for ( elemIdx= 0; elemIdx < Ty->getStructNumElements(); elemIdx++ )  {
     GenericValue elem;
-    Type* elemType= Ty->getStructElementType(elemIdx);
+    Type* elemType= Ty->getStructElementType(elemIdx); 
     LoadValueFromMemory( elem, (GenericValue*)valPtr, elemType );
     Dest.AggregateVal[elemIdx]= elem;
     valPtr+= getDataLayout()->getTypeStoreSize( elemType );
