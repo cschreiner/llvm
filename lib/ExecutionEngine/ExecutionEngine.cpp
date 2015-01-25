@@ -922,7 +922,7 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
 }
 
 // added by CAS:
-/* This data structure tracks which virtual machine memory locations are
+/*** This data structure tracks which virtual machine memory locations are
 	poisoned.  
 */
 static std::map<uint8_t*, bool> poisonedMem;
@@ -1054,7 +1054,87 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
   }
 }
 
-/// FIXME: document
+/// LoadStructFromMemory -- Loads a struct into a register.  This is
+/// intended to be a helper function for LoadValueFromMemory(~), and
+/// takes the same parameters as that function.
+///
+/// \param Dest the location data should be written to (this is the
+///	Result parameter from LoadValueFromMemory(~))
+/// \param Src read data from here (this is the Ptr parameter from
+///	LoadValueFromMemory(~))
+/// \param Ty information on the type of the data to move
+static void LoadStructFromMemory(GenericValue &Dest,
+				 GenericValue *Src,
+				 Type *Ty)  
+{{
+  // TODO: see how this works
+  Dest.AggregateVal= Src->AggregateVal;
+  return;
+
+  #if 0 // 
+    ExtractValueInst::idx_iterator IdxBegin = I.idx_begin();
+    unsigned Num = I.getNumIndices();
+
+    GenericValue *pDest = &Dest;
+    for (unsigned i = 0 ; i < Num; ++i) {
+      pDest = &pDest->AggregateVal[*IdxBegin];
+      ++IdxBegin;
+    }
+    // pDest points to the target value in the Dest now
+
+    Type *IndexedType = ExtractValueInst::getIndexedType(Agg->getType(), I.getIndices());
+
+    switch (IndexedType->getTypeID()) {
+      default:
+	llvm_unreachable("Unhandled dest type for insertelement instruction");
+      break;
+      case Type::IntegerTyID:
+	pDest->IntVal = Src.IntVal;
+      break;
+      case Type::FloatTyID:
+	pDest->FloatVal = Src.FloatVal;
+      break;
+      case Type::DoubleTyID:
+	pDest->DoubleVal = Src.DoubleVal;
+      break;
+      case Type::ArrayTyID:
+      case Type::StructTyID:
+      case Type::VectorTyID:
+	pDest->AggregateVal = Src.AggregateVal;
+      break;
+      case Type::PointerTyID:
+	pDest->PointerVal = Src.PointerVal;
+      break;
+    }
+
+    SetValue(&I, Dest, SF);
+  #endif
+  #if 0  // initial experiments
+  {
+    #if 0 //;;
+      SmallString<256> Msg;;
+      raw_svector_ostream OS(Msg);;
+      OS << "attempting to load a struct \n";;
+      report_fatal_error(OS.str());;
+    #endif //;;
+    std::cout << "attempting to load a struct \n";;
+    /* Load a dummy value into the register, see if this is what the users of
+      the register expect.  Usually the value to be read is 96 bits long.
+      The dummy value selected is the year of founding the University of Utah.
+      TODO: make this fully working code.
+    */
+    APInt dummy( 96, 1850 );; 
+    Result.IntVal= dummy;;
+    // CAS TODO: fill in code here
+    /* CAS TODO: verify that LLVM IR allows a whole struct to be
+       loaded into a register.  Also make sure we can store a whole
+       struct out of a register. (Do we need to?)
+     */
+    break;
+  }
+  #endif
+}}
+
 /// \brief loads an item of data from memory to a register, regardless of 
 /// its data type.  
 ///
@@ -1119,28 +1199,9 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     }
     break;
   }
-  case Type::StructTyID: {
-    #if 0 //;;
-      SmallString<256> Msg;;
-      raw_svector_ostream OS(Msg);;
-      OS << "attempting to load a struct \n";;
-      report_fatal_error(OS.str());;
-    #endif //;;
-    std::cout << "attempting to load a struct \n";;
-    /* Load a dummy value into the register, see if this is what the users of
-      the register expect.  Usually the value to be read is 96 bits long.
-      The dummy value selected is the year of founding the University of Utah.
-      TODO: make this fully working code.
-    */
-    APInt dummy( 96, 1850 );; 
-    Result.IntVal= dummy;;
-    // CAS TODO: fill in code here
-    /* CAS TODO: verify that LLVM IR allows a whole struct to be
-       loaded into a register.  Also make sure we can store a whole
-       struct out of a register. (Do we need to?)
-     */
+  case Type::StructTyID: 
+    LoadStructFromMemory( Result, Ptr, Ty );
     break;
-  }
   default:
     SmallString<256> Msg;
     raw_svector_ostream OS(Msg);
