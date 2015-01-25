@@ -1068,7 +1068,10 @@ static void LoadStructFromMemory(GenericValue &Dest,
 				 Type *Ty)  
 {{
   // TODO: see how this works
+  std::cout << "starting LoadStructFromMemory(~)\n";;
+  Dest.AggregateVal.resize( Src->AggregateVal.size() );
   Dest.AggregateVal= Src->AggregateVal;
+  std::cout << "stopping LoadStructFromMemory(~)\n";;
   return;
 
   #if 0 // 
