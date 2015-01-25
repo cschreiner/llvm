@@ -4,7 +4,8 @@ target triple = "x86_64-unknown-linux-gnu"
 
 %struct.S2 = type { i32, i32, i32 }
 
-@i96_printf_st= private unnamed_addr constant [ 15  x i8] c"struct={%llx}\0A\00"
+@mercury_printf_st= private unnamed_addr constant [16 x i8] c"got to mercury\0A\00"
+@i96_printf_st= private unnamed_addr constant [15  x i8] c"struct={%llx}\0A\00"
 
 @a = common global %struct.S2 zeroinitializer, align 4
 
@@ -14,6 +15,7 @@ declare i32 @printf(i8* nocapture readonly, ...)
 ; Function Attrs: nounwind uwtable
 define { i64, i32 } @fn1() #0 {
 entry:
+  %mercury_printf_st_i8= getelementptr [16 x i8]* @mercury_printf_st, i64 0, i64 0
   %i96_printf_st_i8= getelementptr [15 x i8]* @i96_printf_st, i64 0, i64 0
   %retval = alloca %struct.S2, align 4
   %tmp = alloca { i64, i32 }
@@ -22,11 +24,12 @@ entry:
   %1 = bitcast { i64, i32 }* %tmp to i8*
   %2 = bitcast %struct.S2* %retval to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %1, i8* %2, i64 12, i32 1, i1 false)
-  %3 = load { i64, i32 }* %tmp
-  %reg3_field0= extractvalue { i64, i32 } %3, 0 ;;
-  %reg3_field1= extractvalue { i64, i32 } %3, 1 ;;
+  call i32 (i8*,...)* @printf( i8* %mercury_printf_st_i8 ) ;;
+  %4 = load { i64, i32 }* %tmp
+  %reg3_field0= extractvalue { i64, i32 } %4, 0 ;;
+  %reg3_field1= extractvalue { i64, i32 } %4, 1 ;;
   call i32 (i8*, ...)* @printf( i8* %i96_printf_st_i8, i64 %reg3_field0 ) ;;
-  ret { i64, i32 } %3
+  ret { i64, i32 } %4
 }
 
 ; Function Attrs: nounwind
