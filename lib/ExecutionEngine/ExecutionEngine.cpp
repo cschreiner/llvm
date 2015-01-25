@@ -1083,9 +1083,9 @@ void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
     Type* elemType= Ty->getStructElementType(elemIdx); 
     LoadValueFromMemory( elem, (GenericValue*)valPtr, elemType );
     Dest.AggregateVal[elemIdx]= elem;
-    std::cout << "   elem " << elemIdx << " is of type \"" << elemType << 
-	"\", " << getDataLayout()->getTypeStoreSize( elemType ) << 
-	" bytes long. \n";;
+    std::cout << "   elem " << elemIdx << " is of type \"" << 
+	elemType->getTypeID() << "\", " << 
+	getDataLayout()->getTypeStoreSize( elemType ) << " bytes long. \n";;
     valPtr+= getDataLayout()->getTypeStoreSize( elemType );
   }
 
