@@ -967,6 +967,43 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
   }
 }
 
+/// StoreStructToMemory -- Writes a struct out from a register.  This is
+/// intended to be a helper function for StoreValueToMemory(~), and
+/// takes the same parameters as that function.
+void ExecutionEngine::StoreStructToMemory(const GenericValue &Val,
+      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr) {
+{{ 
+  // TODO: check all this.  See how it works.
+  std::cout << "starting StoreStructToMemory(~)\n";;
+  std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
+  Dest.AggregateVal.resize( Src->AggregateVal.size() );
+  std::cout << "   Dest was resized to " << Dest.AggregateVal.size() << "\n";;
+  std::cout << "   got to venus \n";;
+
+  // TODO: check all this:
+  int8_t* valPtr= (int8_t*)Src;
+  unsigned elemIdx= 0;
+  for ( elemIdx= 0; elemIdx < Ty->getStructNumElements(); elemIdx++ )  {
+    Type* elemType= Ty->getStructElementType(elemIdx); 
+    StoreValueToMemory( Val.AggregateVal[elemIdx], 
+	(GenericValue*)valPtr, elemType, In_ptr );
+    std::cout << "   elem " << elemIdx << " is of type \"" << 
+	elemType->getTypeID() << "\", " << 
+	getDataLayout()->getTypeStoreSize( elemType ) << " bytes long. \n";;
+    valPtr+= getDataLayout()->getTypeStoreSize( elemType );
+  }
+
+  std::cout << "stopping LoadStructFromMemory(~)\n";;
+  return;
+}}
+
+/// \brief Writes a value to memory.
+/// \param Val the value to store
+/// \param Ptr the destination to store to
+/// \param Ty info on the data type of the value being stored
+/// \param In_ptr info on the instruction that generated this call.
+///	This is used, for example, to determine if the destination memory
+///	location is volatile.
 void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
       GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr) {
   const unsigned StoreBytes = getDataLayout()->getTypeStoreSize(Ty);
@@ -974,6 +1011,9 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
   switch (Ty->getTypeID()) {
   default:
     dbgs() << "Cannot store value of type " << *Ty << "!\n";
+    break;
+  case Type::StructTyID:
+    StoreStructToMemory( Val, Ptr, Ty, In_ptr );
     break;
   case Type::IntegerTyID:
     StoreIntToMemory(Val.IntVal, (uint8_t*)Ptr, StoreBytes, In_ptr);
