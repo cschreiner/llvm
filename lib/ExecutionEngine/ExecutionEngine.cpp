@@ -981,9 +981,10 @@ void ExecutionEngine::StoreStructToMemory(const GenericValue &Src,
 {{ 
   // TODO: check all this.  See how it works.
   std::cout << "starting StoreStructToMemory(~)\n";;
-  std::cout << "   Src has size=" << Src.AggregateVal.size() << "\n";;
+  std::cout << "   Src has size=" << Src.AggregateVal.size() << 
+      " elements. \n";;
   std::cout << "   Dest has size " << getDataLayout()->getTypeStoreSize(Ty) << 
-      "\n";;
+      " bytes. \n";;
   std::cout << "   got to venus \n";;
 
   // TODO: check all this:
@@ -1116,9 +1117,14 @@ void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
 {{ 
   // TODO: check all this.  See how it works.
   std::cout << "starting LoadStructFromMemory(~)\n";;
-  std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
-  Dest.AggregateVal.resize( Src->AggregateVal.size() );
-  std::cout << "   Dest was resized to " << Dest.AggregateVal.size() << "\n";;
+
+  /* Note: we use the number of elements in Ty, not in Src, as Src is a
+     pointer that is semi-arbitrarily cast to GenericValue*, it doesn't
+     point to any useful information about the struct being loaded.
+  */
+  Dest.AggregateVal.resize( Ty->getStructNumElements() );
+  std::cout << "   Dest was resized to " << Dest.AggregateVal.size() << 
+      " elements. \n";;
   std::cout << "   got to venus \n";;
 
   // TODO: check all this:
