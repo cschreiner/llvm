@@ -23,6 +23,7 @@
 #include <climits>
 #include <cstring>
 #include <string>
+#include <iostream> //;;
 
 namespace llvm {
 class Deserializer;
@@ -103,7 +104,11 @@ class APInt {
   /// \brief Determine if this APInt just has one word to store value.
   ///
   /// \returns true if the number of bits <= 64, false otherwise.
-  bool isSingleWord() const { return BitWidth <= APINT_BITS_PER_WORD; }
+  bool isSingleWord() const { 
+    //;;std::cout << "APInt::isSingleWord(): BitWidth=" << BitWidth << 
+    //;;	", BITS_PER_WORD=" << APINT_BITS_PER_WORD << ". \n";;
+    return BitWidth <= APINT_BITS_PER_WORD; 
+  }
 
   /// \brief Determine which word a bit is in.
   ///
