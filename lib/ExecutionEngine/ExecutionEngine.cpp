@@ -1067,8 +1067,8 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
 void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
 			  GenericValue *Src,
 			  Type *Ty)  
-{{ // asdf
-  // TODO: see how this works
+{{ 
+  // TODO: check all this.  See how it works.
   std::cout << "starting LoadStructFromMemory(~)\n";;
   std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
   Dest.AggregateVal.resize( Src->AggregateVal.size() );
@@ -1083,6 +1083,9 @@ void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
     Type* elemType= Ty->getStructElementType(elemIdx); 
     LoadValueFromMemory( elem, (GenericValue*)valPtr, elemType );
     Dest.AggregateVal[elemIdx]= elem;
+    std::cout << "   elem " << elemIdx << " is of type \"" << elemType << 
+	"\", " << getDataLayout()->getTypeStoreSize( elemType ) << 
+	" bytes long. \n";;
     valPtr+= getDataLayout()->getTypeStoreSize( elemType );
   }
 
@@ -1112,11 +1115,6 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     std::cout << "LoadBytes= " << LoadBytes << "\n";;
     std::cout << "&Result= \"" << &Result << "\"\n";;
     std::cout << "Ptr (src)= \"" << Ptr << "\"\n";;
-    std::cout << "   Ptr->AggregateVal.size()= \"" << 
-	Ptr->AggregateVal.size() << "\"\n";;
-    std::vector<GenericValue>* ptrToVector= (std::vector<GenericValue>*) Ptr;
-    std::cout << "   ptrToVector->size()= \"" << 
-    	ptrToVector->size() << "\"\n";;
     std::cout << "Ty (type)= \"" << Ty << "\"\n";;
     std::cout << "Ty->isAggregateType() = \"" << 
 	Ty->isAggregateType() << "\"\n";;
