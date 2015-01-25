@@ -1069,7 +1069,10 @@ static void LoadStructFromMemory(GenericValue &Dest,
 {{
   // TODO: see how this works
   std::cout << "starting LoadStructFromMemory(~)\n";;
+  std::cout << "   Src has size=" << Src->AggregateVal.size() << "\n";;
+  std::cout << "   Dest has size=" << Dest.AggregateVal.size() << "\n";;
   Dest.AggregateVal.resize( Src->AggregateVal.size() );
+  std::cout << "   got to venus \n";;
   Dest.AggregateVal= Src->AggregateVal;
   std::cout << "stopping LoadStructFromMemory(~)\n";;
   return;
@@ -1155,6 +1158,25 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
   const unsigned LoadBytes = getDataLayout()->getTypeStoreSize(Ty);
 
   switch (Ty->getTypeID()) {
+  case Type::StructTyID:  {
+    std::cout << "LoadBytes= " << LoadBytes << "\n";;
+    std::cout << "&Result= \"" << &Result << "\"\n";;
+    std::cout << "Ptr (src)= \"" << Ptr << "\"\n";;
+    std::cout << "   Ptr->AggregateVal.size()= \"" << 
+	Ptr->AggregateVal.size() << "\"\n";;
+    std::vector<GenericValue>* ptrToVector= (std::vector<GenericValue>*) Ptr;
+    std::cout << "   ptrToVector->size()= \"" << 
+    	ptrToVector->size() << "\"\n";;
+    std::cout << "Ty (type)= \"" << Ty << "\"\n";;
+    std::cout << "Ty->isAggregateType() = \"" << 
+	Ty->isAggregateType() << "\"\n";;
+    //std::cout << "Ty->getStructName().str() = \"" << 
+    //	Ty->getStructName().str() << "\"\n";;
+    std::cout << "Ty->getStructNumElements() = \"" << 
+	Ty->getStructNumElements() << "\"\n";;
+    LoadStructFromMemory( Result, Ptr, Ty );
+    break;
+  }
   case Type::IntegerTyID:
     // An APInt with all words initially zero.
     Result.IntVal = APInt(cast<IntegerType>(Ty)->getBitWidth(), 0);
@@ -1202,9 +1224,6 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
     }
     break;
   }
-  case Type::StructTyID: 
-    LoadStructFromMemory( Result, Ptr, Ty );
-    break;
   default:
     SmallString<256> Msg;
     raw_svector_ostream OS(Msg);
