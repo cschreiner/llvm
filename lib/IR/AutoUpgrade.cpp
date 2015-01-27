@@ -15,9 +15,9 @@
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DiagnosticInfo.h"
-#include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instruction.h"
@@ -51,6 +51,21 @@ static bool UpgradeX86IntrinsicsWith8BitMask(Function *F, Intrinsic::ID IID,
   // Check that the last argument is an i32.
   Type *LastArgType = F->getFunctionType()->getParamType(
      F->getFunctionType()->getNumParams() - 1);
+  if (!LastArgType->isIntegerTy(32))
+    return false;
+
+  // Move this function aside and map down.
+  F->setName(F->getName() + ".old");
+  NewFn = Intrinsic::getDeclaration(F->getParent(), IID);
+  return true;
+}
+
+// Upgrade the declarations of AVX-512 cmp intrinsic functions whose 8-bit
+// immediates have changed their type from i32 to i8.
+static bool UpgradeAVX512CmpIntrinsic(Function *F, Intrinsic::ID IID,
+                                      Function *&NewFn) {
+  // Check that the last argument is an i32.
+  Type *LastArgType = F->getFunctionType()->getParamType(2);
   if (!LastArgType->isIntegerTy(32))
     return false;
 
@@ -206,6 +221,13 @@ static bool UpgradeIntrinsicFunction1(Function *F, Function *&NewFn) {
       return UpgradeX86IntrinsicsWith8BitMask(F, Intrinsic::x86_avx2_mpsadbw,
                                               NewFn);
 
+    if (Name == "x86.avx512.mask.cmp.ps.512")
+      return UpgradeAVX512CmpIntrinsic(F, Intrinsic::x86_avx512_mask_cmp_ps_512,
+                                       NewFn);
+    if (Name == "x86.avx512.mask.cmp.pd.512")
+      return UpgradeAVX512CmpIntrinsic(F, Intrinsic::x86_avx512_mask_cmp_pd_512,
+                                       NewFn);
+
     // frcz.ss/sd may need to have an argument dropped
     if (Name.startswith("x86.xop.vfrcz.ss") && F->arg_size() == 2) {
       F->setName(Name + ".old");
@@ -260,14 +282,15 @@ static MDNode *getNodeField(const MDNode *DbgNode, unsigned Elt) {
   return dyn_cast_or_null<MDNode>(DbgNode->getOperand(Elt));
 }
 
-static DIExpression getExpression(Value *VarOperand, Function *F) {
+static MetadataAsValue *getExpression(Value *VarOperand, Function *F) {
   // Old-style DIVariables have an optional expression as the 8th element.
-  DIExpression Expr(getNodeField(cast<MDNode>(VarOperand), 8));
+  DIExpression Expr(getNodeField(
+      cast<MDNode>(cast<MetadataAsValue>(VarOperand)->getMetadata()), 8));
   if (!Expr) {
-    DIBuilder DIB(*F->getParent());
+    DIBuilder DIB(*F->getParent(), /*AllowUnresolved*/ false);
     Expr = DIB.createExpression();
   }
-  return Expr;
+  return MetadataAsValue::get(F->getContext(), Expr);
 }
 
 // UpgradeIntrinsicCall - Upgrade a call to an old intrinsic to be a call the
@@ -306,8 +329,9 @@ void llvm::UpgradeIntrinsicCall(CallInst *CI, Function *NewFn) {
       Builder.SetInsertPoint(CI->getParent(), CI);
 
       Module *M = F->getParent();
-      SmallVector<Value *, 1> Elts;
-      Elts.push_back(ConstantInt::get(Type::getInt32Ty(C), 1));
+      SmallVector<Metadata *, 1> Elts;
+      Elts.push_back(
+          ConstantAsMetadata::get(ConstantInt::get(Type::getInt32Ty(C), 1)));
       MDNode *Node = MDNode::get(C, Elts);
 
       Value *Arg0 = CI->getArgOperand(0);
@@ -476,14 +500,6 @@ void llvm::UpgradeIntrinsicCall(CallInst *CI, Function *NewFn) {
     CI->eraseFromParent();
     return;
 
-  case Intrinsic::arm_neon_vclz: {
-    // Change name from llvm.arm.neon.vclz.* to llvm.ctlz.*
-    CI->replaceAllUsesWith(Builder.CreateCall2(NewFn, CI->getArgOperand(0),
-                                               Builder.getFalse(),
-                                               "llvm.ctlz." + Name.substr(14)));
-    CI->eraseFromParent();
-    return;
-  }
   case Intrinsic::ctpop: {
     CI->replaceAllUsesWith(Builder.CreateCall(NewFn, CI->getArgOperand(0)));
     CI->eraseFromParent();
@@ -553,6 +569,21 @@ void llvm::UpgradeIntrinsicCall(CallInst *CI, Function *NewFn) {
     CI->eraseFromParent();
     return;
   }
+  case Intrinsic::x86_avx512_mask_cmp_ps_512:
+  case Intrinsic::x86_avx512_mask_cmp_pd_512: {
+    // Need to truncate the last argument from i32 to i8 -- this argument models
+    // an inherently 8-bit immediate operand to these x86 instructions.
+    SmallVector<Value *, 5> Args(CI->arg_operands().begin(),
+                                 CI->arg_operands().end());
+
+    // Replace the last argument with a trunc.
+    Args[2] = Builder.CreateTrunc(Args[2], Type::getInt8Ty(C), "trunc");
+
+    CallInst *NewCall = Builder.CreateCall(NewFn, Args);
+    CI->replaceAllUsesWith(NewCall);
+    CI->eraseFromParent();
+    return;
+  }
   }
 }
 
@@ -586,22 +617,18 @@ void llvm::UpgradeInstWithTBAATag(Instruction *I) {
     return;
 
   if (MD->getNumOperands() == 3) {
-    Value *Elts[] = {
-      MD->getOperand(0),
-      MD->getOperand(1)
-    };
+    Metadata *Elts[] = {MD->getOperand(0), MD->getOperand(1)};
     MDNode *ScalarType = MDNode::get(I->getContext(), Elts);
     // Create a MDNode <ScalarType, ScalarType, offset 0, const>
-    Value *Elts2[] = {
-      ScalarType, ScalarType,
-      Constant::getNullValue(Type::getInt64Ty(I->getContext())),
-      MD->getOperand(2)
-    };
+    Metadata *Elts2[] = {ScalarType, ScalarType,
+                         ConstantAsMetadata::get(Constant::getNullValue(
+                             Type::getInt64Ty(I->getContext()))),
+                         MD->getOperand(2)};
     I->setMetadata(LLVMContext::MD_tbaa, MDNode::get(I->getContext(), Elts2));
   } else {
     // Create a MDNode <MD, MD, offset 0>
-    Value *Elts[] = {MD, MD,
-      Constant::getNullValue(Type::getInt64Ty(I->getContext()))};
+    Metadata *Elts[] = {MD, MD, ConstantAsMetadata::get(Constant::getNullValue(
+                                    Type::getInt64Ty(I->getContext())))};
     I->setMetadata(LLVMContext::MD_tbaa, MDNode::get(I->getContext(), Elts));
   }
 }

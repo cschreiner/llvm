@@ -42,22 +42,25 @@ class SITargetLowering : public AMDGPUTargetLowering {
   SDValue LowerTrig(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
 
-  bool foldImm(SDValue &Operand, int32_t &Immediate,
-               bool &ScalarSlotUsed) const;
   const TargetRegisterClass *getRegClassForNode(SelectionDAG &DAG,
                                                 const SDValue &Op) const;
   bool fitsRegClass(SelectionDAG &DAG, const SDValue &Op,
                     unsigned RegClass) const;
 
-  SDNode *legalizeOperands(MachineSDNode *N, SelectionDAG &DAG) const;
   void adjustWritemask(MachineSDNode *&N, SelectionDAG &DAG) const;
   MachineSDNode *AdjustRegClass(MachineSDNode *N, SelectionDAG &DAG) const;
 
-  static SDValue performUCharToFloatCombine(SDNode *N,
-                                            DAGCombinerInfo &DCI);
+  SDValue performUCharToFloatCombine(SDNode *N,
+                                     DAGCombinerInfo &DCI) const;
   SDValue performSHLPtrCombine(SDNode *N,
                                unsigned AS,
                                DAGCombinerInfo &DCI) const;
+  SDValue performAndCombine(SDNode *N, DAGCombinerInfo &DCI) const;
+  SDValue performOrCombine(SDNode *N, DAGCombinerInfo &DCI) const;
+  SDValue performClassCombine(SDNode *N, DAGCombinerInfo &DCI) const;
+
+  SDValue performMin3Max3Combine(SDNode *N, DAGCombinerInfo &DCI) const;
+  SDValue performSetCCCombine(SDNode *N, DAGCombinerInfo &DCI) const;
 
 public:
   SITargetLowering(TargetMachine &tm);
@@ -105,6 +108,16 @@ public:
   SDValue CreateLiveInRegister(SelectionDAG &DAG, const TargetRegisterClass *RC,
                                unsigned Reg, EVT VT) const override;
   void legalizeTargetIndependentNode(SDNode *Node, SelectionDAG &DAG) const;
+
+  MachineSDNode *wrapAddr64Rsrc(SelectionDAG &DAG, SDLoc DL, SDValue Ptr) const;
+  MachineSDNode *buildRSRC(SelectionDAG &DAG,
+                           SDLoc DL,
+                           SDValue Ptr,
+                           uint32_t RsrcDword1,
+                           uint64_t RsrcDword2And3) const;
+  MachineSDNode *buildScratchRSRC(SelectionDAG &DAG,
+                                  SDLoc DL,
+                                  SDValue Ptr) const;
 };
 
 } // End namespace llvm

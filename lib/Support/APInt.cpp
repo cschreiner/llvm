@@ -2192,6 +2192,19 @@ APInt APInt::srem(const APInt &RHS) const {
 
 void APInt::udivrem(const APInt &LHS, const APInt &RHS,
                     APInt &Quotient, APInt &Remainder) {
+  assert(LHS.BitWidth == RHS.BitWidth && "Bit widths must be the same");
+
+  // First, deal with the easy case
+  if (LHS.isSingleWord()) {
+    assert(RHS.VAL != 0 && "Divide by zero?");
+    uint64_t QuotVal = LHS.VAL / RHS.VAL;
+    uint64_t RemVal = LHS.VAL % RHS.VAL;
+    Quotient = APInt(LHS.BitWidth, QuotVal);
+    Remainder = APInt(LHS.BitWidth, RemVal);
+    Quotient.orPoisoned( LHS, RHS );
+    Remainder.orPoisoned( LHS, RHS );
+    return;
+  }
 
   // Get some size facts about the dividend and divisor
   unsigned lhsBits  = LHS.getActiveBits();

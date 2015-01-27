@@ -35,7 +35,7 @@
 
 namespace llvm {
   class APInt;
-  class AssumptionTracker;
+  class AssumptionCache;
   class Constant;
   class ConstantInt;
   class DominatorTree;
@@ -129,9 +129,11 @@ namespace llvm {
     /// purposes.
     void print(raw_ostream &OS) const;
 
+#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
     /// dump - This method is used for debugging.
     ///
     void dump() const;
+#endif
   };
 
   // Specialize FoldingSetTrait for SCEV to avoid needing to compute
@@ -223,7 +225,7 @@ namespace llvm {
     Function *F;
 
     /// The tracker for @llvm.assume intrinsics in this function.
-    AssumptionTracker *AT;
+    AssumptionCache *AC;
 
     /// LI - The loop information for the function we are currently analyzing.
     ///
