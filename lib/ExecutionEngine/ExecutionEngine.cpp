@@ -919,7 +919,7 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
   }
 
   return Result;
-}
+} // getConstantValue(~)
 
 // added by CAS:
 /*** This data structure tracks which virtual machine memory locations are
