@@ -1379,10 +1379,7 @@ bool ARMDAGToDAGISel::SelectT2AddrModeSoReg(SDValue N,
         OffReg = OffReg.getOperand(0);
       else {
         ShAmt = 0;
-        ShOpcVal = ARM_AM::no_shift;
       }
-    } else {
-      ShOpcVal = ARM_AM::no_shift;
     }
   }
 
@@ -1787,6 +1784,7 @@ SDNode *ARMDAGToDAGISel::SelectVLD(SDNode *N, bool isUpdating, unsigned NumVecs,
   case MVT::v8i16: OpcodeIndex = 1; break;
   case MVT::v4f32:
   case MVT::v4i32: OpcodeIndex = 2; break;
+  case MVT::v2f64:
   case MVT::v2i64: OpcodeIndex = 3;
     assert(NumVecs == 1 && "v2i64 type only supported for VLD1");
     break;
@@ -1923,6 +1921,7 @@ SDNode *ARMDAGToDAGISel::SelectVST(SDNode *N, bool isUpdating, unsigned NumVecs,
   case MVT::v8i16: OpcodeIndex = 1; break;
   case MVT::v4f32:
   case MVT::v4i32: OpcodeIndex = 2; break;
+  case MVT::v2f64:
   case MVT::v2i64: OpcodeIndex = 3;
     assert(NumVecs == 1 && "v2i64 type only supported for VST1");
     break;
@@ -3397,7 +3396,6 @@ SDNode *ARMDAGToDAGISel::SelectInlineAsm(SDNode *N){
       std::vector<SDValue> Ops(GU->op_begin(), GU->op_end()-1);
       Ops.push_back(T1.getValue(1));
       CurDAG->UpdateNodeOperands(GU, Ops);
-      GU = T1.getNode();
     }
     else {
       // For Kind  == InlineAsm::Kind_RegUse, we first copy two GPRs into a

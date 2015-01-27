@@ -43,12 +43,17 @@ public:
   void printSrcIdx(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   void printDstIdx(const MCInst *MI, unsigned OpNo, raw_ostream &O);
   void printRoundingControl(const MCInst *MI, unsigned Op, raw_ostream &OS);
+  void printU8Imm(const MCInst *MI, unsigned Op, raw_ostream &O);
+
+  void printanymem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
+    printMemReference(MI, OpNo, O);
+  }
 
   void printopaquemem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
     O << "opaque ptr ";
     printMemReference(MI, OpNo, O);
   }
-  
+
   void printi8mem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
     O << "byte ptr ";
     printMemReference(MI, OpNo, O);
@@ -152,7 +157,7 @@ public:
     printMemOffset(MI, OpNo, O);
   }
 };
-  
+
 }
 
 #endif

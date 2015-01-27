@@ -52,11 +52,16 @@ public:
   void printDstIdx(const MCInst *MI, unsigned OpNo, raw_ostream &OS);
   void printMemOffset(const MCInst *MI, unsigned OpNo, raw_ostream &OS);
   void printRoundingControl(const MCInst *MI, unsigned Op, raw_ostream &OS);
+  void printU8Imm(const MCInst *MI, unsigned Op, raw_ostream &OS);
+
+  void printanymem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
+    printMemReference(MI, OpNo, O);
+  }
 
   void printopaquemem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
     printMemReference(MI, OpNo, O);
   }
-  
+
   void printi8mem(const MCInst *MI, unsigned OpNo, raw_ostream &O) {
     printMemReference(MI, OpNo, O);
   }
@@ -137,7 +142,7 @@ public:
 private:
   bool HasCustomInstComment;
 };
-  
+
 }
 
 #endif

@@ -20,6 +20,7 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/Config/config.h"
 #include "llvm/IR/Constants.h"
@@ -33,7 +34,6 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
-#include "llvm/Target/TargetLibraryInfo.h"
 #include <cerrno>
 #include <cmath>
 
@@ -981,7 +981,7 @@ ConstantFoldConstantExpressionImpl(const ConstantExpr *CE, const DataLayout *TD,
     // Recursively fold the ConstantExpr's operands. If we have already folded
     // a ConstantExpr, we don't have to process it again.
     if (ConstantExpr *NewCE = dyn_cast<ConstantExpr>(NewC)) {
-      if (FoldedOps.insert(NewCE))
+      if (FoldedOps.insert(NewCE).second)
         NewC = ConstantFoldConstantExpressionImpl(NewCE, TD, TLI, FoldedOps);
     }
     Ops.push_back(NewC);

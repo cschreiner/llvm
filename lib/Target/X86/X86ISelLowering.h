@@ -190,6 +190,11 @@ namespace llvm {
       /// BLENDI - Blend where the selector is an immediate.
       BLENDI,
 
+      /// SHRUNKBLEND - Blend where the condition has been shrunk.
+      /// This is used to emphasize that the condition mask is
+      /// no more valid for generic VSELECT optimizations.
+      SHRUNKBLEND,
+
       /// ADDSUB - Combined add and sub on an FP vector.
       ADDSUB,
 
@@ -304,6 +309,10 @@ namespace llvm {
       // 8-bit SMUL/UMUL - AX, FLAGS = smul8/umul8 AL, RHS
       SMUL8, UMUL8,
 
+      // 8-bit divrem that zero-extend the high result (AH).
+      UDIVREM8_ZEXT_HREG,
+      SDIVREM8_SEXT_HREG,
+
       // MUL_IMM - X86 specific multiply by immediate.
       MUL_IMM,
 
@@ -370,6 +379,10 @@ namespace llvm {
       FMADDSUB,
       FMSUBADD,
 
+      // Compress and expand
+      COMPRESS,
+      EXPAND,
+
       // Save xmm argument registers to the stack, according to %al. An operator
       // is needed so that this can be expanded with control flow.
       VASTART_SAVE_XMM_REGS,
@@ -409,6 +422,9 @@ namespace llvm {
 
       // Test if in transactional execution.
       XTEST,
+
+      // ERI instructions
+      RSQRT28, RCP28, EXP2,
 
       // Compare and swap.
       LCMPXCHG_DAG = ISD::FIRST_TARGET_MEMORY_OPCODE,
@@ -617,6 +633,10 @@ namespace llvm {
     /// This method returns the name of a target specific DAG node.
     const char *getTargetNodeName(unsigned Opcode) const override;
 
+    bool isCheapToSpeculateCttz() const override;
+
+    bool isCheapToSpeculateCtlz() const override;
+
     /// Return the value type to use for ISD::SETCC.
     EVT getSetCCResultType(LLVMContext &Context, EVT VT) const override;
 
@@ -750,6 +770,11 @@ namespace llvm {
       return !X86ScalarSSEf64 || VT == MVT::f80;
     }
 
+    /// Return true if we believe it is correct and profitable to reduce the
+    /// load node to a smaller type.
+    bool shouldReduceLoadWidth(SDNode *Load, ISD::LoadExtType ExtTy,
+                               EVT NewVT) const override;
+
     const X86Subtarget* getSubtarget() const {
       return Subtarget;
     }
@@ -774,6 +799,10 @@ namespace llvm {
     /// to just the constant itself.
     bool shouldConvertConstantLoadToIntImm(const APInt &Imm,
                                            Type *Ty) const override;
+
+    /// Return true if EXTRACT_SUBVECTOR is cheap for this result type
+    /// with this index.
+    bool isExtractSubvectorCheap(EVT ResVT, unsigned Index) const override;
 
     /// Intel processors have a unified instruction and data cache
     const char * getClearCacheBuiltinName() const override {
@@ -1022,6 +1051,10 @@ namespace llvm {
     SDValue getRsqrtEstimate(SDValue Operand, DAGCombinerInfo &DCI,
                              unsigned &RefinementSteps,
                              bool &UseOneConstNR) const override;
+
+    /// Use rcp* to speed up fdiv calculations.
+    SDValue getRecipEstimate(SDValue Operand, DAGCombinerInfo &DCI,
+                             unsigned &RefinementSteps) const override;
   };
 
   namespace X86 {

@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "InstCombine.h"
+#include "InstCombineInternal.h"
 #include "llvm/Analysis/ConstantFolding.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/PatternMatch.h"
-#include "llvm/Target/TargetLibraryInfo.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 using namespace llvm;
 using namespace PatternMatch;
 
@@ -900,6 +900,10 @@ Instruction *InstCombiner::transformSExtICmp(ICmpInst *ICI, Instruction &CI) {
   Value *Op0 = ICI->getOperand(0), *Op1 = ICI->getOperand(1);
   ICmpInst::Predicate Pred = ICI->getPredicate();
 
+  // Don't bother if Op1 isn't of vector or integer type.
+  if (!Op1->getType()->isIntOrIntVectorTy())
+    return nullptr;
+
   if (Constant *Op1C = dyn_cast<Constant>(Op1)) {
     // (x <s  0) ? -1 : 0 -> ashr x, 31        -> all ones if negative
     // (x >s -1) ? -1 : 0 -> not (ashr x, 31)  -> all ones if positive
@@ -1265,14 +1269,18 @@ Instruction *InstCombiner::visitFPTrunc(FPTruncInst &CI) {
         // type of OpI doesn't enter into things at all.  We simply evaluate
         // in whichever source type is larger, then convert to the
         // destination type.
+        if (SrcWidth == OpWidth)
+          break;
         if (LHSWidth < SrcWidth)
           LHSOrig = Builder->CreateFPExt(LHSOrig, RHSOrig->getType());
         else if (RHSWidth <= SrcWidth)
           RHSOrig = Builder->CreateFPExt(RHSOrig, LHSOrig->getType());
-        Value *ExactResult = Builder->CreateFRem(LHSOrig, RHSOrig);
-        if (Instruction *RI = dyn_cast<Instruction>(ExactResult))
-          RI->copyFastMathFlags(OpI);
-        return CastInst::CreateFPCast(ExactResult, CI.getType());
+        if (LHSOrig != OpI->getOperand(0) || RHSOrig != OpI->getOperand(1)) {
+          Value *ExactResult = Builder->CreateFRem(LHSOrig, RHSOrig);
+          if (Instruction *RI = dyn_cast<Instruction>(ExactResult))
+            RI->copyFastMathFlags(OpI);
+          return CastInst::CreateFPCast(ExactResult, CI.getType());
+        }
     }
 
     // (fptrunc (fneg x)) -> (fneg (fptrunc x))

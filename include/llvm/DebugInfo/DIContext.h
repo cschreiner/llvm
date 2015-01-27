@@ -21,7 +21,6 @@
 #include "llvm/Object/RelocVisitor.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/DataTypes.h"
-
 #include <string>
 
 namespace llvm {
@@ -107,7 +106,11 @@ enum DIDumpType {
   DIDT_GnuPubtypes,
   DIDT_Str,
   DIDT_StrDwo,
-  DIDT_StrOffsetsDwo
+  DIDT_StrOffsetsDwo,
+  DIDT_AppleNames,
+  DIDT_AppleTypes,
+  DIDT_AppleNamespaces,
+  DIDT_AppleObjC
 };
 
 // In place of applying the relocations to the data we've read from disk we use

@@ -14,26 +14,25 @@
 #ifndef LLVM_LIB_CODEGEN_ASMPRINTER_DWARFDEBUG_H
 #define LLVM_LIB_CODEGEN_ASMPRINTER_DWARFDEBUG_H
 
-#include "DwarfFile.h"
 #include "AsmPrinterHandler.h"
-#include "DIE.h"
 #include "DbgValueHistoryCalculator.h"
 #include "DebugLocEntry.h"
 #include "DebugLocList.h"
 #include "DwarfAccelTable.h"
+#include "DwarfFile.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/StringMap.h"
-#include "llvm/ADT/FoldingSet.h"
+#include "llvm/CodeGen/DIE.h"
 #include "llvm/CodeGen/LexicalScopes.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugLoc.h"
-#include "llvm/MC/MachineLocation.h"
 #include "llvm/MC/MCDwarf.h"
+#include "llvm/MC/MachineLocation.h"
 #include "llvm/Support/Allocator.h"
-
 #include <memory>
 
 namespace llvm {
@@ -173,11 +172,6 @@ class DwarfDebug : public AsmPrinterHandler {
   // Maps a CU DIE with its corresponding DwarfCompileUnit.
   DenseMap<const DIE *, DwarfCompileUnit *> CUDieMap;
 
-  /// Maps MDNodes for type system with the corresponding DIEs. These DIEs can
-  /// be shared across CUs, that is why we keep the map here instead
-  /// of in DwarfCompileUnit.
-  DenseMap<const MDNode *, DIE *> MDTypeNodeToDieMap;
-
   // List of all labels used in aranges generation.
   std::vector<SymbolCU> ArangeLabels;
 
@@ -189,9 +183,6 @@ class DwarfDebug : public AsmPrinterHandler {
   SectionMapType SectionMap;
 
   LexicalScopes LScopes;
-
-  // Collection of abstract subprogram DIEs.
-  DenseMap<const MDNode *, DIE *> AbstractSPDies;
 
   // Collection of abstract variables.
   DenseMap<const MDNode *, std::unique_ptr<DbgVariable>> AbstractVariables;
@@ -399,10 +390,9 @@ class DwarfDebug : public AsmPrinterHandler {
   /// index.
   void emitDebugPubTypes(bool GnuStyle = false);
 
-  void
-  emitDebugPubSection(bool GnuStyle, const MCSection *PSec, StringRef Name,
-                      const StringMap<const DIE *> &(DwarfUnit::*Accessor)()
-                      const);
+  void emitDebugPubSection(
+      bool GnuStyle, const MCSection *PSec, StringRef Name,
+      const StringMap<const DIE *> &(DwarfCompileUnit::*Accessor)() const);
 
   /// \brief Emit visible names into a debug str section.
   void emitDebugStr();
@@ -501,13 +491,6 @@ public:
 
   ~DwarfDebug() override;
 
-  void insertDIE(const MDNode *TypeMD, DIE *Die) {
-    MDTypeNodeToDieMap.insert(std::make_pair(TypeMD, Die));
-  }
-  DIE *getDIE(const MDNode *TypeMD) {
-    return MDTypeNodeToDieMap.lookup(TypeMD);
-  }
-
   /// \brief Emit all Dwarf sections that should come prior to the
   /// content.
   void beginModule();
@@ -581,7 +564,8 @@ public:
   void emitDebugLocEntry(ByteStreamer &Streamer, const DebugLocEntry &Entry);
   /// \brief emit a single value for the debug loc section.
   void emitDebugLocValue(ByteStreamer &Streamer,
-                         const DebugLocEntry::Value &Value);
+                         const DebugLocEntry::Value &Value,
+                         unsigned PieceOffsetInBits = 0);
   /// Emits an optimal (=sorted) sequence of DW_OP_pieces.
   void emitLocPieces(ByteStreamer &Streamer,
                      const DITypeIdentifierMap &Map,
@@ -649,10 +633,6 @@ public:
   unsigned getNextRangeNumber() { return GlobalRangeCount++; }
 
   // FIXME: Sink these functions down into DwarfFile/Dwarf*Unit.
-
-  DenseMap<const MDNode *, DIE *> &getAbstractSPDies() {
-    return AbstractSPDies;
-  }
 
   SmallPtrSet<const MDNode *, 16> &getProcessedSPNodes() {
     return ProcessedSPNodes;

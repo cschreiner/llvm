@@ -46,17 +46,13 @@ MipsSETargetLowering::MipsSETargetLowering(const MipsTargetMachine &TM,
 
   if (Subtarget.hasDSP() || Subtarget.hasMSA()) {
     // Expand all truncating stores and extending loads.
-    unsigned FirstVT = (unsigned)MVT::FIRST_VECTOR_VALUETYPE;
-    unsigned LastVT = (unsigned)MVT::LAST_VECTOR_VALUETYPE;
-
-    for (unsigned VT0 = FirstVT; VT0 <= LastVT; ++VT0) {
-      for (unsigned VT1 = FirstVT; VT1 <= LastVT; ++VT1)
-        setTruncStoreAction((MVT::SimpleValueType)VT0,
-                            (MVT::SimpleValueType)VT1, Expand);
-
-      setLoadExtAction(ISD::SEXTLOAD, (MVT::SimpleValueType)VT0, Expand);
-      setLoadExtAction(ISD::ZEXTLOAD, (MVT::SimpleValueType)VT0, Expand);
-      setLoadExtAction(ISD::EXTLOAD, (MVT::SimpleValueType)VT0, Expand);
+    for (MVT VT0 : MVT::vector_valuetypes()) {
+      for (MVT VT1 : MVT::vector_valuetypes()) {
+        setTruncStoreAction(VT0, VT1, Expand);
+        setLoadExtAction(ISD::SEXTLOAD, VT0, VT1, Expand);
+        setLoadExtAction(ISD::ZEXTLOAD, VT0, VT1, Expand);
+        setLoadExtAction(ISD::EXTLOAD, VT0, VT1, Expand);
+      }
     }
   }
 
@@ -1167,15 +1163,14 @@ MipsSETargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
   }
 }
 
-bool MipsSETargetLowering::
-isEligibleForTailCallOptimization(const MipsCC &MipsCCInfo,
-                                  unsigned NextStackOffset,
-                                  const MipsFunctionInfo& FI) const {
+bool MipsSETargetLowering::isEligibleForTailCallOptimization(
+    const CCState &CCInfo, unsigned NextStackOffset,
+    const MipsFunctionInfo &FI) const {
   if (!EnableMipsTailCalls)
     return false;
 
   // Return false if either the callee or caller has a byval argument.
-  if (MipsCCInfo.hasByValArg() || FI.hasByvalArg())
+  if (CCInfo.getInRegsParamsCount() > 0 || FI.hasByvalArg())
     return false;
 
   // Return true if the callee's argument area is no larger than the
