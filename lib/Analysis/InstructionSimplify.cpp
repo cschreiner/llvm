@@ -3087,6 +3087,20 @@ static Value *SimplifyFCmpInst(unsigned Predicate, Value *LHS, Value *RHS,
           }
         }
       }
+      if (CFP->getValueAPF().isZero()) {
+        switch (Pred) {
+        case FCmpInst::FCMP_UGE:
+          if (CannotBeOrderedLessThanZero(LHS)) 
+            return ConstantInt::getTrue(CFP->getContext());
+          break;
+        case FCmpInst::FCMP_OLT:
+          if (CannotBeOrderedLessThanZero(LHS)) 
+            return ConstantInt::getFalse(CFP->getContext());
+          break;
+        default:
+          break;
+        }
+     }
     }
   }
 
@@ -3236,8 +3250,8 @@ static Value *SimplifyGEPInst(ArrayRef<Value *> Ops, const Query &Q, unsigned) {
 
     Type *Ty = PtrTy->getElementType();
     if (Q.DL && Ty->isSized()) {
-      Value *P= NULL; // CAS: TODO2: check that initialization is reasonable
-      uint64_t C= 0; // CAS: TODO2: check that initialization is reasonable
+      Value *P;
+      uint64_t C;
       uint64_t TyAllocSize = Q.DL->getTypeAllocSize(Ty);
       // getelementptr P, N -> P if P points to a type of zero size.
       if (TyAllocSize == 0)

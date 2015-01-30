@@ -441,22 +441,13 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
     return;
   }
   case Type::StructTyID: {
-    OS << "struct: ";;
     StructType *STy = cast<StructType>(Ty);
 
-    if (STy->isLiteral())  {
-      OS << "(literal) ";;
+    if (STy->isLiteral())
       return printStructBody(STy, OS);
-    } else {;;
-      OS << "(notLiteral) ";;
-    }
 
-    if (!STy->getName().empty())  {
-      OS << "name=";;
+    if (!STy->getName().empty())
       return PrintLLVMName(OS, STy->getName(), LocalPrefix);
-    } else {;;
-      OS << "(empty name) ";;
-    }
 
     DenseMap<StructType*, unsigned>::iterator I = NumberedTypes.find(STy);
     if (I != NumberedTypes.end())
@@ -492,7 +483,6 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
 }
 
 void TypePrinting::printStructBody(StructType *STy, raw_ostream &OS) {
-  OS << "contents: ";;
   if (STy->isOpaque()) {
     OS << "opaque";
     return;
@@ -2580,14 +2570,11 @@ void Type::print(raw_ostream &OS) const {
   TP.print(const_cast<Type*>(this), OS);
 
   // If the type is a named struct type, print the body as well.
-  if (StructType *STy = dyn_cast<StructType>(const_cast<Type*>(this)))  {
+  if (StructType *STy = dyn_cast<StructType>(const_cast<Type*>(this)))
     if (!STy->isLiteral()) {
       OS << " = type ";
       TP.printStructBody(STy, OS);
     }
-  } else {;;
-    OS << "(which is not a struct type) ";;
-  }
 }
 
 void Value::print(raw_ostream &ROS) const {

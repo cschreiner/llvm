@@ -18,8 +18,6 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/Type.h"
-#include "llvm/Support/raw_ostream.h"
-#include <string>
 using namespace llvm;
 
 Instruction::Instruction(Type *ty, unsigned it, Use *Ops, unsigned NumOps,
@@ -87,31 +85,6 @@ void Instruction::moveBefore(Instruction *MovePos) {
   MovePos->getParent()->getInstList().splice(MovePos,getParent()->getInstList(),
                                              this);
 }
-
-/// toString - converts this instance to a string.  This is usually
-/// used for informational or debugging purposes.  Only key fields
-/// are included in the resulting string.
-std::string Instruction::toString() {
-  std::string result= "Instruction: opcode=\"";
-  result+= Instruction::getOpcodeName();
-  result+= "\", ";
-  result+= std::to_string( getNumOperands() ) + " args";
-  {
-    unsigned ii;
-    for ( ii= 0; ii < getNumOperands(); ii++ )  {
-      std::string nullSt("");
-      raw_string_ostream ss( nullSt );
-      getOperand(ii)->print( ss ); 
-      result+= ", "+ std::to_string(ii) + "=\""+ ss.str()+ "\"";
-      //result+= ", "+ std::to_string(ii) + "=\""+ getOperand(ii)->toString()+ 
-      //    "\"";;
-    }
-  }
-  result+= ".";
-  // TODO3: add info on the operands.
-  return result; 
-}
-
 
 /// Set or clear the unsafe-algebra flag on this instruction, which must be an
 /// operator which supports this flag. See LangRef.html for the meaning of this

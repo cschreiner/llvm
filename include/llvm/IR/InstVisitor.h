@@ -18,7 +18,6 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <iostream> //;;
 
 namespace llvm {
 
@@ -152,26 +151,13 @@ public:
   // instruction have multiple more specific Instruction subclasses. The Call
   // instruction currently supports this. We implement that by redirecting that
   // instruction to a special delegation helper.
-#if 1 // regular definition
-  #define HANDLE_INST(NUM, OPCODE, CLASS) \
-      RetTy visit##OPCODE(CLASS &I) { \
-	if (NUM == Instruction::Call) \
-	  return delegateCallInst(I); \
-	else \
-	  DELEGATE(CLASS); \
-      }
-#else // debugging definition
-  #define HANDLE_INST(NUM, OPCODE, CLASS)				\
-      RetTy visit##OPCODE(CLASS &I) {				\
-	if (NUM == Instruction::Call) {				\
-	  std::cout << "About to delegate \"" << #OPCODE <<	\
-	     "\" instruction \n";;				\
-	  return delegateCallInst(I);				\
-	} else							\
-	  return static_cast<SubClass*>(this)->			\
-	      visit##CLASS(static_cast<CLASS&>(I));		\
-      }
-#endif
+#define HANDLE_INST(NUM, OPCODE, CLASS) \
+    RetTy visit##OPCODE(CLASS &I) { \
+      if (NUM == Instruction::Call) \
+        return delegateCallInst(I); \
+      else \
+        DELEGATE(CLASS); \
+    }
 #include "llvm/IR/Instruction.def"
 
   // Specific Instruction type classes... note that all of the casts are

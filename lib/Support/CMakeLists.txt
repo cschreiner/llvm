@@ -30,7 +30,6 @@ endif( NOT MSVC )
 add_llvm_library(LLVMSupport
   APFloat.cpp
   APInt.cpp
-  APIntPoison.cpp
   APSInt.cpp
   ARMBuildAttrs.cpp
   ARMWinEH.cpp

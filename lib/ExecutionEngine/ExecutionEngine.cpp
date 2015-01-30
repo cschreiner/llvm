@@ -33,10 +33,8 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/IR/Instructions.h"
 #include <cmath>
 #include <cstring>
-#include <iostream> // CAS: TODO: should this be here when debugging is done?
 using namespace llvm;
 
 #define DEBUG_TYPE "jit"
@@ -144,7 +142,8 @@ bool ExecutionEngine::removeModule(Module *M) {
 
 Function *ExecutionEngine::FindFunctionNamed(const char *FnName) {
   for (unsigned i = 0, e = Modules.size(); i != e; ++i) {
-    if (Function *F = Modules[i]->getFunction(FnName))
+    Function *F = Modules[i]->getFunction(FnName);
+    if (F && !F->isDeclaration())
       return F;
   }
   return nullptr;
@@ -286,14 +285,14 @@ void *ArgvArray::reset(LLVMContext &C, ExecutionEngine *EE,
 
     // Endian safe: Array[i] = (PointerTy)Dest;
     EE->StoreValueToMemory(PTOGV(Dest.get()),
-                           (GenericValue*)(&Array[i*PtrSize]), SBytePtr, NULL);
+                           (GenericValue*)(&Array[i*PtrSize]), SBytePtr);
     Values.push_back(std::move(Dest));
   }
 
   // Null terminate it
   EE->StoreValueToMemory(PTOGV(nullptr),
                          (GenericValue*)(&Array[InputArgv.size()*PtrSize]),
-                         SBytePtr, NULL);
+                         SBytePtr);
   return Array.get();
 }
 
@@ -944,18 +943,12 @@ GenericValue ExecutionEngine::getConstantValue(const Constant *C) {
   }
 
   return Result;
-} // getConstantValue(~)
-
-// added by CAS:
-/*** This data structure tracks which virtual machine memory locations are
-	poisoned.  
-*/
-static std::map<uint8_t*, bool> poisonedMem;
+}
 
 /// StoreIntToMemory - Fills the StoreBytes bytes of memory starting from Dst
 /// with the integer held in IntVal.
 static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
-                             unsigned StoreBytes, const StoreInst* In_ptr) {
+                             unsigned StoreBytes) {
   assert((IntVal.getBitWidth()+7)/8 >= StoreBytes && "Integer too small!");
   const uint8_t *Src = (const uint8_t *)IntVal.getRawData();
 
@@ -976,79 +969,18 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
 
     memcpy(Dst, Src + sizeof(uint64_t) - StoreBytes, StoreBytes);
   }
-
-  bool poison= IntVal.getPoisoned();
-  if ( poison && In_ptr != NULL )  {
-    if ( In_ptr->isVolatile() )  {
-      std::cerr << 
-	  "Attempt to write a poison value to a volatile memory location. \n";
-      std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
-	  ", val=" << IntVal.toString( 10, false ) << ".\n";
-      exit( EXIT_FAILURE );
-    }
-  }
-  for ( unsigned int ii= 0; ii < StoreBytes; ii++ )  {
-    poisonedMem[Dst+ii]= poison;
-  }
 }
 
-/// StoreStructToMemory -- Writes a struct out from a register.  This is
-/// intended to be a helper function for StoreValueToMemory(~), and
-/// takes the same parameters as that function.
-/// 
-/// \param Src the value to read from
-/// \param Dest the address to write to
-/// \param Ty information about the data type being written
-/// \param In_ptr information about the instruction invoking the Store 
-///	operation
-void ExecutionEngine::StoreStructToMemory(const GenericValue &Src,
-      GenericValue *Dest, Type *Ty, const StoreInst* In_ptr)  
-{{ 
-  // TODO: check all this.  See how it works.
-  std::cout << "starting StoreStructToMemory(~)\n";;
-  std::cout << "   Src has size=" << Src.AggregateVal.size() << 
-      " elements. \n";;
-  std::cout << "   Dest has size " << getDataLayout()->getTypeStoreSize(Ty) << 
-      " bytes. \n";;
-  std::cout << "   got to venus \n";;
-
-  // TODO: check all this:
-  int8_t* destPtr= (int8_t*)Dest;
-  unsigned elemIdx= 0;
-  for ( elemIdx= 0; elemIdx < Ty->getStructNumElements(); elemIdx++ )  {
-    Type* elemType= Ty->getStructElementType(elemIdx); 
-    StoreValueToMemory( Src.AggregateVal[elemIdx], 
-	(GenericValue*)destPtr, elemType, In_ptr );
-    std::cout << "   elem " << elemIdx << " is of type \"" << 
-	elemType->getTypeID() << "\", " << 
-	getDataLayout()->getTypeStoreSize( elemType ) << " bytes long. \n";;
-    destPtr+= getDataLayout()->getTypeStoreSize( elemType );
-  }
-
-  std::cout << "stopping LoadStructFromMemory(~)\n";;
-  return;
-}}
-
-/// \brief Writes a value to memory.
-/// \param Val the value to store
-/// \param Ptr the destination to store to
-/// \param Ty info on the data type of the value being stored
-/// \param In_ptr info on the instruction that generated this call.
-///	This is used, for example, to determine if the destination memory
-///	location is volatile.
 void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
-      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr) {
+                                         GenericValue *Ptr, Type *Ty) {
   const unsigned StoreBytes = getDataLayout()->getTypeStoreSize(Ty);
 
   switch (Ty->getTypeID()) {
   default:
     dbgs() << "Cannot store value of type " << *Ty << "!\n";
     break;
-  case Type::StructTyID:
-    StoreStructToMemory( Val, Ptr, Ty, In_ptr );
-    break;
   case Type::IntegerTyID:
-    StoreIntToMemory(Val.IntVal, (uint8_t*)Ptr, StoreBytes, In_ptr);
+    StoreIntToMemory(Val.IntVal, (uint8_t*)Ptr, StoreBytes);
     break;
   case Type::FloatTyID:
     *((float*)Ptr) = Val.FloatVal;
@@ -1075,7 +1007,7 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
       if (cast<VectorType>(Ty)->getElementType()->isIntegerTy()) {
         unsigned numOfBytes =(Val.AggregateVal[i].IntVal.getBitWidth()+7)/8;
         StoreIntToMemory(Val.AggregateVal[i].IntVal, 
-          (uint8_t*)Ptr + numOfBytes*i, numOfBytes, NULL);
+          (uint8_t*)Ptr + numOfBytes*i, numOfBytes);
       }
     }
     break;
@@ -1086,9 +1018,8 @@ void ExecutionEngine::StoreValueToMemory(const GenericValue &Val,
     std::reverse((uint8_t*)Ptr, StoreBytes + (uint8_t*)Ptr);
 }
 
-/// LoadIntFromMemory - Loads the integer stored in the LoadBytes
-/// bytes starting from Src into IntVal, which is assumed to be wide
-/// enough and to hold zero.
+/// LoadIntFromMemory - Loads the integer stored in the LoadBytes bytes starting
+/// from Src into IntVal, which is assumed to be wide enough and to hold zero.
 static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
   assert((IntVal.getBitWidth()+7)/8 >= LoadBytes && "Integer too small!");
   uint8_t *Dst = reinterpret_cast<uint8_t *>(
@@ -1112,75 +1043,9 @@ static void LoadIntFromMemory(APInt &IntVal, uint8_t *Src, unsigned LoadBytes) {
 
     memcpy(Dst + sizeof(uint64_t) - LoadBytes, Src, LoadBytes);
   }
-
-  for ( unsigned int ii= 0; ii < LoadBytes; ii++ )  {
-    /* TODO3: there may be an efficiency improvement opportunity here if there
-	is a way to combine the map's internal search for .count(~) and the 
-	[] fetch. Alternately, maybe there is a different kind of a map that
-	doesn't use a binary tree that would run faster.
-    */
-    if ( poisonedMem.count(Src+ii) > 0 )  {
-      if ( poisonedMem[Src+ii] )  {
-	IntVal.setPoisoned(true);   
-      }
-    }
-  }
 }
 
-/// LoadStructFromMemory -- Loads a struct into a register.  This is
-/// intended to be a helper function for LoadValueFromMemory(~), and
-/// takes the same parameters as that function.
-///
-/// \param Dest the location data should be written to (this is the
-///	Result parameter from LoadValueFromMemory(~))
-/// \param Src read data from here (this is the Ptr parameter from
-///	LoadValueFromMemory(~))
-/// \param Ty information on the type of the data to move
-void ExecutionEngine::LoadStructFromMemory(GenericValue &Dest,
-			  GenericValue *Src,
-			  Type *Ty)  
-{{ 
-  // TODO: check all this.  See how it works.
-  std::cout << "starting LoadStructFromMemory(~)\n";;
-
-  /* Note: we use the number of elements in Ty, not in Src, as Src is a
-     pointer that is semi-arbitrarily cast to GenericValue*, it doesn't
-     point to any useful information about the struct being loaded.
-  */
-  Dest.AggregateVal.resize( Ty->getStructNumElements() );
-  std::cout << "   Dest was resized to " << Dest.AggregateVal.size() << 
-      " elements. \n";;
-  std::cout << "   got to venus \n";;
-
-  // TODO: check all this:
-  int8_t* valPtr= (int8_t*)Src;
-  unsigned elemIdx= 0;
-  for ( elemIdx= 0; elemIdx < Ty->getStructNumElements(); elemIdx++ )  {
-    GenericValue elem;
-    Type* elemType= Ty->getStructElementType(elemIdx); 
-    LoadValueFromMemory( elem, (GenericValue*)valPtr, elemType );
-    Dest.AggregateVal[elemIdx]= elem;
-    std::cout << "   elem " << elemIdx << " is of type \"" << 
-	elemType->getTypeID() << "\", " << 
-	getDataLayout()->getTypeStoreSize( elemType ) << " bytes long. \n";;
-    valPtr+= getDataLayout()->getTypeStoreSize( elemType );
-  }
-
-  std::cout << "stopping LoadStructFromMemory(~)\n";;
-  return;
-
-}}
-
-/// \brief loads an item of data from memory to a register, regardless of 
-/// its data type.  
-///
-/// Typically this function determines the relevant data type, and then acts
-/// as a dispatcher to other functions who specialize in loading that exact
-/// data type.
-///
-/// \param Result the location data should be written to 
-/// \param Ptr read data from here
-/// \param Ty information on the type of the data to move
+/// FIXME: document
 ///
 void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
                                           GenericValue *Ptr,
@@ -1188,20 +1053,6 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
   const unsigned LoadBytes = getDataLayout()->getTypeStoreSize(Ty);
 
   switch (Ty->getTypeID()) {
-  case Type::StructTyID:  {
-    std::cout << "LoadBytes= " << LoadBytes << "\n";;
-    std::cout << "&Result= \"" << &Result << "\"\n";;
-    std::cout << "Ptr (src)= \"" << Ptr << "\"\n";;
-    std::cout << "Ty (type)= \"" << Ty << "\"\n";;
-    std::cout << "Ty->isAggregateType() = \"" << 
-	Ty->isAggregateType() << "\"\n";;
-    //std::cout << "Ty->getStructName().str() = \"" << 
-    //	Ty->getStructName().str() << "\"\n";;
-    std::cout << "Ty->getStructNumElements() = \"" << 
-	Ty->getStructNumElements() << "\"\n";;
-    LoadStructFromMemory( Result, Ptr, Ty );
-    break;
-  }
   case Type::IntegerTyID:
     // An APInt with all words initially zero.
     Result.IntVal = APInt(cast<IntegerType>(Ty)->getBitWidth(), 0);
@@ -1247,12 +1098,13 @@ void ExecutionEngine::LoadValueFromMemory(GenericValue &Result,
         LoadIntFromMemory(Result.AggregateVal[i].IntVal,
           (uint8_t*)Ptr+((elemBitWidth+7)/8)*i, (elemBitWidth+7)/8);
     }
-    break;
+  break;
   }
   default:
     SmallString<256> Msg;
     raw_svector_ostream OS(Msg);
     OS << "Cannot load value of type " << *Ty << "!";
+    report_fatal_error(OS.str());
   }
 }
 
@@ -1301,7 +1153,7 @@ void ExecutionEngine::InitializeMemory(const Constant *Init, void *Addr) {
 
   if (Init->getType()->isFirstClassType()) {
     GenericValue Val = getConstantValue(Init);
-    StoreValueToMemory(Val, (GenericValue*)Addr, Init->getType(), NULL);
+    StoreValueToMemory(Val, (GenericValue*)Addr, Init->getType());
     return;
   }
 
