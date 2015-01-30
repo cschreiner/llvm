@@ -13,7 +13,6 @@
 
 #include "Interpreter.h"
 #include "llvm/ADT/APInt.h"
-#include "llvm/ADT/APIntPoison.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/IntrinsicLowering.h"
 #include "llvm/IR/Constants.h"
@@ -26,8 +25,6 @@
 #include "llvm/Support/MathExtras.h"
 #include <algorithm>
 #include <cmath>
-#include <stdio.h> //;;
-#include <iostream> //;;
 using namespace llvm;
 
 #define DEBUG_TYPE "interpreter"
@@ -44,61 +41,6 @@ static cl::opt<bool> PrintVolatile("interpreter-print-volatile", cl::Hidden,
 static void SetValue(Value *V, GenericValue Val, ExecutionContext &SF) {
   SF.Values[V] = Val;
 }
-
-// ---------------------------------------------------------------------------- 
-void Interpreter::checkFtnCallForPoisonedArgs( 
-    CallSite& cs, ExecutionContext& exCon )
-// ---------------------------------------------------------------------------- 
-/*** \brief make sure none of the arguments passed to a function at a
-     call site are poisoned.  
-
-  Note: For now, this just check the integer
-     arguments; pointers, floats, and data structure types will
-     hopefully be added later.
-
-  TODO2: See if there are ways of improving the efficiency of this
-  code.  In particular, can the ExecutionContext* exCon argument be
-  eliminated?
-
-  @param cs the call site whose arguments should be examined
-
-  @param exCon the execution context of the call site in question.
-    
-  @return Exits if an argument is determined to be poisoned.
- */
-/* notes on research re how to implement this function:
-  Function::getArgumentList() is a data structure of Argument type
-    presumably the iterator arg_begin() is of Argument* type
-
-  // means of getting type of an argument
-  Value can use llvm::Value::getType()
-    and then test if getTypeID() is IntegerTyID
-
- */
-{{
-  Function* ftn_ptr = cs.getCalledFunction();
-  //const unsigned NumArgs = SF.Caller.arg_size(); 
-  // TODO2: delete if not needed
-
-  unsigned arg_num= 0;
-  for ( CallSite::arg_iterator cs_it = cs.arg_begin(), 
-      cs_it_end = exCon.Caller.arg_end(); 
-      cs_it != cs_it_end; 
-      ++cs_it, arg_num++ )  {
-    Value *val_ptr = *cs_it;
-    if ( val_ptr->getType()->getTypeID() == llvm::Type::IntegerTyID )  {
-      GenericValue gv= getOperandValue( val_ptr, exCon );
-      if ( gv.IntVal.getPoisoned() )  {
-	std::cerr << "Attempt to call an external function with a poison " \
-	    "value in arg# " << arg_num << ".\n";
-	std::cerr << "  ftn name=\"" << ftn_ptr->getName().str() << 
-	    "\", numArgs=" << cs.arg_size() << "\n";
-	exit( EXIT_FAILURE );
-      }
-    }
-  }
-
-}}
 
 //===----------------------------------------------------------------------===//
 //                    Binary Instruction Implementations
@@ -824,36 +766,16 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       dbgs() << "Don't know how to handle this binary operator!\n-->" << I;
       llvm_unreachable(nullptr);
       break;
-    case Instruction::Add:   
-      R.IntVal = Src1.IntVal + Src2.IntVal; 
-      APIntPoison::poisonIfNeeded_add( R.IntVal, Src1.IntVal, Src2.IntVal, 
-	  I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
-      break;
-    case Instruction::Sub:   
-      R.IntVal = Src1.IntVal - Src2.IntVal; 
-      APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
-          I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
-      break;
-    case Instruction::Mul:   
-      R.IntVal = Src1.IntVal * Src2.IntVal; 
-      APIntPoison::poisonIfNeeded_mul( R.IntVal, Src1.IntVal, Src2.IntVal, 
-          I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
-      break;
+    case Instruction::Add:   R.IntVal = Src1.IntVal + Src2.IntVal; break;
+    case Instruction::Sub:   R.IntVal = Src1.IntVal - Src2.IntVal; break;
+    case Instruction::Mul:   R.IntVal = Src1.IntVal * Src2.IntVal; break;
     case Instruction::FAdd:  executeFAddInst(R, Src1, Src2, Ty); break;
     case Instruction::FSub:  executeFSubInst(R, Src1, Src2, Ty); break;
     case Instruction::FMul:  executeFMulInst(R, Src1, Src2, Ty); break;
     case Instruction::FDiv:  executeFDivInst(R, Src1, Src2, Ty); break;
     case Instruction::FRem:  executeFRemInst(R, Src1, Src2, Ty); break;
-    case Instruction::UDiv:  
-      R.IntVal = Src1.IntVal.udiv(Src2.IntVal); 
-      APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
-	  I.isExact() );
-      break;
-    case Instruction::SDiv:  
-      R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); 
-      APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
-	  I.isExact() );
-      break;
+    case Instruction::UDiv:  R.IntVal = Src1.IntVal.udiv(Src2.IntVal); break;
+    case Instruction::SDiv:  R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); break;
     case Instruction::URem:  R.IntVal = Src1.IntVal.urem(Src2.IntVal); break;
     case Instruction::SRem:  R.IntVal = Src1.IntVal.srem(Src2.IntVal); break;
     case Instruction::And:   R.IntVal = Src1.IntVal & Src2.IntVal; break;
@@ -1129,7 +1051,7 @@ void Interpreter::visitStoreInst(StoreInst &I) {
   GenericValue Val = getOperandValue(I.getOperand(0), SF);
   GenericValue SRC = getOperandValue(I.getPointerOperand(), SF);
   StoreValueToMemory(Val, (GenericValue *)GVTOP(SRC),
-                     I.getOperand(0)->getType(), &I);
+                     I.getOperand(0)->getType());
   if (I.isVolatile() && PrintVolatile)
     dbgs() << "Volatile store: " << I;
 }
@@ -1140,7 +1062,6 @@ void Interpreter::visitStoreInst(StoreInst &I) {
 
 void Interpreter::visitCallSite(CallSite CS) {
   ExecutionContext &SF = ECStack.back();
-
 
   // Check to see if this is an intrinsic function call...
   Function *F = CS.getCalledFunction();
@@ -1182,14 +1103,10 @@ void Interpreter::visitCallSite(CallSite CS) {
       return;
     }
 
+
   SF.Caller = CS;
   std::vector<GenericValue> ArgVals;
   const unsigned NumArgs = SF.Caller.arg_size();
-  //std::cout << "  ftn name=\"" << F->getName().str() << "\" numArgs=" << 
-  //    NumArgs << "\n";;
-  if ( F->isDeclaration() )  { // only check external functions
-    Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
-  }
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
   for (CallSite::arg_iterator i = SF.Caller.arg_begin(),
@@ -1238,8 +1155,6 @@ void Interpreter::visitShl(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.shl(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_shl( Dest.IntVal, valueToShift, shiftAmount, 
-	I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1267,8 +1182,6 @@ void Interpreter::visitLShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.lshr(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_lshr( 
-	Dest.IntVal, valueToShift, shiftAmount, I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1296,8 +1209,6 @@ void Interpreter::visitAShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.ashr(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_lshr( 
-	Dest.IntVal, valueToShift, shiftAmount, I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1552,9 +1463,6 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  /* TODO: put something here to poison the integer if the pointer was
-     poisoned.
-   */
   uint32_t DBitWidth = cast<IntegerType>(DstTy)->getBitWidth();
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   assert(SrcVal->getType()->isPointerTy() && "Invalid PtrToInt instruction");
@@ -1565,9 +1473,6 @@ GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  /* TODO: put something here to poison the pointer if the integer was
-     poisoned.
-   */
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   assert(DstTy->isPointerTy() && "Invalid PtrToInt instruction");
 
@@ -1677,9 +1582,8 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
           Elt.IntVal = TempSrc.AggregateVal[i].IntVal;
           Elt.IntVal = Elt.IntVal.lshr(ShiftAmt);
           // it could be DstBitSize == SrcBitSize, so check it
-          if (DstBitSize < SrcBitSize)  {
+          if (DstBitSize < SrcBitSize)
             Elt.IntVal = Elt.IntVal.trunc(DstBitSize);
-	  }
           ShiftAmt += isLittleEndian ? DstBitSize : -DstBitSize;
           TempDst.AggregateVal.push_back(Elt);
         }
@@ -1749,16 +1653,6 @@ GenericValue Interpreter::executeBitCastInst(Value *SrcVal, Type *DstTy,
 
 void Interpreter::visitTruncInst(TruncInst &I) {
   ExecutionContext &SF = ECStack.back();
-  #if 0 /* enable for debugging */
-  {
-    GenericValue Src = getOperandValue(I.getOperand(0), SF);
-    Type *destType= I.getType();
-    IntegerType *destInstType= cast<IntegerType>(destType);
-    std::cout << "starting visitTruncInst(TruncInst &I), src=" << 
-        Src.IntVal.toString(10,false) << 
-        " /w width=" << destInstType->getBitWidth() << ".\n";
-  }
-  #endif
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
 }
 
@@ -1843,12 +1737,11 @@ void Interpreter::visitVAArgInst(VAArgInst &I) {
   }
 
   // Set the Value of this Instruction.
-
   SetValue(&I, Dest, SF);
 
   // Move the pointer to the next vararg.
   ++VAList.UIntPairVal.second;
-} 
+}
 
 void Interpreter::visitExtractElementInst(ExtractElementInst &I) {
   ExecutionContext &SF = ECStack.back();
@@ -2031,7 +1924,7 @@ void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
 }
 
 void Interpreter::visitInsertValueInst(InsertValueInst &I) {
-  // asdf ;;
+
   ExecutionContext &SF = ECStack.back();
   Value *Agg = I.getAggregateOperand();
 
@@ -2181,13 +2074,9 @@ GenericValue Interpreter::getOperandValue(Value *V, ExecutionContext &SF) {
 //
 void Interpreter::callFunction(Function *F,
                                const std::vector<GenericValue> &ArgVals) {
-
   assert((ECStack.empty() || !ECStack.back().Caller.getInstruction() ||
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&
          "Incorrect number of arguments passed into function call!");
-
-  //std::cout << "starting Execution/Interpreter::callFunction(~)... \n";;
-
   // Make a new stack frame... and fill it in.
   ECStack.push_back(ExecutionContext());
   ExecutionContext &StackFrame = ECStack.back();
@@ -2213,11 +2102,8 @@ void Interpreter::callFunction(Function *F,
   // Handle non-varargs arguments...
   unsigned i = 0;
   for (Function::arg_iterator AI = F->arg_begin(), E = F->arg_end(); 
-       AI != E; ++AI, ++i)  {
+       AI != E; ++AI, ++i)
     SetValue(AI, ArgVals[i], StackFrame);
-    //std::cout << "   key \"" << AI << "\"'s IntVal set to \"" << 
-    //	ArgVals[i].IntVal.toString( 10, false ) << "\"\n";;
-  }
 
   // Handle varargs arguments...
   StackFrame.VarArgs.assign(ArgVals.begin()+i, ArgVals.end());
@@ -2225,7 +2111,6 @@ void Interpreter::callFunction(Function *F,
 
 
 void Interpreter::run() {
-
   while (!ECStack.empty()) {
     // Interpret a single instruction & increment the "PC".
     ExecutionContext &SF = ECStack.back();  // Current stack frame
@@ -2235,17 +2120,6 @@ void Interpreter::run() {
     ++NumDynamicInsts;
 
     DEBUG(dbgs() << "About to interpret: " << I);
-    #if 0
-    {
-      const GenericValue &Val = SF.Values[&I];;
-      std::cout << "in Execution.cpp/Interpreter::run(): " << 
-	  "About to interpret: \n" << 
-	  "   " << I.toString() << "\n" <<
-	  "   i" << Val.IntVal.getBitWidth() << " "
-	  << Val.IntVal.toString(10,false)
-	  << " (0x" << Val.IntVal.toString(16,false) << ")\n";;
-    }
-    #endif
     visit(I);   // Dispatch to one of the visit* methods...
 #if 0
     // This is not safe, as visiting the instruction could lower it and free I.

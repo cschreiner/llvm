@@ -23,7 +23,6 @@
 #include <climits>
 #include <cstring>
 #include <string>
-#include <iostream> //;;
 
 namespace llvm {
 class Deserializer;
@@ -83,8 +82,6 @@ class APInt {
     uint64_t *pVal; ///< Used to store the >64 bits integer value.
   };
 
-  bool poisoned;
-
   /// This enum is used to hold the constants we needed for APInt.
   enum {
     /// Bits in a word
@@ -100,17 +97,12 @@ class APInt {
   ///
   /// This constructor is used only internally for speed of construction of
   /// temporaries. It is unsafe for general use so it is not public.
-  APInt(uint64_t *val, unsigned bits) : 
-      BitWidth(bits), pVal(val), poisoned(false) {}
+  APInt(uint64_t *val, unsigned bits) : BitWidth(bits), pVal(val) {}
 
   /// \brief Determine if this APInt just has one word to store value.
   ///
   /// \returns true if the number of bits <= 64, false otherwise.
-  bool isSingleWord() const { 
-    //;;std::cout << "APInt::isSingleWord(): BitWidth=" << BitWidth << 
-    //;;	", BITS_PER_WORD=" << APINT_BITS_PER_WORD << ". \n";;
-    return BitWidth <= APINT_BITS_PER_WORD; 
-  }
+  bool isSingleWord() const { return BitWidth <= APINT_BITS_PER_WORD; }
 
   /// \brief Determine which word a bit is in.
   ///
@@ -143,11 +135,6 @@ class APInt {
   /// word that are not used by the APInt. This is needed after the most
   /// significant word is assigned a value to ensure that those bits are
   /// zero'd out.
-  ///
-  /// Because this function is often called immediately by public
-  /// functions immediately before they return, it is extra important
-  /// that it MUST preserve all fields other than the unused high
-  /// order bits it clears.
   APInt &clearUnusedBits() {
     // Compute how many bits are used in the final word
     unsigned wordBits = BitWidth % APINT_BITS_PER_WORD;
@@ -248,8 +235,8 @@ public:
   /// \param numBits the bit width of the constructed APInt
   /// \param val the initial value of the APInt
   /// \param isSigned how to treat signedness of val
-  APInt(unsigned numBits, uint64_t val, bool isSigned = false) 
-      : BitWidth(numBits), VAL(0), poisoned(false) {
+  APInt(unsigned numBits, uint64_t val, bool isSigned = false)
+      : BitWidth(numBits), VAL(0) {
     assert(BitWidth && "bitwidth too small");
     if (isSingleWord())
       VAL = val;
@@ -291,10 +278,7 @@ public:
 
   /// Simply makes *this a copy of that.
   /// @brief Copy Constructor.
-  APInt(const APInt &that) 
-      : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
-    assert(BitWidth && "bitwidth too small");
-    poisoned= that.poisoned;
+  APInt(const APInt &that) : BitWidth(that.BitWidth), VAL(0) {
     if (isSingleWord())
       VAL = that.VAL;
     else
@@ -302,8 +286,7 @@ public:
   }
 
   /// \brief Move Constructor.
-  APInt(APInt &&that) 
-      : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
+  APInt(APInt &&that) : BitWidth(that.BitWidth), VAL(that.VAL) {
     that.BitWidth = 0;
   }
 
@@ -317,31 +300,7 @@ public:
   ///
   /// This is useful for object deserialization (pair this with the static
   ///  method Read).
-  explicit APInt() : BitWidth(1), poisoned(false) {}
-
-  /// \brief sets the poisoned field
-  inline void setPoisoned( bool aa ) { poisoned= aa; }
-
-  /// \brief get the poisoned field
-  inline bool getPoisoned() const { return poisoned; }
-
-  /// \brief sets poisoned flag |= the argument.  Intended for
-  /// recording the poison status after an operation that combined
-  /// this instance's value with another (possibly poisoned) value and
-  /// stored the result in this instance.
-  inline void orPoisoned( bool aa ) { poisoned|= aa; }
-
-   /// \brief ors the given APInt instance's poison flag into this
-   /// instance's. This is intended to facilitate making the result of a unary
-   /// arithmetic operation inherit the poison status of its operands.
-   inline void orPoisoned( const APInt& aa ) { poisoned|= aa.poisoned; }
-
-   /// \brief ors the given APInt two instances' poison flag into this
-   /// instance's. This is intended to facilitate making the result of a
-   /// binary arithmetic operation inherit the poison status of its operands.
-   inline void orPoisoned( const APInt& aa, const APInt& bb ) { 
-      poisoned|= aa.poisoned | bb.poisoned; 
-   }
+  explicit APInt() : BitWidth(1) {}
 
   /// \brief Returns whether this instance allocated memory.
   bool needsCleanup() const { return !isSingleWord(); }
@@ -586,7 +545,6 @@ public:
     for (unsigned I = V.getBitWidth(); I < NewLen; I <<= 1)
       Val |= Val << I;
 
-    Val.poisoned= V.poisoned;
     return Val;
   }
 
@@ -614,36 +572,6 @@ public:
     return &pVal[0];
   }
 
-  /// \brief returns a random number with width w such that 
-  /// desiredBitWidth <= w <= 64
-  /// this is a helper function for setRandomly() and similar methods.
-private:
-  inline uint64_t wideRand( unsigned desiredBitWidth );
-public:
-
-  /// \brief set this APInt to a random value
-  void setRandom(); 
-
-  /// \brief create a new APInt with a random value
-  inline static APInt getRandom( unsigned numBits, bool isSigned = false ) {
-     APInt Result( numBits, 0, isSigned );
-     Result.setRandom();
-     return Result;
-  }
-
-   /// \brief set this APInt to an LLVM undef value.  For now, this is
-   /// simulated with a random value.
-   inline void setToUndef() {
-      setRandom();
-   }
-
-  /// \brief create a new APInt with an undefined value
-  inline static APInt getUndef( unsigned numBits, bool isSigned = false ) {
-     APInt Result( numBits, 0, isSigned );
-     Result.setToUndef();
-     return Result;
-  }
-
   /// @}
   /// \name Unary Operators
   /// @{
@@ -651,13 +579,8 @@ public:
   /// \brief Postfix increment operator.
   ///
   /// \returns a new APInt value representing *this incremented by one
-  /* CAS TODO2: why the (int) parameter with no name? Apparently the lang
-     requires it, but this makes no sense because it would _never_ be used.
-     What issue am I not comprehending here? -- cas 2014nov01
-  */
   const APInt operator++(int) {
     APInt API(*this);
-    // Note: poison field is set by the above copy constructor.
     ++(*this);
     return API;
   }
@@ -672,7 +595,6 @@ public:
   /// \returns a new APInt representing *this decremented by one.
   const APInt operator--(int) {
     APInt API(*this);
-    // Note: poison field is set by the above copy constructor.
     --(*this);
     return API;
   }
@@ -689,7 +611,6 @@ public:
   /// \returns an APInt that is the bitwise complement of *this
   APInt operator~() const {
     APInt Result(*this);
-    // Note: poison field is set by the above copy constructor.
     Result.flipAllBits();
     return Result;
   }
@@ -699,16 +620,11 @@ public:
   /// Negates *this using two's complement logic.
   ///
   /// \returns An APInt value representing the negation of *this.
-  APInt operator-() const { 
-    APInt result= APInt(BitWidth, 0) - (*this); 
-    result.poisoned= this->poisoned;
-    return result;
-  }
+  APInt operator-() const { return APInt(BitWidth, 0) - (*this); }
 
   /// \brief Logical negation operator.
   ///
   /// Performs logical negation operation on this APInt.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   ///
   /// \returns true if *this is zero, false otherwise.
   bool operator!() const {
@@ -733,10 +649,10 @@ public:
     if (isSingleWord() && RHS.isSingleWord()) {
       VAL = RHS.VAL;
       BitWidth = RHS.BitWidth;
-      poisoned= RHS.poisoned;
-      return clearUnusedBits(); 
+      return clearUnusedBits();
     }
-    return AssignSlowCase(RHS); // this handles poisoning
+
+    return AssignSlowCase(RHS);
   }
 
   /// @brief Move assignment operator.
@@ -751,10 +667,8 @@ public:
     }
 
     // Use memcpy so that type based alias analysis sees both VAL and pVal
-    // as modified.  The effect needs to be the same as this statement:
-    // >	VAL= that.VAL;
+    // as modified.
     memcpy(&VAL, &that.VAL, sizeof(uint64_t));
-    poisoned= that.poisoned;
 
     // If 'this == &that', avoid zeroing our own bitwidth by storing to 'that'
     // first.
@@ -802,7 +716,6 @@ public:
     } else {
       pVal[0] |= RHS;
     }
-    orPoisoned( RHS );
     return *this;
   }
 
@@ -839,12 +752,8 @@ public:
   ///
   /// Shifts *this left by shiftAmt and assigns the result to *this.
   ///
-  /// The calling function is responsible for calling poisonIfNeeded_shl(~) to 
-  /// check if a poison value is being generated. 
-  ///
   /// \returns *this after shifting left by shiftAmt
   APInt &operator<<=(unsigned shiftAmt) {
-    // poison preservation done by the functions called here:
     *this = shl(shiftAmt);
     return *this;
   }
@@ -860,19 +769,12 @@ public:
   /// \returns An APInt value representing the bitwise AND of *this and RHS.
   APInt operator&(const APInt &RHS) const {
     assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-    APInt result;
-    if (isSingleWord()) {
-      result= APInt(getBitWidth(), VAL & RHS.VAL);
-    } else {
-      result= AndSlowCase(RHS);
-    }
-    result.poisoned= poisoned || RHS.poisoned;
-    return result;
+    if (isSingleWord())
+      return APInt(getBitWidth(), VAL & RHS.VAL);
+    return AndSlowCase(RHS);
   }
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT And(const APInt &RHS) const {
-    APInt result= this->operator&(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
-    return result;
+    return this->operator&(RHS);
   }
 
   /// \brief Bitwise OR operator.
@@ -882,14 +784,9 @@ public:
   /// \returns An APInt value representing the bitwise OR of *this and RHS.
   APInt operator|(const APInt &RHS) const {
     assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-    APInt result;
-    if (isSingleWord())  {
-      result= APInt(getBitWidth(), VAL | RHS.VAL);
-    } else { 
-      result= OrSlowCase(RHS);
-    }
-    result.poisoned= this->poisoned || RHS.poisoned;
-    return result;
+    if (isSingleWord())
+      return APInt(getBitWidth(), VAL | RHS.VAL);
+    return OrSlowCase(RHS);
   }
 
   /// \brief Bitwise OR function.
@@ -899,9 +796,7 @@ public:
   ///
   /// \returns An APInt value representing the bitwise OR of *this and RHS.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT Or(const APInt &RHS) const {
-    APInt result= this->operator|(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
-    return result;
+    return this->operator|(RHS);
   }
 
   /// \brief Bitwise XOR operator.
@@ -911,14 +806,9 @@ public:
   /// \returns An APInt value representing the bitwise XOR of *this and RHS.
   APInt operator^(const APInt &RHS) const {
     assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-    APInt result;
-    if (isSingleWord()) {
-      result= APInt(BitWidth, VAL ^ RHS.VAL);
-    } else {
-      result= XorSlowCase(RHS);
-    }
-    result.poisoned= this->poisoned || RHS.poisoned;
-    return result;
+    if (isSingleWord())
+      return APInt(BitWidth, VAL ^ RHS.VAL);
+    return XorSlowCase(RHS);
   }
 
   /// \brief Bitwise XOR function.
@@ -928,9 +818,7 @@ public:
   ///
   /// \returns An APInt value representing the bitwise XOR of *this and RHS.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT Xor(const APInt &RHS) const {
-    APInt result= this->operator^(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
-    return result;
+    return this->operator^(RHS);
   }
 
   /// \brief Multiplication operator.
@@ -953,7 +841,6 @@ public:
   /// \brief Left logical shift operator.
   ///
   /// Shifts this APInt left by \p Bits and returns the result.
-  // poison preservation done by called functions
   APInt operator<<(unsigned Bits) const { return shl(Bits); }
 
   /// \brief Left logical shift operator.
@@ -976,18 +863,12 @@ public:
   /// Left-shift this APInt by shiftAmt.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT shl(unsigned shiftAmt) const {
     assert(shiftAmt <= BitWidth && "Invalid shift amount");
-    APInt result;
-    if (shiftAmt >= BitWidth)  {
-       // TODO2: clean this up
-       //was: result= APInt(BitWidth, 0); // avoid undefined shift results
-       result= getUndef( BitWidth );
-    } else if (isSingleWord()) {
-      result= APInt(BitWidth, VAL << shiftAmt);
-    } else {
-      result= shlSlowCase(shiftAmt);
+    if (isSingleWord()) {
+      if (shiftAmt >= BitWidth)
+        return APInt(BitWidth, 0); // avoid undefined shift results
+      return APInt(BitWidth, VAL << shiftAmt);
     }
-    result.poisoned= poisoned;
-    return result;
+    return shlSlowCase(shiftAmt);
   }
 
   /// \brief Rotate left by rotateAmt.
@@ -1326,7 +1207,6 @@ public:
 
   /// \brief Set every bit to 1.
   void setAllBits() {
-    poisoned= false;
     if (isSingleWord())
       VAL = UINT64_MAX;
     else {
@@ -1345,7 +1225,6 @@ public:
 
   /// \brief Set every bit to 0.
   void clearAllBits() {
-    poisoned= false;
     if (isSingleWord())
       VAL = 0;
     else
@@ -1433,7 +1312,6 @@ public:
   /// This method attempts to return the value of this APInt as a zero extended
   /// uint64_t. The bitwidth must be <= 64 or the value must fit within a
   /// uint64_t. Otherwise an assertion will result.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   uint64_t getZExtValue() const {
     if (isSingleWord())
       return VAL;
@@ -1446,7 +1324,6 @@ public:
   /// This method attempts to return the value of this APInt as a sign extended
   /// int64_t. The bit width must be <= 64 or the value must fit within an
   /// int64_t. Otherwise an assertion will result.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   int64_t getSExtValue() const {
     if (isSingleWord())
       return int64_t(VAL << (APINT_BITS_PER_WORD - BitWidth)) >>
@@ -1532,25 +1409,21 @@ public:
   /// @}
   /// \name Conversion Functions
   /// @{
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   void print(raw_ostream &OS, bool isSigned) const;
 
   /// Converts an APInt to a string and append it to Str.  Str is commonly a
   /// SmallString.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   void toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
                 bool formatAsCLiteral = false) const;
 
   /// Considers the APInt to be unsigned and converts it into a string in the
   /// radix given. The radix can be 2, 8, 10 16, or 36.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   void toStringUnsigned(SmallVectorImpl<char> &Str, unsigned Radix = 10) const {
     toString(Str, Radix, false, false);
   }
 
   /// Considers the APInt to be signed and converts it into a string in the
   /// radix given. The radix can be 2, 8, 10, 16, or 36.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   void toStringSigned(SmallVectorImpl<char> &Str, unsigned Radix = 10) const {
     toString(Str, Radix, true, false);
   }
@@ -1560,44 +1433,18 @@ public:
   /// Note that this is an inefficient method.  It is better to pass in a
   /// SmallVector/SmallString to the methods above to avoid thrashing the heap
   /// for the string.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   std::string toString(unsigned Radix, bool Signed) const;
-
-  /// \brief Return the APInt as a std::string in base 10, assuming 
-  /// unsignedness.
-  ///
-  /// Note that this is an inefficient method.  It is better to pass in a
-  /// SmallVector/SmallString to the methods above to avoid thrashing the heap
-  /// for the string.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
-  inline std::string toString() const {
-     return toString( 10, false );    
-  }
-
-  /// \brief Return the APInt as a std::string in base 10, assuming 
-  /// signedness.
-  ///
-  /// Note that this is an inefficient method.  It is better to pass in a
-  /// SmallVector/SmallString to the methods above to avoid thrashing the heap
-  /// for the string.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
-  inline std::string toStringSigned() const {
-     return toString( 10, true );    
-  }
 
   /// \returns a byte-swapped representation of this APInt Value.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT byteSwap() const;
 
   /// \brief Converts this APInt to a double value.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   double roundToDouble(bool isSigned) const;
 
   /// \brief Converts this unsigned APInt to a double value.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   double roundToDouble() const { return roundToDouble(false); }
 
   /// \brief Converts this signed APInt to a double value.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   double signedRoundToDouble() const { return roundToDouble(true); }
 
   /// \brief Converts APInt bits to a double
@@ -1605,7 +1452,6 @@ public:
   /// The conversion does not do a translation from integer to double, it just
   /// re-interprets the bits as a double. Note that it is valid to do this on
   /// any bit width. Exactly 64 bits will be translated.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   double bitsToDouble() const {
     union {
       uint64_t I;
@@ -1620,7 +1466,6 @@ public:
   /// The conversion does not do a translation from integer to float, it just
   /// re-interprets the bits as a float. Note that it is valid to do this on
   /// any bit width. Exactly 32 bits will be translated.
-  /// Caller is responsible for taking appropriate action if *this is poisoned.
   float bitsToFloat() const {
     union {
       unsigned I;
@@ -1898,20 +1743,15 @@ inline APInt umin(const APInt &A, const APInt &B) { return A.ult(B) ? A : B; }
 inline APInt umax(const APInt &A, const APInt &B) { return A.ugt(B) ? A : B; }
 
 /// \brief Check if the specified APInt has a N-bits unsigned integer value.
-/// Caller is responsible for taking appropriate action if *this is poisoned.
 inline bool isIntN(unsigned N, const APInt &APIVal) { return APIVal.isIntN(N); }
 
 /// \brief Check if the specified APInt has a N-bits signed integer value.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline bool isSignedIntN(unsigned N, const APInt &APIVal) {
   return APIVal.isSignedIntN(N);
 }
 
 /// \returns true if the argument APInt value is a sequence of ones starting at
 /// the least significant bit with the remainder zero.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline bool isMask(unsigned numBits, const APInt &APIVal) {
   return numBits <= APIVal.getBitWidth() &&
          APIVal == APInt::getLowBitsSet(APIVal.getBitWidth(), numBits);
@@ -1919,20 +1759,14 @@ inline bool isMask(unsigned numBits, const APInt &APIVal) {
 
 /// \brief Return true if the argument APInt value contains a sequence of ones
 /// with the remainder zero.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline bool isShiftedMask(unsigned numBits, const APInt &APIVal) {
   return isMask(numBits, (APIVal - APInt(numBits, 1)) | APIVal);
 }
 
 /// \brief Returns a byte-swapped representation of the specified APInt Value.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline APInt byteSwap(const APInt &APIVal) { return APIVal.byteSwap(); }
 
 /// \brief Returns the floor log base 2 of the specified APInt value.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline unsigned logBase2(const APInt &APIVal) { return APIVal.logBase2(); }
 
 /// \brief Compute GCD of two APInt values.
@@ -1946,8 +1780,6 @@ APInt GreatestCommonDivisor(const APInt &Val1, const APInt &Val2);
 /// \brief Converts the given APInt to a double value.
 ///
 /// Treats the APInt as an unsigned value for conversion purposes.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline double RoundAPIntToDouble(const APInt &APIVal) {
   return APIVal.roundToDouble();
 }
@@ -1955,15 +1787,11 @@ inline double RoundAPIntToDouble(const APInt &APIVal) {
 /// \brief Converts the given APInt to a double value.
 ///
 /// Treats the APInt as a signed value for conversion purposes.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline double RoundSignedAPIntToDouble(const APInt &APIVal) {
   return APIVal.signedRoundToDouble();
 }
 
 /// \brief Converts the given APInt to a float vlalue.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline float RoundAPIntToFloat(const APInt &APIVal) {
   return float(RoundAPIntToDouble(APIVal));
 }
@@ -1971,8 +1799,6 @@ inline float RoundAPIntToFloat(const APInt &APIVal) {
 /// \brief Converts the given APInt to a float value.
 ///
 /// Treast the APInt as a signed value for conversion purposes.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline float RoundSignedAPIntToFloat(const APInt &APIVal) {
   return float(APIVal.signedRoundToDouble());
 }
@@ -1980,15 +1806,11 @@ inline float RoundSignedAPIntToFloat(const APInt &APIVal) {
 /// \brief Converts the given double value into a APInt.
 ///
 /// This function convert a double value to an APInt value.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 APInt RoundDoubleToAPInt(double Double, unsigned width);
 
 /// \brief Converts a float value into a APInt.
 ///
 /// Converts a float value into an APInt value.
-/// Caller is responsible for taking appropriate action if the APInt is
-///   poisoned.
 inline APInt RoundFloatToAPInt(float Float, unsigned width) {
   return RoundDoubleToAPInt(double(Float), width);
 }
@@ -2076,7 +1898,5 @@ inline APInt Not(const APInt &APIVal) { return ~APIVal; }
 // order to compile LLVM with IBM xlC compiler.
 hash_code hash_value(const APInt &Arg);
 } // End of llvm namespace
-
-// TODO2: consider if APIntPoison.h should be automatically included here.
 
 #endif

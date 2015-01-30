@@ -27,7 +27,6 @@
 #include "llvm/Support/Mutex.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
-#include "llvm/IR/Instructions.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -363,16 +362,11 @@ public:
   const GlobalValue *getGlobalValueAtAddress(void *Addr);
 
   /// StoreValueToMemory - Stores the data in Val of type Ty at address Ptr.
-  ///
-  /// \param Ptr is the address of the memory at which to store Val, cast to
+  /// Ptr is the address of the memory at which to store Val, cast to
   /// GenericValue *.  It is not a pointer to a GenericValue containing the
   /// address at which to store Val.
-  ///
-  /// \param In_ptr is the instruction instance that generated the store
-  /// instruction.  It may be NULL. It is passed so sundry flags about the
-  /// store operation (e.g. volatileness) can be accessed if needed.
   void StoreValueToMemory(const GenericValue &Val, GenericValue *Ptr,
-                          Type *Ty, const StoreInst* In_ptr );
+                          Type *Ty);
 
   void InitializeMemory(const Constant *Init, void *Addr);
 
@@ -486,12 +480,6 @@ protected:
   GenericValue getConstantValue(const Constant *C);
   void LoadValueFromMemory(GenericValue &Result, GenericValue *Ptr,
                            Type *Ty);
-
-private:
-  void LoadStructFromMemory(GenericValue &Result, GenericValue *Ptr,
-      Type *Ty);
-  void StoreStructToMemory(const GenericValue &Val,
-      GenericValue *Ptr, Type *Ty, const StoreInst* In_ptr);
 };
 
 namespace EngineKind {

@@ -218,9 +218,6 @@ public:
   void printAsOperand(raw_ostream &O, bool PrintType = true,
                       const Module *M = nullptr) const;
 
-  /// \brief converts this Value to a string
-  std::string toString();
-
   /// \brief All values are typed, get the type of this value.
   Type *getType() const { return VTy; }
 

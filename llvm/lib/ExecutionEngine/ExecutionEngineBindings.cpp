@@ -242,9 +242,6 @@ void LLVMRunStaticDestructors(LLVMExecutionEngineRef EE) {
 int LLVMRunFunctionAsMain(LLVMExecutionEngineRef EE, LLVMValueRef F,
                           unsigned ArgC, const char * const *ArgV,
                           const char * const *EnvP) {
-  //printf ( "about to execute ExecutionEngineBindings.cpp's " 
-  //    "LLVMRunFunctionAsMain(LLVMExecutionEngineRef, LLVMValueRef,"
-  //    "unsigned, const char* const*, const char* const*)\n" );;
   unwrap(EE)->finalizeObject();
   
   std::vector<std::string> ArgVec;
@@ -257,9 +254,6 @@ int LLVMRunFunctionAsMain(LLVMExecutionEngineRef EE, LLVMValueRef F,
 LLVMGenericValueRef LLVMRunFunction(LLVMExecutionEngineRef EE, LLVMValueRef F,
                                     unsigned NumArgs,
                                     LLVMGenericValueRef *Args) {
-  //printf ( "about to execute ExecutionEngineBindings.cpp's " 
-  //    "LLVMRunFunction(LLVMExecutionEngineRef EE, LLVMValueRef, "
-  //    "unsigned, LLVMGenericValueRef*\n");;
   unwrap(EE)->finalizeObject();
   
   std::vector<GenericValue> ArgVec;
