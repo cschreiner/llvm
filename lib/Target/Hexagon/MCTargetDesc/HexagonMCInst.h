@@ -14,54 +14,94 @@
 #ifndef LLVM_LIB_TARGET_HEXAGON_MCTARGETDESC_HEXAGONMCINST_H
 #define LLVM_LIB_TARGET_HEXAGON_MCTARGETDESC_HEXAGONMCINST_H
 
+#include "HexagonTargetMachine.h"
 #include "llvm/MC/MCInst.h"
+#include <memory>
 
+extern "C" void LLVMInitializeHexagonTargetMC();
 namespace llvm {
-class MCInstrDesc;
 class MCOperand;
-class HexagonTargetMachine;
 
 class HexagonMCInst : public MCInst {
-public:
-  explicit HexagonMCInst(unsigned op);
+  friend void ::LLVMInitializeHexagonTargetMC();
+  // Used to access TSFlags
+  static std::unique_ptr <MCInstrInfo const> MCII;
 
-  /// 10.6 Instruction Packets
-  bool isPacketBegin() const;
-  /// \brief Is this marked as last in packet.
-  bool isPacketEnd() const;
+public:
+  explicit HexagonMCInst();
+  HexagonMCInst(const MCInstrDesc &mcid);
+
+  static void AppendImplicitOperands(MCInst &MCI);
+  static std::bitset<16> GetImplicitBits(MCInst const &MCI);
+  static void SetImplicitBits(MCInst &MCI, std::bitset<16> Bits);
+  static void SanityCheckImplicitOperands(MCInst const &MCI) {
+    assert(MCI.getNumOperands() >= 2 && "At least the two implicit operands");
+    assert(MCI.getOperand(MCI.getNumOperands() - 1).isInst() &&
+           "Implicit bits and flags");
+    assert(MCI.getOperand(MCI.getNumOperands() - 2).isImm() &&
+           "Parent pointer");
+  }
+
   void setPacketBegin(bool Y);
-  /// \brief Mark this as last in packet.
+  bool isPacketBegin() const;
+  static const size_t packetBeginIndex = 0;
   void setPacketEnd(bool Y);
-  /// \brief Return the slots used.
-  unsigned getUnits(HexagonTargetMachine const &TM) const;
+  bool isPacketEnd() const;
+  static const size_t packetEndIndex = 1;
+  void resetPacket();
+
+  // Return the slots used by the insn.
+  unsigned getUnits(const HexagonTargetMachine *TM) const;
+
+  // Return the Hexagon ISA class for the insn.
+  unsigned getType() const;
+
+  MCInstrDesc const &getDesc() const;
+
+  // Return whether the insn is an actual insn.
+  bool isCanon() const;
+
+  // Return whether the insn is a prefix.
+  bool isPrefix() const;
+
+  // Return whether the insn is solo, i.e., cannot be in a packet.
+  bool isSolo() const;
+
+  // Return whether the instruction needs to be constant extended.
   bool isConstExtended() const;
-  /// \brief Return constant extended operand number.
+
+  // Return constant extended operand number.
   unsigned short getCExtOpNum(void) const;
-  /// \brief Return whether this is a new-value consumer.
+
+  // Return whether the insn is a new-value consumer.
   bool isNewValue() const;
-  /// \brief Return whether this is a legal new-value producer.
+
+  // Return whether the instruction is a legal new-value producer.
   bool hasNewValue() const;
-  /// \brief Return the operand that consumes or produces a new value.
-  MCOperand const &getNewValue() const;
-  /// \brief Return number of bits in the constant extended operand.
+
+  // Return the operand that consumes or produces a new value.
+  const MCOperand &getNewValue() const;
+
+  // Return number of bits in the constant extended operand.
   unsigned getBitCount(void) const;
 
 private:
-  /// \brief Return whether this must be always extended.
+  // Return whether the instruction must be always extended.
   bool isExtended() const;
-  /// \brief Return true if this may be extended based on the operand value.
+
+  // Return true if the insn may be extended based on the operand value.
   bool isExtendable() const;
-  ///  \brief Return if the operand can be constant extended.
-  bool isOperandExtended(unsigned short const OperandNum) const;
-  /// \brief Return the min value that a constant extendable operand can have
-  /// without being extended.
+
+  // Return true if the operand can be constant extended.
+  bool isOperandExtended(const unsigned short OperandNum) const;
+
+  // Return the min value that a constant extendable operand can have
+  // without being extended.
   int getMinValue() const;
-  /// \brief Return the max value that a constant extendable operand can have
-  /// without being extended.
+
+  // Return the max value that a constant extendable operand can have
+  // without being extended.
   int getMaxValue() const;
-  bool packetBegin;
-  bool packetEnd;
-  MCInstrDesc const &MCID;
 };
 }
 

@@ -23,6 +23,8 @@ namespace llvm {
 
 class AArch64TargetMachine : public LLVMTargetMachine {
 protected:
+  const DataLayout DL;
+  std::unique_ptr<TargetLoweringObjectFile> TLOF;
   AArch64Subtarget Subtarget;
   mutable StringMap<std::unique_ptr<AArch64Subtarget>> SubtargetMap;
 
@@ -32,6 +34,9 @@ public:
                        Reloc::Model RM, CodeModel::Model CM,
                        CodeGenOpt::Level OL, bool IsLittleEndian);
 
+  ~AArch64TargetMachine() override;
+
+  const DataLayout *getDataLayout() const override { return &DL; }
   const AArch64Subtarget *getSubtargetImpl() const override {
     return &Subtarget;
   }
@@ -42,6 +47,10 @@ public:
 
   /// \brief Register AArch64 analysis passes with a pass manager.
   void addAnalysisPasses(PassManagerBase &PM) override;
+
+  TargetLoweringObjectFile* getObjFileLowering() const override {
+    return TLOF.get();
+  }
 
 private:
   bool isLittle;

@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ProfileData/CoverageMapping.h"
-
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallSet.h"
@@ -170,6 +169,14 @@ ErrorOr<int64_t> CounterMappingContext::evaluate(const Counter &C) const {
   llvm_unreachable("Unhandled CounterKind");
 }
 
+void FunctionRecordIterator::skipOtherFiles() {
+  while (Current != Records.end() && !Filename.empty() &&
+         Filename != Current->Filenames[0])
+    ++Current;
+  if (Current == Records.end())
+    *this = FunctionRecordIterator();
+}
+
 ErrorOr<std::unique_ptr<CoverageMapping>>
 CoverageMapping::load(ObjectFileCoverageMappingReader &CoverageReader,
                       IndexedInstrProfReader &ProfileReader) {
@@ -297,13 +304,14 @@ class SegmentBuilder {
 public:
   /// Build a list of CoverageSegments from a sorted list of Regions.
   std::vector<CoverageSegment> buildSegments(ArrayRef<CountedRegion> Regions) {
+    const CountedRegion *PrevRegion = nullptr;
     for (const auto &Region : Regions) {
       // Pop any regions that end before this one starts.
       while (!ActiveRegions.empty() &&
              ActiveRegions.back()->endLoc() <= Region.startLoc())
         popRegion();
-      if (Segments.size() && Segments.back().Line == Region.LineStart &&
-          Segments.back().Col == Region.ColumnStart) {
+      if (PrevRegion && PrevRegion->startLoc() == Region.startLoc() &&
+          PrevRegion->endLoc() == Region.endLoc()) {
         if (Region.Kind != coverage::CounterMappingRegion::SkippedRegion)
           Segments.back().addCount(Region.ExecutionCount);
       } else {
@@ -311,6 +319,7 @@ public:
         ActiveRegions.push_back(&Region);
         startSegment(Region);
       }
+      PrevRegion = &Region;
     }
     // Pop any regions that are left in the stack.
     while (!ActiveRegions.empty())
@@ -320,7 +329,7 @@ public:
 };
 }
 
-std::vector<StringRef> CoverageMapping::getUniqueSourceFiles() {
+std::vector<StringRef> CoverageMapping::getUniqueSourceFiles() const {
   std::vector<StringRef> Filenames;
   for (const auto &Function : getCoveredFunctions())
     for (const auto &Filename : Function.Filenames)
@@ -402,6 +411,7 @@ CoverageData CoverageMapping::getCoverageForFile(StringRef Filename) {
   }
 
   sortNestedRegions(Regions.begin(), Regions.end());
+  DEBUG(dbgs() << "Emitting segments for file: " << Filename << "\n");
   FileCoverage.Segments = SegmentBuilder().buildSegments(Regions);
 
   return FileCoverage;
@@ -443,6 +453,7 @@ CoverageMapping::getCoverageForFunction(const FunctionRecord &Function) {
     }
 
   sortNestedRegions(Regions.begin(), Regions.end());
+  DEBUG(dbgs() << "Emitting segments for function: " << Function.Name << "\n");
   FunctionCoverage.Segments = SegmentBuilder().buildSegments(Regions);
 
   return FunctionCoverage;
@@ -461,6 +472,8 @@ CoverageMapping::getCoverageForExpansion(const ExpansionRecord &Expansion) {
     }
 
   sortNestedRegions(Regions.begin(), Regions.end());
+  DEBUG(dbgs() << "Emitting segments for expansion of file " << Expansion.FileID
+               << "\n");
   ExpansionCoverage.Segments = SegmentBuilder().buildSegments(Regions);
 
   return ExpansionCoverage;

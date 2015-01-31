@@ -15,6 +15,7 @@
 #include "llvm/LTO/LTOCodeGenerator.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Analysis/Passes.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/CodeGen/RuntimeLibcalls.h"
 #include "llvm/Config/config.h"
@@ -44,7 +45,6 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetRegisterInfo.h"
@@ -64,10 +64,24 @@ const char* LTOCodeGenerator::getVersionString() {
 }
 
 LTOCodeGenerator::LTOCodeGenerator()
-    : Context(getGlobalContext()), IRLinker(new Module("ld-temp.o", Context)),
-      TargetMach(nullptr), EmitDwarfDebugInfo(false),
-      ScopeRestrictionsDone(false), CodeModel(LTO_CODEGEN_PIC_MODEL_DEFAULT),
-      DiagHandler(nullptr), DiagContext(nullptr) {
+    : Context(getGlobalContext()), IRLinker(new Module("ld-temp.o", Context)) {
+  initialize();
+}
+
+LTOCodeGenerator::LTOCodeGenerator(std::unique_ptr<LLVMContext> Context)
+    : OwnedContext(std::move(Context)), Context(*OwnedContext),
+      IRLinker(new Module("ld-temp.o", *OwnedContext)) {
+  initialize();
+}
+
+void LTOCodeGenerator::initialize() {
+  TargetMach = nullptr;
+  EmitDwarfDebugInfo = false;
+  ScopeRestrictionsDone = false;
+  CodeModel = LTO_CODEGEN_PIC_MODEL_DEFAULT;
+  DiagHandler = nullptr;
+  DiagContext = nullptr;
+
   initializeLTOPasses();
 }
 
@@ -94,7 +108,7 @@ void LTOCodeGenerator::initializeLTOPasses() {
   initializeGlobalOptPass(R);
   initializeConstantMergePass(R);
   initializeDAHPass(R);
-  initializeInstCombinerPass(R);
+  initializeInstructionCombiningPassPass(R);
   initializeSimpleInlinerPass(R);
   initializePruneEHPass(R);
   initializeGlobalDCEPass(R);
@@ -113,8 +127,11 @@ void LTOCodeGenerator::initializeLTOPasses() {
   initializeCFGSimplifyPassPass(R);
 }
 
-bool LTOCodeGenerator::addModule(LTOModule* mod, std::string& errMsg) {
-  bool ret = IRLinker.linkInModule(&mod->getModule(), &errMsg);
+bool LTOCodeGenerator::addModule(LTOModule *mod) {
+  assert(&mod->getModule().getContext() == &Context &&
+         "Expected module in same context");
+
+  bool ret = IRLinker.linkInModule(&mod->getModule());
 
   const std::vector<const char*> &undefs = mod->getAsmUndefinedRefs();
   for (int i = 0, e = undefs.size(); i != e; ++i)
@@ -188,6 +205,7 @@ bool LTOCodeGenerator::compile_to_file(const char** name,
                                        bool disableOpt,
                                        bool disableInline,
                                        bool disableGVNLoadPRE,
+                                       bool disableVectorization,
                                        std::string& errMsg) {
   // make unique temp .o file to put generated object file
   SmallString<128> Filename;
@@ -202,8 +220,9 @@ bool LTOCodeGenerator::compile_to_file(const char** name,
   // generate object file
   tool_output_file objFile(Filename.c_str(), FD);
 
-  bool genResult = generateObjectFile(objFile.os(), disableOpt, disableInline,
-                                      disableGVNLoadPRE, errMsg);
+  bool genResult =
+      generateObjectFile(objFile.os(), disableOpt, disableInline,
+                         disableGVNLoadPRE, disableVectorization, errMsg);
   objFile.os().close();
   if (objFile.os().has_error()) {
     objFile.os().clear_error();
@@ -226,10 +245,11 @@ const void* LTOCodeGenerator::compile(size_t* length,
                                       bool disableOpt,
                                       bool disableInline,
                                       bool disableGVNLoadPRE,
+                                      bool disableVectorization,
                                       std::string& errMsg) {
   const char *name;
   if (!compile_to_file(&name, disableOpt, disableInline, disableGVNLoadPRE,
-                       errMsg))
+                       disableVectorization, errMsg))
     return nullptr;
 
   // read .o file into memory buffer
@@ -386,11 +406,12 @@ void LTOCodeGenerator::applyScopeRestrictions() {
   passes.add(createDebugInfoVerifierPass());
 
   // mark which symbols can not be internalized
-  Mangler Mangler(TargetMach->getSubtargetImpl()->getDataLayout());
+  Mangler Mangler(TargetMach->getDataLayout());
   std::vector<const char*> MustPreserveList;
   SmallPtrSet<GlobalValue*, 8> AsmUsed;
   std::vector<StringRef> Libcalls;
-  TargetLibraryInfo TLI(Triple(TargetMach->getTargetTriple()));
+  TargetLibraryInfoImpl TLII(Triple(TargetMach->getTargetTriple()));
+  TargetLibraryInfo TLI(TLII);
   accumulateAndSortLibcalls(
       Libcalls, TLI, TargetMach->getSubtargetImpl()->getTargetLowering());
 
@@ -441,6 +462,7 @@ bool LTOCodeGenerator::generateObjectFile(raw_ostream &out,
                                           bool DisableOpt,
                                           bool DisableInline,
                                           bool DisableGVNLoadPRE,
+                                          bool DisableVectorization,
                                           std::string &errMsg) {
   if (!this->determineTarget(errMsg))
     return false;
@@ -454,14 +476,16 @@ bool LTOCodeGenerator::generateObjectFile(raw_ostream &out,
   PassManager passes;
 
   // Add an appropriate DataLayout instance for this module...
-  mergedModule->setDataLayout(TargetMach->getSubtargetImpl()->getDataLayout());
+  mergedModule->setDataLayout(TargetMach->getDataLayout());
 
   Triple TargetTriple(TargetMach->getTargetTriple());
   PassManagerBuilder PMB;
   PMB.DisableGVNLoadPRE = DisableGVNLoadPRE;
+  PMB.LoopVectorize = !DisableVectorization;
+  PMB.SLPVectorize = !DisableVectorization;
   if (!DisableInline)
     PMB.Inliner = createFunctionInliningPass();
-  PMB.LibraryInfo = new TargetLibraryInfo(TargetTriple);
+  PMB.LibraryInfo = new TargetLibraryInfoImpl(TargetTriple);
   if (DisableOpt)
     PMB.OptLevel = 0;
   PMB.VerifyInput = true;

@@ -1,5 +1,6 @@
 ;RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck --check-prefix=EG-CHECK %s
-;RUN: llc < %s -march=r600 -mcpu=verde -verify-machineinstrs | FileCheck --check-prefix=SI-CHECK %s
+;RUN: llc < %s -march=amdgcn -mcpu=verde -verify-machineinstrs | FileCheck --check-prefix=SI-CHECK %s
+;RUN: llc < %s -march=amdgcn -mcpu=tonga -verify-machineinstrs | FileCheck --check-prefix=SI-CHECK %s
 
 ;EG-CHECK-LABEL: {{^}}test:
 ;EG-CHECK-NOT: SETGE_INT
@@ -21,7 +22,7 @@ define void @test(i32 addrspace(1)* %out, i32 addrspace(1)* %in) {
 ;EG-CHECK-LABEL: {{^}}test2:
 ;EG-CHECK: CF_END
 ;SI-CHECK-LABEL: {{^}}test2:
-;SI-CHECK: S_ENDPGM
+;SI-CHECK: s_endpgm
 
 define void @test2(<2 x i32> addrspace(1)* %out, <2 x i32> addrspace(1)* %in) {
   %b_ptr = getelementptr <2 x i32> addrspace(1)* %in, i32 1
@@ -35,7 +36,7 @@ define void @test2(<2 x i32> addrspace(1)* %out, <2 x i32> addrspace(1)* %in) {
 ;EG-CHECK-LABEL: {{^}}test4:
 ;EG-CHECK: CF_END
 ;SI-CHECK-LABEL: {{^}}test4:
-;SI-CHECK: S_ENDPGM
+;SI-CHECK: s_endpgm
 
 define void @test4(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)* %in) {
   %b_ptr = getelementptr <4 x i32> addrspace(1)* %in, i32 1

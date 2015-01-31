@@ -18,7 +18,6 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/GlobalAlias.h"
 #include "llvm/IR/GlobalVariable.h"
-#include "llvm/IR/LeakDetector.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -36,8 +35,8 @@ bool GlobalValue::isMaterializable() const {
 bool GlobalValue::isDematerializable() const {
   return getParent() && getParent()->isDematerializable(this);
 }
-bool GlobalValue::Materialize(std::string *ErrInfo) {
-  return getParent()->Materialize(this, ErrInfo);
+std::error_code GlobalValue::materialize() {
+  return getParent()->materialize(this);
 }
 void GlobalValue::Dematerialize() {
   getParent()->Dematerialize(this);
@@ -159,8 +158,6 @@ GlobalVariable::GlobalVariable(Type *Ty, bool constant, LinkageTypes Link,
            "Initializer should be the same type as the GlobalVariable!");
     Op<0>() = InitVal;
   }
-
-  LeakDetector::addGarbageObject(this);
 }
 
 GlobalVariable::GlobalVariable(Module &M, Type *Ty, bool constant,
@@ -180,8 +177,6 @@ GlobalVariable::GlobalVariable(Module &M, Type *Ty, bool constant,
     Op<0>() = InitVal;
   }
 
-  LeakDetector::addGarbageObject(this);
-
   if (Before)
     Before->getParent()->getGlobalList().insert(Before, this);
   else
@@ -189,11 +184,7 @@ GlobalVariable::GlobalVariable(Module &M, Type *Ty, bool constant,
 }
 
 void GlobalVariable::setParent(Module *parent) {
-  if (getParent())
-    LeakDetector::addGarbageObject(this);
   Parent = parent;
-  if (getParent())
-    LeakDetector::removeGarbageObject(this);
 }
 
 void GlobalVariable::removeFromParent() {
@@ -246,6 +237,7 @@ void GlobalVariable::copyAttributesFrom(const GlobalValue *Src) {
   GlobalObject::copyAttributesFrom(Src);
   const GlobalVariable *SrcVar = cast<GlobalVariable>(Src);
   setThreadLocalMode(SrcVar->getThreadLocalMode());
+  setExternallyInitialized(SrcVar->isExternallyInitialized());
 }
 
 
@@ -258,7 +250,6 @@ GlobalAlias::GlobalAlias(Type *Ty, unsigned AddressSpace, LinkageTypes Link,
                          Module *ParentModule)
     : GlobalValue(PointerType::get(Ty, AddressSpace), Value::GlobalAliasVal,
                   &Op<0>(), 1, Link, Name) {
-  LeakDetector::addGarbageObject(this);
   Op<0>() = Aliasee;
 
   if (ParentModule)
@@ -295,11 +286,7 @@ GlobalAlias *GlobalAlias::create(const Twine &Name, GlobalValue *Aliasee) {
 }
 
 void GlobalAlias::setParent(Module *parent) {
-  if (getParent())
-    LeakDetector::addGarbageObject(this);
   Parent = parent;
-  if (getParent())
-    LeakDetector::removeGarbageObject(this);
 }
 
 void GlobalAlias::removeFromParent() {
