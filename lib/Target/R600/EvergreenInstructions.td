@@ -302,7 +302,7 @@ def : Pat<(i32 (sext_inreg i32:$src, i8)),
 def : Pat<(i32 (sext_inreg i32:$src, i16)),
   (BFE_INT_eg i32:$src, (i32 ZERO), (MOV_IMM_I32 16))>;
 
-defm : BFIPatterns <BFI_INT_eg, MOV_IMM_I32>;
+defm : BFIPatterns <BFI_INT_eg, MOV_IMM_I32, R600_Reg64>;
 
 def BFM_INT_eg : R600_2OP <0xA0, "BFM_INT",
   [(set i32:$dst, (AMDGPUbfm i32:$src0, i32:$src1))],
@@ -589,8 +589,6 @@ def : Pat<(fp_to_uint f32:$src0), (FLT_TO_UINT_eg (TRUNC $src0))>;
 
 // SHA-256 Patterns
 def : SHA256MaPattern <BFI_INT_eg, XOR_INT>;
-
-def : FROUNDPat <CNDGE_eg, CNDGT_eg>;
 
 def EG_ExportSwz : ExportSwzInst {
   let Word1{19-16} = 0; // BURST_COUNT

@@ -1,11 +1,12 @@
-; RUN: llc -march=r600 -mcpu=SI < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -mcpu=SI < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -mcpu=tonga < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
 ; RUN: llc -march=r600 -mcpu=redwood < %s | FileCheck -check-prefix=EG -check-prefix=FUNC %s
 
 ; FUNC-LABEL: {{^}}udiv24_i8:
-; SI: V_CVT_F32_UBYTE
-; SI: V_CVT_F32_UBYTE
-; SI: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_ubyte
+; SI: v_cvt_f32_ubyte
+; SI: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -21,10 +22,10 @@ define void @udiv24_i8(i8 addrspace(1)* %out, i8 addrspace(1)* %in) {
 }
 
 ; FUNC-LABEL: {{^}}udiv24_i16:
-; SI: V_CVT_F32_U32
-; SI: V_CVT_F32_U32
-; SI: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_u32
+; SI: v_cvt_f32_u32
+; SI: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -40,10 +41,10 @@ define void @udiv24_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %in) {
 }
 
 ; FUNC-LABEL: {{^}}udiv24_i32:
-; SI: V_CVT_F32_U32
-; SI-DAG: V_CVT_F32_U32
-; SI-DAG: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_u32
+; SI-DAG: v_cvt_f32_u32
+; SI-DAG: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -64,8 +65,8 @@ define void @udiv24_i32(i32 addrspace(1)* %out, i32 addrspace(1)* %in) {
 
 ; FUNC-LABEL: {{^}}udiv25_i32:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE
@@ -84,8 +85,8 @@ define void @udiv25_i32(i32 addrspace(1)* %out, i32 addrspace(1)* %in) {
 
 ; FUNC-LABEL: {{^}}test_no_udiv24_i32_1:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE
@@ -104,8 +105,8 @@ define void @test_no_udiv24_i32_1(i32 addrspace(1)* %out, i32 addrspace(1)* %in)
 
 ; FUNC-LABEL: {{^}}test_no_udiv24_i32_2:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE
@@ -123,10 +124,10 @@ define void @test_no_udiv24_i32_2(i32 addrspace(1)* %out, i32 addrspace(1)* %in)
 }
 
 ; FUNC-LABEL: {{^}}urem24_i8:
-; SI: V_CVT_F32_UBYTE
-; SI: V_CVT_F32_UBYTE
-; SI: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_ubyte
+; SI: v_cvt_f32_ubyte
+; SI: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -142,10 +143,10 @@ define void @urem24_i8(i8 addrspace(1)* %out, i8 addrspace(1)* %in) {
 }
 
 ; FUNC-LABEL: {{^}}urem24_i16:
-; SI: V_CVT_F32_U32
-; SI: V_CVT_F32_U32
-; SI: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_u32
+; SI: v_cvt_f32_u32
+; SI: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -161,10 +162,10 @@ define void @urem24_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %in) {
 }
 
 ; FUNC-LABEL: {{^}}urem24_i32:
-; SI: V_CVT_F32_U32
-; SI: V_CVT_F32_U32
-; SI: V_RCP_F32
-; SI: V_CVT_U32_F32
+; SI: v_cvt_f32_u32
+; SI: v_cvt_f32_u32
+; SI: v_rcp_f32
+; SI: v_cvt_u32_f32
 
 ; EG: UINT_TO_FLT
 ; EG-DAG: UINT_TO_FLT
@@ -185,8 +186,8 @@ define void @urem24_i32(i32 addrspace(1)* %out, i32 addrspace(1)* %in) {
 
 ; FUNC-LABEL: {{^}}urem25_i32:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE
@@ -205,8 +206,8 @@ define void @urem25_i32(i32 addrspace(1)* %out, i32 addrspace(1)* %in) {
 
 ; FUNC-LABEL: {{^}}test_no_urem24_i32_1:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE
@@ -225,8 +226,8 @@ define void @test_no_urem24_i32_1(i32 addrspace(1)* %out, i32 addrspace(1)* %in)
 
 ; FUNC-LABEL: {{^}}test_no_urem24_i32_2:
 ; RCP_IFLAG is for URECIP in the full 32b alg
-; SI: V_RCP_IFLAG
-; SI-NOT: V_RCP_F32
+; SI: v_rcp_iflag
+; SI-NOT: v_rcp_f32
 
 ; EG-NOT: UINT_TO_FLT
 ; EG-NOT: RECIP_IEEE

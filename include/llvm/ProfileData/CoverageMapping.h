@@ -18,6 +18,8 @@
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Hashing.h"
+#include "llvm/ADT/iterator.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/raw_ostream.h"
 #include <system_error>
@@ -61,8 +63,12 @@ public:
 
   unsigned getExpressionID() const { return ID; }
 
-  bool operator==(const Counter &Other) const {
-    return Kind == Other.Kind && ID == Other.ID;
+  friend bool operator==(const Counter &LHS, const Counter &RHS) {
+    return LHS.Kind == RHS.Kind && LHS.ID == RHS.ID;
+  }
+
+  friend bool operator!=(const Counter &LHS, const Counter &RHS) {
+    return !(LHS == RHS);
   }
 
   friend bool operator<(const Counter &LHS, const Counter &RHS) {
@@ -216,7 +222,7 @@ public:
       : Expressions(Expressions), CounterValues(CounterValues) {}
 
   void dump(const Counter &C, llvm::raw_ostream &OS) const;
-  void dump(const Counter &C) const { dump(C, llvm::outs()); }
+  void dump(const Counter &C) const { dump(C, dbgs()); }
 
   /// \brief Return the number of times that a region of code associated with
   /// this counter was executed.
@@ -238,6 +244,40 @@ struct FunctionRecord {
                  uint64_t ExecutionCount)
       : Name(Name), Filenames(Filenames.begin(), Filenames.end()),
         ExecutionCount(ExecutionCount) {}
+};
+
+/// \brief Iterator over Functions, optionally filtered to a single file.
+class FunctionRecordIterator
+    : public iterator_facade_base<FunctionRecordIterator,
+                                  std::forward_iterator_tag, FunctionRecord> {
+  ArrayRef<FunctionRecord> Records;
+  ArrayRef<FunctionRecord>::iterator Current;
+  StringRef Filename;
+
+  /// \brief Skip records whose primary file is not \c Filename.
+  void skipOtherFiles();
+
+public:
+  FunctionRecordIterator(ArrayRef<FunctionRecord> Records_,
+                         StringRef Filename = "")
+      : Records(Records_), Current(Records.begin()), Filename(Filename) {
+    skipOtherFiles();
+  }
+
+  FunctionRecordIterator() : Current(Records.begin()) {}
+
+  bool operator==(const FunctionRecordIterator &RHS) const {
+    return Current == RHS.Current && Filename == RHS.Filename;
+  }
+
+  const FunctionRecord &operator*() const { return *Current; }
+
+  FunctionRecordIterator &operator++() {
+    assert(Current != Records.end() && "incremented past end");
+    ++Current;
+    skipOtherFiles();
+    return *this;
+  }
 };
 
 /// \brief Coverage information for a macro expansion or #included file.
@@ -342,7 +382,7 @@ public:
   unsigned getMismatchedCount() { return MismatchedFunctionCount; }
 
   /// \brief Returns the list of files that are covered.
-  std::vector<StringRef> getUniqueSourceFiles();
+  std::vector<StringRef> getUniqueSourceFiles() const;
 
   /// \brief Get the coverage for a particular file.
   ///
@@ -352,8 +392,16 @@ public:
   CoverageData getCoverageForFile(StringRef Filename);
 
   /// \brief Gets all of the functions covered by this profile.
-  ArrayRef<FunctionRecord> getCoveredFunctions() {
-    return ArrayRef<FunctionRecord>(Functions.data(), Functions.size());
+  iterator_range<FunctionRecordIterator> getCoveredFunctions() const {
+    return make_range(FunctionRecordIterator(Functions),
+                      FunctionRecordIterator());
+  }
+
+  /// \brief Gets all of the functions in a particular file.
+  iterator_range<FunctionRecordIterator>
+  getCoveredFunctions(StringRef Filename) const {
+    return make_range(FunctionRecordIterator(Functions, Filename),
+                      FunctionRecordIterator());
   }
 
   /// \brief Get the list of function instantiations in the file.

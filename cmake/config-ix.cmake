@@ -42,7 +42,6 @@ function(check_type_exists type files variable)
 endfunction()
 
 # include checks
-check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
 check_include_file(dirent.h HAVE_DIRENT_H)
 check_include_file(dlfcn.h HAVE_DLFCN_H)
 check_include_file(errno.h HAVE_ERRNO_H)
@@ -80,6 +79,13 @@ check_symbol_exists(FE_INEXACT "fenv.h" HAVE_DECL_FE_INEXACT)
 
 check_include_file(mach/mach.h HAVE_MACH_MACH_H)
 check_include_file(mach-o/dyld.h HAVE_MACH_O_DYLD_H)
+
+# size_t must be defined before including cxxabi.h on FreeBSD 10.0.
+check_cxx_source_compiles("
+#include <stddef.h>
+#include <cxxabi.h>
+int main() { return 0; }
+" HAVE_CXXABI_H)
 
 # library checks
 if( NOT PURE_WINDOWS )
@@ -510,3 +516,29 @@ else()
     endif()
   endif()
 endif()
+
+include(FindOCaml)
+include(AddOCaml)
+if(WIN32)
+  message(STATUS "OCaml bindings disabled.")
+else()
+  find_package(OCaml)
+  if( NOT OCAML_FOUND )
+    message(STATUS "OCaml bindings disabled.")
+  else()
+    if( OCAML_VERSION VERSION_LESS "4.00.0" )
+      message(STATUS "OCaml bindings disabled, need OCaml >=4.00.0.")
+    else()
+      find_ocamlfind_package(ctypes VERSION 0.3 OPTIONAL)
+      if( HAVE_OCAML_CTYPES )
+        message(STATUS "OCaml bindings enabled.")
+        find_ocamlfind_package(oUnit VERSION 2 OPTIONAL)
+        set(LLVM_BINDINGS "${LLVM_BINDINGS} ocaml")
+      else()
+        message(STATUS "OCaml bindings disabled, need ctypes >=0.3.")
+      endif()
+    endif()
+  endif()
+endif()
+
+string(REPLACE " " ";" LLVM_BINDINGS_LIST "${LLVM_BINDINGS}")

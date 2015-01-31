@@ -8,13 +8,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "DwarfFile.h"
-
 #include "DwarfDebug.h"
 #include "DwarfUnit.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/DataLayout.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/Support/LEB128.h"
-#include "llvm/IR/DataLayout.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 
 namespace llvm {
@@ -55,17 +54,9 @@ void DwarfFile::emitUnits(const MCSymbol *ASectionSym) {
     const MCSection *USection = TheU->getSection();
     Asm->OutStreamer.SwitchSection(USection);
 
-    // Emit the compile units header.
-    Asm->OutStreamer.EmitLabel(TheU->getLabelBegin());
-
-    // Emit size of content not including length itself
-    Asm->OutStreamer.AddComment("Length of Unit");
-    Asm->EmitInt32(TheU->getHeaderSize() + Die.getSize());
-
     TheU->emitHeader(ASectionSym);
 
     DD.emitDIE(Die);
-    Asm->OutStreamer.EmitLabel(TheU->getLabelEnd());
   }
 }
 
@@ -177,7 +168,7 @@ void DwarfFile::addScopeVariable(LexicalScope *LS, DbgVariable *Var) {
       // A later indexed parameter has been found, insert immediately before it.
       if (CurNum > ArgNum)
         break;
-      assert(CurNum != ArgNum);
+      assert(CurNum != ArgNum && "Duplicate argument");
       ++I;
     }
     Vars.insert(I, Var);

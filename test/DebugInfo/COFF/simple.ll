@@ -12,11 +12,12 @@
 ; 5 }
 
 ; X86-LABEL: _f:
-; X86-NEXT: # BB
+; X86:      # BB
 ; X86-NEXT: [[CALL_LINE:^L.*]]:{{$}}
-; X86-NEXT: calll   _g
+; X86:      calll   _g
 ; X86-NEXT: [[RETURN_STMT:.*]]:
-; X86-NEXT: ret
+; X86:      ret
+; X86-NEXT: L{{.*}}:
 ; X86-NEXT: [[END_OF_F:.*]]:
 ;
 ; X86-LABEL: .section        .debug$S,"rd"
@@ -88,7 +89,7 @@
 ; OBJ32-NEXT:   Type: 0xF1
 ; OBJ32-NOT:    ]
 ; OBJ32:        ProcStart {
-; OBJ32-NEXT:     FunctionName: f
+; OBJ32-NEXT:     DisplayName: f
 ; OBJ32-NEXT:     Section: _f
 ; OBJ32-NEXT:     CodeSize: 0x6
 ; OBJ32-NEXT:   }
@@ -107,13 +108,14 @@
 
 ; X64-LABEL: f:
 ; X64-NEXT: [[START:.*]]:{{$}}
-; X64-NEXT: # BB
-; X64-NEXT: subq    $40, %rsp
+; X64:      # BB
+; X64:      subq    $40, %rsp
 ; X64-NEXT: [[CALL_LINE:.*]]:{{$}}
 ; X64-NEXT: callq   g
 ; X64-NEXT: [[EPILOG_AND_RET:.*]]:
-; X64-NEXT: addq    $40, %rsp
+; X64:      addq    $40, %rsp
 ; X64-NEXT: ret
+; X64-NEXT: .L{{.*}}:
 ; X64-NEXT: [[END_OF_F:.*]]:
 ;
 ; X64-LABEL: .section        .debug$S,"rd"
@@ -187,7 +189,7 @@
 ; OBJ64-NEXT:   Type: 0xF1
 ; OBJ64-NOT:    ]
 ; OBJ64:        ProcStart {
-; OBJ64-NEXT:     FunctionName: f
+; OBJ64-NEXT:     DisplayName: f
 ; OBJ64-NEXT:     Section: f
 ; OBJ64-NEXT:     CodeSize: 0xE
 ; OBJ64-NEXT:   }
@@ -221,17 +223,17 @@ attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "
 !llvm.module.flags = !{!9, !10}
 !llvm.ident = !{!11}
 
-!0 = metadata !{metadata !"0x11\0012\00clang version 3.5 \000\00\000\00\000", metadata !1, metadata !2, metadata !2, metadata !3, metadata !2, metadata !2} ; [ DW_TAG_compile_unit ] [D:\/<unknown>] [DW_LANG_C99]
-!1 = metadata !{metadata !"<unknown>", metadata !"D:\5C"}
-!2 = metadata !{i32 0}
-!3 = metadata !{metadata !4}
-!4 = metadata !{metadata !"0x2e\00f\00f\00\003\000\001\000\006\00256\000\003", metadata !5, metadata !6, metadata !7, null, void ()* @f, null, null, metadata !2} ; [ DW_TAG_subprogram ] [line 3] [def] [f]
-!5 = metadata !{metadata !"test.c", metadata !"D:\5C"}
-!6 = metadata !{metadata !"0x29", metadata !5}          ; [ DW_TAG_file_type ] [D:\/test.c]
-!7 = metadata !{metadata !"0x15\00\000\000\000\000\000\000", i32 0, null, null, metadata !8, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
-!8 = metadata !{null}
-!9 = metadata !{i32 2, metadata !"Dwarf Version", i32 4}
-!10 = metadata !{i32 1, metadata !"Debug Info Version", i32 2}
-!11 = metadata !{metadata !"clang version 3.5 "}
-!12 = metadata !{i32 4, i32 0, metadata !4, null}
-!13 = metadata !{i32 5, i32 0, metadata !4, null}
+!0 = !{!"0x11\0012\00clang version 3.5 \000\00\000\00\000", !1, !2, !2, !3, !2, !2} ; [ DW_TAG_compile_unit ] [D:\/<unknown>] [DW_LANG_C99]
+!1 = !{!"<unknown>", !"D:\5C"}
+!2 = !{}
+!3 = !{!4}
+!4 = !{!"0x2e\00f\00f\00\003\000\001\000\006\00256\000\003", !5, !6, !7, null, void ()* @f, null, null, !2} ; [ DW_TAG_subprogram ] [line 3] [def] [f]
+!5 = !{!"test.c", !"D:\5C"}
+!6 = !{!"0x29", !5}          ; [ DW_TAG_file_type ] [D:\/test.c]
+!7 = !{!"0x15\00\000\000\000\000\000\000", i32 0, null, null, !8, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!8 = !{null}
+!9 = !{i32 2, !"Dwarf Version", i32 4}
+!10 = !{i32 1, !"Debug Info Version", i32 2}
+!11 = !{!"clang version 3.5 "}
+!12 = !MDLocation(line: 4, scope: !4)
+!13 = !MDLocation(line: 5, scope: !4)

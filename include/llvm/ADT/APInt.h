@@ -94,6 +94,8 @@ class APInt {
     APINT_WORD_SIZE = static_cast<unsigned int>(sizeof(uint64_t))
   };
 
+  friend struct DenseMapAPIntKeyInfo;
+
   /// \brief Fast internal constructor
   ///
   /// This constructor is used only internally for speed of construction of
@@ -748,7 +750,10 @@ public:
       delete[] pVal;
     }
 
-    VAL = that.VAL;
+    // Use memcpy so that type based alias analysis sees both VAL and pVal
+    // as modified.
+    // end effect should be similar to: VAL = that.VAL;
+    memcpy(&VAL, &that.VAL, sizeof(uint64_t));
     poisoned= that.poisoned;
 
     // If 'this == &that', avoid zeroing our own bitwidth by storing to 'that'

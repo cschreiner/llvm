@@ -19,8 +19,10 @@ add_llvm_library(LLVMCodeGen
   ExecutionDepsFix.cpp
   ExpandISelPseudos.cpp
   ExpandPostRAPseudos.cpp
+  ForwardControlFlowIntegrity.cpp
   GCMetadata.cpp
   GCMetadataPrinter.cpp
+  GCRootLowering.cpp
   GCStrategy.cpp
   GlobalMerge.cpp
   IfConversion.cpp
@@ -97,13 +99,13 @@ add_llvm_library(LLVMCodeGen
   SjLjEHPrepare.cpp
   SlotIndexes.cpp
   SpillPlacement.cpp
-  Spiller.cpp
   SplitKit.cpp
   StackColoring.cpp
   StackProtector.cpp
   StackSlotColoring.cpp
   StackMapLivenessAnalysis.cpp
   StackMaps.cpp
+  StatepointExampleGC.cpp
   TailDuplication.cpp
   TargetFrameLoweringImpl.cpp
   TargetInstrInfo.cpp
