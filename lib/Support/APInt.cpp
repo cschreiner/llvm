@@ -106,11 +106,13 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
   : BitWidth(numBits), VAL(0), poisoned(false) {
+  // Note: initFromArray checks the argument values
   initFromArray(bigVal);
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
   : BitWidth(numBits), VAL(0), poisoned(false) {
+  // Note: initFromArray checks the argument values
   initFromArray(makeArrayRef(bigVal, numWords));
 }
 
