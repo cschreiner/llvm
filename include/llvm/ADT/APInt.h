@@ -759,6 +759,7 @@ public:
     // Use memcpy so that type based alias analysis sees both VAL and pVal
     // as modified.
     // end effect should be similar to: VAL = that.VAL;
+    std::cout << "In modified section of APInt::operator=(APInt &&). \n";;
     memcpy(&VAL, &that.VAL, sizeof(uint64_t));
     poisoned= that.poisoned;
 
