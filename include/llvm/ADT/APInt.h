@@ -766,7 +766,7 @@ public:
     // If 'this == &that', avoid zeroing our own bitwidth by storing to 'that'
     // first.
     unsigned ThatBitWidth = that.BitWidth;
-    that.BitWidth = 0;
+    //;;that.BitWidth = 0;
     BitWidth = ThatBitWidth;
 
     return *this;
