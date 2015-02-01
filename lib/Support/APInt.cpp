@@ -168,6 +168,7 @@ APInt& APInt::operator=(uint64_t RHS) {
     pVal[0] = RHS;
     memset(pVal+1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
   }
+  BitWidth= sizeof(RHS)* 8;
   return clearUnusedBits();
 }
 
