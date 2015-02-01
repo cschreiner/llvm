@@ -3158,7 +3158,8 @@ bool LLParser::ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
     ID.APSIntVal = ID.APSIntVal.extOrTrunc(Ty->getPrimitiveSizeInBits());
     assert ( ID.APSIntVal.getBitWidth() > 0 && 
 	"ID.APSIntVal.getBitWidth() too small" );;
-    std::cout << "about to call ConstantInt::get(~), ID.APSIntVal's width= " << ID.APSIntVal.getBitWidth() . ".\n";;
+    std::cout << "about to call ConstantInt::get(~), ID.APSIntVal's width= " 
+	<< ID.APSIntVal.getBitWidth() << ".\n";;
     V = ConstantInt::get(Context, ID.APSIntVal);
     std::cout << "returned from ConstantInt::get(~)\n";;
     return false;
