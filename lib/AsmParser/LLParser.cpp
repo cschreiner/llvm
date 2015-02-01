@@ -3139,7 +3139,7 @@ bool LLParser::ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
   case ValID::t_InlineAsm: {
     PointerType *PTy = dyn_cast<PointerType>(Ty);
     FunctionType *FTy =
-      PTy ? dyn_cast<FunctionType>(PTy->getElementType()) : nullptr;
+	PTy ? dyn_cast<FunctionType>(PTy->getElementType()) : nullptr;
     if (!FTy || !InlineAsm::Verify(FTy, ID.StrVal2))
       return Error(ID.Loc, "invalid type for inline asm constraint string");
     V = InlineAsm::get(FTy, ID.StrVal, ID.StrVal2, ID.UIntVal&1,
