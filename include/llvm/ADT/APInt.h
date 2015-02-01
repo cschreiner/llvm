@@ -101,7 +101,12 @@ class APInt {
   /// This constructor is used only internally for speed of construction of
   /// temporaries. It is unsafe for general use so it is not public.
   APInt(uint64_t *val, unsigned bits) : 
-      BitWidth(bits), pVal(val), poisoned(false) {}
+      BitWidth(bits), pVal(val), poisoned(false) {
+    if ( BitWidth <= 0 ) {
+       std::cout << "biwidth==0 at 2015jan31_183024\n";;
+    }
+    assert(BitWidth && "bitwidth too small");
+  }
 
   /// \brief Determine if this APInt just has one word to store value.
   ///
@@ -304,6 +309,7 @@ public:
   /// \brief Move Constructor.
   APInt(APInt &&that) 
       : BitWidth(that.BitWidth), VAL(that.VAL), poisoned(that.poisoned) {
+    assert(BitWidth && "bitwidth too small");
     that.BitWidth = 0;
   }
 
