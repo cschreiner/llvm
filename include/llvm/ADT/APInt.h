@@ -102,7 +102,7 @@ class APInt {
   /// temporaries. It is unsafe for general use so it is not public.
   APInt(uint64_t *val, unsigned bits) : 
       BitWidth(bits), pVal(val), poisoned(false) {
-    if ( BitWidth <= 0 ) {
+    if ( BitWidth <= 0 ) {;;
        std::cout << "biwidth==0 at 2015jan31_183024\n";;
     }
     assert(BitWidth && "bitwidth too small");
