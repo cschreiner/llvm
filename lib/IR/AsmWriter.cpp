@@ -441,21 +441,21 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
     return;
   }
   case Type::StructTyID: {
-    OS << "struct: ";;
+    //OS << "struct: "; //@casdbg@
     StructType *STy = cast<StructType>(Ty);
 
     if (STy->isLiteral())  {
-      OS << "(literal) ";;
+      //OS << "(literal) ";; //@casdbg@
       return printStructBody(STy, OS);
-    } else {;;
-      OS << "(notLiteral) ";;
+    } else { //@casdbg@
+      //OS << "(notLiteral) "; //@casdbg@
     }
 
     if (!STy->getName().empty())  {
-      OS << "name=";;
+      //OS << "name=";; //@casdbg@
       return PrintLLVMName(OS, STy->getName(), LocalPrefix);
     } else {;;
-      OS << "(empty name) ";;
+      //OS << "(empty name) "; //@casdbg@
     }
 
     DenseMap<StructType*, unsigned>::iterator I = NumberedTypes.find(STy);
@@ -492,7 +492,7 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
 }
 
 void TypePrinting::printStructBody(StructType *STy, raw_ostream &OS) {
-  OS << "contents: ";;
+  //OS << "contents: "; //@casdbg@
   if (STy->isOpaque()) {
     OS << "opaque";
     return;
@@ -2585,8 +2585,8 @@ void Type::print(raw_ostream &OS) const {
       OS << " = type ";
       TP.printStructBody(STy, OS);
     }
-  } else {;;
-    OS << "(which is not a struct type) ";;
+  } else { //@casdbg@
+    OS << "(which is not a struct type) ";; //@casdbg@
   }
 }
 

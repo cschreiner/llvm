@@ -556,6 +556,7 @@ Constant *ConstantInt::getFalse(Type *Ty) {
 
 // Get a ConstantInt from an APInt.
 ConstantInt *ConstantInt::get(LLVMContext &Context, const APInt &V) {
+  // TODO2: check that this doesn't misfire
   assert( V.getBitWidth() > 0 && "V's bitwidth is too small." );;
   // get an existing value or the insertion position
   LLVMContextImpl *pImpl = Context.pImpl;

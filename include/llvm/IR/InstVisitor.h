@@ -18,7 +18,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <iostream> //;;
+#include <iostream> //@casdbg@
 
 namespace llvm {
 
@@ -165,7 +165,7 @@ public:
       RetTy visit##OPCODE(CLASS &I) {				\
 	if (NUM == Instruction::Call) {				\
 	  std::cout << "About to delegate \"" << #OPCODE <<	\
-	     "\" instruction \n";;				\
+	     "\" instruction \n"; //@casdbg@			\
 	  return delegateCallInst(I);				\
 	} else							\
 	  return static_cast<SubClass*>(this)->			\

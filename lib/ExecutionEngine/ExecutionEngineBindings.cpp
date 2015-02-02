@@ -244,7 +244,7 @@ int LLVMRunFunctionAsMain(LLVMExecutionEngineRef EE, LLVMValueRef F,
                           const char * const *EnvP) {
   //printf ( "about to execute ExecutionEngineBindings.cpp's " 
   //    "LLVMRunFunctionAsMain(LLVMExecutionEngineRef, LLVMValueRef,"
-  //    "unsigned, const char* const*, const char* const*)\n" );;
+  //    "unsigned, const char* const*, const char* const*)\n" ); //@casdbg@
   unwrap(EE)->finalizeObject();
   
   std::vector<std::string> ArgVec;
@@ -259,7 +259,7 @@ LLVMGenericValueRef LLVMRunFunction(LLVMExecutionEngineRef EE, LLVMValueRef F,
                                     LLVMGenericValueRef *Args) {
   //printf ( "about to execute ExecutionEngineBindings.cpp's " 
   //    "LLVMRunFunction(LLVMExecutionEngineRef EE, LLVMValueRef, "
-  //    "unsigned, LLVMGenericValueRef*\n");;
+  //    "unsigned, LLVMGenericValueRef*\n"); //@casdbg@
   unwrap(EE)->finalizeObject();
   
   std::vector<GenericValue> ArgVec;

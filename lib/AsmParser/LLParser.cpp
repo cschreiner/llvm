@@ -3156,12 +3156,10 @@ bool LLParser::ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
     if (!Ty->isIntegerTy())
       return Error(ID.Loc, "integer constant must have integer type");
     ID.APSIntVal = ID.APSIntVal.extOrTrunc(Ty->getPrimitiveSizeInBits());
+    //@casdbg@: does this assert false fire?
     assert ( ID.APSIntVal.getBitWidth() > 0 && 
-	"ID.APSIntVal.getBitWidth() too small" );;
-    std::cout << "about to call ConstantInt::get(~), ID.APSIntVal's width= " 
-	<< ID.APSIntVal.getBitWidth() << ".\n";;
+	"ID.APSIntVal.getBitWidth() too small" ); 
     V = ConstantInt::get(Context, ID.APSIntVal);
-    std::cout << "returned from ConstantInt::get(~)\n";;
     return false;
   case ValID::t_APFloat:
     if (!Ty->isFloatingPointTy() ||

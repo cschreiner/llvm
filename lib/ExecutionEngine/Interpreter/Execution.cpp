@@ -2031,7 +2031,6 @@ void Interpreter::visitExtractValueInst(ExtractValueInst &I) {
 }
 
 void Interpreter::visitInsertValueInst(InsertValueInst &I) {
-  // asdf ;;
   ExecutionContext &SF = ECStack.back();
   Value *Agg = I.getAggregateOperand();
 
