@@ -28,7 +28,6 @@
 #include <iterator>
 #include <new>
 #include <utility>
-#include <iostream> //;;
 
 namespace llvm {
 
@@ -397,11 +396,7 @@ private:
   }
 
   void grow(unsigned AtLeast) {
-    std::cout << "beginning DenseMap.h's grow(~), AtLeast=" << AtLeast << 
-	".\n";;
     static_cast<DerivedT *>(this)->grow(AtLeast);
-    std::cout << "ending DenseMap.h's grow(~), AtLeast=" << AtLeast << 
-	".\n";;
   }
 
   void shrink_and_clear() {
