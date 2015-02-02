@@ -102,10 +102,18 @@ class APInt {
   /// temporaries. It is unsafe for general use so it is not public.
   APInt(uint64_t *val, unsigned bits) : 
       BitWidth(bits), pVal(val), poisoned(false) {
-    if ( BitWidth <= 0 ) {;;
-       std::cout << "biwidth==0 at 2015jan31_183024\n";;
-    }
-    assert(BitWidth && "bitwidth too small");
+    /* TODO: Figure out how to deal with this issue. At a minimum, it
+       should be documented in the function description.
+
+       This function is used by some external code to create
+       zero-length null-APInts for use as special values for hashmaps
+       and such.  So an assert to prevent 0-length APInts here is
+       counterproductive at the moment.  Sheesh.  I do not yet known
+       how these outside classes are calling a private constructor--
+       they do not appear to be defined as friends.  These special
+       null-APInts also need to be passed around via the move
+       constructor.
+     */
   }
 
   /// \brief Determine if this APInt just has one word to store value.
@@ -298,7 +306,12 @@ public:
   /// @brief Copy Constructor.
   APInt(const APInt &that) 
       : BitWidth(that.BitWidth), VAL(0), poisoned(that.poisoned) {
-    assert(BitWidth && "bitwidth too small");
+    /* TODO: this assert is catching on null APInts, which
+         intentionally have null bitwidth.  Consider whether to have
+         special handling for null APInts.
+
+      assert(BitWidth && "bitwidth too small");
+     */
     poisoned= that.poisoned;
     if (isSingleWord())
       VAL = that.VAL;
@@ -759,14 +772,13 @@ public:
     // Use memcpy so that type based alias analysis sees both VAL and pVal
     // as modified.
     // end effect should be similar to: VAL = that.VAL;
-    std::cout << "In modified section of APInt::operator=(APInt &&). \n";;
     memcpy(&VAL, &that.VAL, sizeof(uint64_t));
     poisoned= that.poisoned;
 
     // If 'this == &that', avoid zeroing our own bitwidth by storing to 'that'
     // first.
     unsigned ThatBitWidth = that.BitWidth;
-    //;;that.BitWidth = 0;
+    that.BitWidth = 0;
     BitWidth = ThatBitWidth;
 
     return *this;
