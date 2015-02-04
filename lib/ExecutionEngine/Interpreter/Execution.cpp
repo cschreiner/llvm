@@ -168,18 +168,26 @@ static void executeFRemInst(GenericValue &Dest, GenericValue Src1,
   }
 }
 
-#define IMPLEMENT_INTEGER_ICMP(OP, TY) \
-   case Type::IntegerTyID:  \
-      Dest.IntVal = APInt(1,Src1.IntVal.OP(Src2.IntVal)); \
+/// \brief Shorthand to create functions that implement one of the
+/// icmp operations (such as less than, less-than-or-equal, greater
+/// than, etc, in signed and unsigned permutations).
+///
+/// \param OP must be the name of an APInt comparison method.
+/// \param TY is currently unused.
+#define IMPLEMENT_INTEGER_ICMP(OP, TY)					\
+   case Type::IntegerTyID:						\
+      Dest.IntVal = APInt(1, Src1.IntVal.OP(Src2.IntVal) );		\
+      Dest.IntVal.setPoisoned(						\
+	  Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() );	\
       break;
 
-#define IMPLEMENT_VECTOR_INTEGER_ICMP(OP, TY)                        \
-  case Type::VectorTyID: {                                           \
-    assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());    \
-    Dest.AggregateVal.resize( Src1.AggregateVal.size() );            \
-    for( uint32_t _i=0;_i<Src1.AggregateVal.size();_i++)             \
-      Dest.AggregateVal[_i].IntVal = APInt(1,                        \
-      Src1.AggregateVal[_i].IntVal.OP(Src2.AggregateVal[_i].IntVal));\
+#define IMPLEMENT_VECTOR_INTEGER_ICMP(OP, TY)				\
+  case Type::VectorTyID: {						\
+    assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());	\
+    Dest.AggregateVal.resize( Src1.AggregateVal.size() );		\
+    for( uint32_t _i=0;_i<Src1.AggregateVal.size();_i++)		\
+      Dest.AggregateVal[_i].IntVal = APInt(1,				\
+	  Src1.AggregateVal[_i].IntVal.OP(Src2.AggregateVal[_i].IntVal) ); \
   } break;
 
 // Handle pointers specially because they must be compared with only as much
@@ -699,6 +707,9 @@ void Interpreter::visitFCmpInst(FCmpInst &I) {
   SetValue(&I, R, SF);
 }
 
+/// \brief implement a call to an icmp or fcmp instruction.
+/// Implemented by dispatching to a short function performing the relevant 
+/// comparison.
 static GenericValue executeCmpInst(unsigned predicate, GenericValue Src1, 
                                    GenericValue Src2, Type *Ty) {
   GenericValue Result;
@@ -818,7 +829,8 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       }
       break;
     }
-  } else {
+  } else { 
+    // this is a scalar instruction, not a vector one.
     switch (I.getOpcode()) {
     default:
       dbgs() << "Don't know how to handle this binary operator!\n-->" << I;
@@ -854,11 +866,26 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
 	  I.isExact() );
       break;
-    case Instruction::URem:  R.IntVal = Src1.IntVal.urem(Src2.IntVal); break;
-    case Instruction::SRem:  R.IntVal = Src1.IntVal.srem(Src2.IntVal); break;
-    case Instruction::And:   R.IntVal = Src1.IntVal & Src2.IntVal; break;
-    case Instruction::Or:    R.IntVal = Src1.IntVal | Src2.IntVal; break;
-    case Instruction::Xor:   R.IntVal = Src1.IntVal ^ Src2.IntVal; break;
+    case Instruction::URem:  
+      R.IntVal = Src1.IntVal.urem(Src2.IntVal); 
+      // Poison propogation is handled within the APInt class.
+      break;
+    case Instruction::SRem:  
+      R.IntVal = Src1.IntVal.srem(Src2.IntVal); 
+      // Poison propogation is handled within the APInt class.
+      break;
+    case Instruction::And:   
+      R.IntVal = Src1.IntVal & Src2.IntVal; 
+      // Poison propogation is handled within the APInt class.
+      break;
+    case Instruction::Or:    
+      R.IntVal = Src1.IntVal | Src2.IntVal; 
+      // Poison propogation is handled within the APInt class.
+      break;
+    case Instruction::Xor:   
+      R.IntVal = Src1.IntVal ^ Src2.IntVal; 
+      // Poison propogation is handled within the APInt class.
+      break;
     }
   }
   SetValue(&I, R, SF);
