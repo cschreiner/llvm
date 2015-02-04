@@ -893,18 +893,18 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 
 static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
                                       GenericValue Src3, const Type *Ty) {
-    GenericValue Dest;
-    if(Ty->isVectorTy()) {
-      assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());
-      assert(Src2.AggregateVal.size() == Src3.AggregateVal.size());
-      Dest.AggregateVal.resize( Src1.AggregateVal.size() );
-      for (size_t i = 0; i < Src1.AggregateVal.size(); ++i)
-        Dest.AggregateVal[i] = (Src1.AggregateVal[i].IntVal == 0) ?
-          Src3.AggregateVal[i] : Src2.AggregateVal[i];
-    } else {
-      Dest = (Src1.IntVal == 0) ? Src3 : Src2;
-    }
-    return Dest;
+  GenericValue Dest;
+  if(Ty->isVectorTy()) {
+    assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());
+    assert(Src2.AggregateVal.size() == Src3.AggregateVal.size());
+    Dest.AggregateVal.resize( Src1.AggregateVal.size() );
+    for (size_t i = 0; i < Src1.AggregateVal.size(); ++i)
+      Dest.AggregateVal[i] = (Src1.AggregateVal[i].IntVal == 0) ?
+	Src3.AggregateVal[i] : Src2.AggregateVal[i];
+  } else {
+    Dest = (Src1.IntVal == 0) ? Src3 : Src2;
+  }
+  return Dest;
 }
 
 void Interpreter::visitSelectInst(SelectInst &I) {
@@ -914,11 +914,16 @@ void Interpreter::visitSelectInst(SelectInst &I) {
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Src3 = getOperandValue(I.getOperand(2), SF);
   GenericValue R = executeSelectInst(Src1, Src2, Src3, Ty);
+  if ( Ty->isIntegerTy() )  {
+    R.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
+    R.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
+  }
   SetValue(&I, R, SF);
 }
 
 //===----------------------------------------------------------------------===//
 //                     Terminator Instruction Implementations
+//                         (includes branch instructions)
 //===----------------------------------------------------------------------===//
 
 void Interpreter::exitCalled(GenericValue GV) {
@@ -1323,7 +1328,7 @@ void Interpreter::visitAShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.ashr(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_lshr( 
+    APIntPoison::poisonIfNeeded_ashr( 
 	Dest.IntVal, valueToShift, shiftAmount, I.isExact() );
   }
 
