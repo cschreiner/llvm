@@ -20,8 +20,8 @@ define i32 @main() {   ; i32()*
 }
 
 ; Named metadata
-;; metadata is commented out because lli barfs on it:
-;; TODO2: resolve this.  This happened with one of the changes made
-;;   between 25 Jan and 3 Feb.
+;; This metadata is commented out because the llvm 227317 rejects it,
+;;   though previous editions accepted it.  Presumably the metadata
+;;   format changed.  Deal with it when time allows.
 ;;!0 = metadata !{i32 42, null, metadata !"string"}
 ;;!foo = !{!0}
