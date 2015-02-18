@@ -787,6 +787,16 @@ void cl::ParseEnvironmentOptions(const char *progName, const char *envVar,
   ParseCommandLineOptions(newArgc, &newArgv[0], Overview);
 }
 
+/// \brief ParseCommandLineOptions - interprets the command line options
+/// passed to main(~), and stores the information somewhere.  
+/// TODO: figure out where data from the command-line arguments is stored.  
+///
+/// \param argc the number of arguments, as passed to main(~)
+/// \param argv pointer to an array of constant string pointers, with each 
+///	string holding one command-line argument.  This is also as passed to 
+///	main(~).
+/// \param Overview a string giving a phrase describing this program.  
+///	Presumably used in error and diagnostic messages.
 void cl::ParseCommandLineOptions(int argc, const char *const *argv,
                                  const char *Overview) {
   // Process all registered options.
