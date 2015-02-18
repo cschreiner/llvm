@@ -917,6 +917,11 @@ void Interpreter::visitSelectInst(SelectInst &I) {
   if ( Ty->isIntegerTy() )  {
     R.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
     R.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
+    /* CAS TODO: add feature here to only propagate poison iff:
+	Src1 is poisoned
+	or
+	the selected element of {Src2, Src3} is poisoned.
+    */
   }
   SetValue(&I, R, SF);
 }
