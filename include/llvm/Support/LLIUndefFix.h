@@ -3,7 +3,7 @@
    *
    * File Name: LLIUndefFix.h
    *
-   * File Description: 
+   * File Description: Items related to the lli_undef_fix experiments
    *
    * lli_undef_fix was written by Christian A. Schreiner at University of
    * Utah.  Copyright (C) 2015-2015 by University of Utah.  All rights
@@ -32,10 +32,19 @@
    * **************************************************************************
    */
 
+#include "llvm/Support/CommandLine.h"
+
+namespace llvm {
+namespace lli_undef_fix {
+
 /*** **************************************************************************
    *   declarations
    * **************************************************************************
    */
+
+cl::opt<bool> arg_luf_select_antidote;
+
+
 
 /*** ==========================================================================
    *   function prototypes
@@ -60,6 +69,14 @@
    */
 //void name()
 
+
+/*** **************************************************************************
+   *   clean up
+   * **************************************************************************
+   */
+
+} // namespace lli_undef_fix
+} // llvm
 
 /*** **************************************************************************
    *   end of file
