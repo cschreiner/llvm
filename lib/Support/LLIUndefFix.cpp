@@ -31,10 +31,27 @@
    * **************************************************************************
    */
 
+#incldue "llvm/Support/CommandLine.h"
+#include "llvm/Support/LLIUndefFix.h"
+
+using namespace llvm;
+
 /*++ **************************************************************************
    *   declarations
    * **************************************************************************
    */
+
+namespace {
+
+/** \brief Holds value of the '--luf-antidote-select' command line option.
+	This makes a SELECT instruction ignore poison from the unselected
+	operand.  I.e. the return value is only poisoned if the condition is
+	poisoned, or if the chosen operand is poisoned.
+*/
+cl::opt<bool> llvm::arg_luf_antidote_select( "luf-antidote-select",
+    cl::desc("make SELECT ignore poison from the unselected operand"),   
+    cl::init(false) );
+
 
 /*++ ==========================================================================
    *   un-submoduled function prototypes
@@ -68,6 +85,12 @@
    */
 //void name()
 
+
+/*++ **************************************************************************
+   *   close namespaces
+   * **************************************************************************
+   */
+} // namespace ""
 
 /*++ **************************************************************************
    *   end of file
