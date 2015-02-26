@@ -63,6 +63,7 @@ add_llvm_library(LLVMSupport
   IsNAN.cpp
   LEB128.cpp
   LineIterator.cpp
+  LLIUndefFix.cpp
   Locale.cpp
   LockFileManager.cpp
   ManagedStatic.cpp
