@@ -34,9 +34,10 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/LLIUndefFix.h"
 
-using namespace llvm;
+//;;using namespace llvm;
 
 //;;namespace {
+namespace llvm { //;;
 
 /*++ **************************************************************************
    *   declarations
@@ -49,10 +50,12 @@ using namespace llvm;
 	poisoned, or if the chosen operand is poisoned.
 */
 //;;llvm::cl::opt<bool> llvm::lli_undef_fix::arg_luf_antidote_select( 
-llvm::cl::opt<bool> llvm::arg_luf_antidote_select( 
+cl::opt<bool> arg_luf_antidote_select( 
     "luf-antidote-select",
     cl::desc("make SELECT ignore poison from the unselected operand"),   
     cl::init(false) );
+
+} // namespace llvm ;;//
 
 
 /*++ ==========================================================================
