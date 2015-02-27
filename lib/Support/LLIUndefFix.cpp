@@ -36,12 +36,12 @@
 
 using namespace llvm;
 
+//;;namespace {
+
 /*++ **************************************************************************
    *   declarations
    * **************************************************************************
    */
-
-namespace {
 
 /** \brief Holds value of the '--luf-antidote-select' command line option.
 	This makes a SELECT instruction ignore poison from the unselected
@@ -92,7 +92,7 @@ llvm::cl::opt<bool> llvm::arg_luf_antidote_select(
    *   close namespaces
    * **************************************************************************
    */
-} // namespace ""
+//;;} // namespace ""
 
 /*++ **************************************************************************
    *   end of file
