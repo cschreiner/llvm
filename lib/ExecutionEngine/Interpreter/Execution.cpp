@@ -904,7 +904,7 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
    
-  if ( 0 )  { //;; 1= default behavior
+  if ( 1 )  { //;; 1= default behavior
     /* CAS TODO: make the above if be dependant on a command-line parameter */
     Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
     Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
@@ -918,6 +918,15 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
     Dest.IntVal.orPoisoned( 
 	(Src1.IntVal == 0) ? Src3.isPoisoned() : Src2:isPoisoned() );
   }
+  #if 0 //;;
+  if ( Src1.IntVal.isPoisoned() || Src2.IntVal.isPoisoned() || 
+        Src3.IntVal.isPoisoned() || Dest.IntVal.isPoisoned() )  {
+     std::cout << "   select: Src1=" << Src1.IntVal.isPoisoned() <<
+         " Src2=" << Src2.IntVal.isPoisoned() <<
+         " Src3=" << Src3.IntVal.isPoisoned() <<
+         " Dest=" << Dest.IntVal.isPoisoned() << "\n";;
+  }
+  #endif
   return Dest;
 }
 
