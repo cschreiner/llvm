@@ -34,24 +34,24 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/LLIUndefFix.h"
 
-using namespace llvm;
+namespace llvm { 
+namespace lli_undef_fix { 
 
 /*++ **************************************************************************
    *   declarations
    * **************************************************************************
    */
 
-namespace {
-
 /** \brief Holds value of the '--luf-antidote-select' command line option.
 	This makes a SELECT instruction ignore poison from the unselected
 	operand.  I.e. the return value is only poisoned if the condition is
 	poisoned, or if the chosen operand is poisoned.
 */
-cl::opt<bool> llvm::lli_undef_fix::arg_luf_antidote_select( 
+llvm::cl::opt<bool> arg_luf_antidote_select( 
     "luf-antidote-select",
     cl::desc("make SELECT ignore poison from the unselected operand"),   
     cl::init(false) );
+
 
 
 /*++ ==========================================================================
@@ -91,7 +91,8 @@ cl::opt<bool> llvm::lli_undef_fix::arg_luf_antidote_select(
    *   close namespaces
    * **************************************************************************
    */
-} // namespace ""
+} // namespace lli_undef_fix
+} // namespace llvm
 
 /*++ **************************************************************************
    *   end of file
