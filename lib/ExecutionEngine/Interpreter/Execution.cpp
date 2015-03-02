@@ -927,8 +927,10 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
        std::cout << "   select: Src1=" << Src1.IntVal.getPoisoned() <<
 	   " Src2=" << Src2.IntVal.getPoisoned() <<
 	   " Src3=" << Src3.IntVal.getPoisoned() <<
-	   " Dest=" << Dest.IntVal.getPoisoned() << "\n";;
+	   " Dest=" << Dest.IntVal.getPoisoned() << "\n";
     }
+    fflush( stdout );;
+    fflush( stderr );;
     #endif
   }
   return Dest;
