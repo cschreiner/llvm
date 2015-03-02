@@ -42,7 +42,7 @@ namespace lli_undef_fix {
    * **************************************************************************
    */
 
-cl::opt<bool> arg_luf_select_antidote;
+cl::opt<bool> arg_luf_antidote_select;
 
 
 
