@@ -917,7 +917,7 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
       Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
       Dest.IntVal.orPoisoned( 
 	  (Src1.IntVal == 0) ? 
-	    Src3.IntVal.getPoisoned() : Src2:IntVal.getPoisoned() 
+	    Src3.IntVal.getPoisoned() : Src2.IntVal.getPoisoned() 
 	  );
     }
     #if 0 //;;
