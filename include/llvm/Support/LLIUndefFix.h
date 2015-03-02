@@ -35,7 +35,7 @@
 #include "llvm/Support/CommandLine.h"
 
 namespace llvm {
-//;;namespace lli_undef_fix {
+namespace lli_undef_fix {
 
 /*** **************************************************************************
    *   declarations
@@ -75,7 +75,7 @@ extern llvm::cl::opt<bool> arg_luf_select_antidote;
    * **************************************************************************
    */
 
-//;;} // namespace lli_undef_fix
+} // namespace lli_undef_fix
 } // llvm
 
 /*** **************************************************************************
