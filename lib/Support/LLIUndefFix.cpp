@@ -31,7 +31,7 @@
    * **************************************************************************
    */
 
-#incldue "llvm/Support/CommandLine.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/LLIUndefFix.h"
 
 using namespace llvm;
@@ -48,7 +48,8 @@ namespace {
 	operand.  I.e. the return value is only poisoned if the condition is
 	poisoned, or if the chosen operand is poisoned.
 */
-cl::opt<bool> llvm::arg_luf_antidote_select( "luf-antidote-select",
+cl::opt<bool> llvm::lli_undef_fix::arg_luf_antidote_select( 
+    "luf-antidote-select",
     cl::desc("make SELECT ignore poison from the unselected operand"),   
     cl::init(false) );
 
