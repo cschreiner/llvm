@@ -903,6 +903,20 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	Src3.AggregateVal[i] : Src2.AggregateVal[i];
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
+   
+  if ( 0 )  { //;; 1= default behavior
+    /* CAS TODO: make the above if be dependant on a command-line parameter */
+    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
+    Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
+  } else {
+    /* only propagate poison iff:
+	Src1 is poisoned
+	or
+	the selected element of {Src2, Src3} is poisoned.
+    */
+    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
+    Dest.IntVal.orPoisoned( 
+	(Src1.IntVal == 0) ? Src3.isPoisoned() : Src2:isPoisoned() );
   }
   return Dest;
 }
@@ -914,15 +928,6 @@ void Interpreter::visitSelectInst(SelectInst &I) {
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Src3 = getOperandValue(I.getOperand(2), SF);
   GenericValue R = executeSelectInst(Src1, Src2, Src3, Ty);
-  if ( Ty->isIntegerTy() )  {
-    R.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
-    R.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
-    /* CAS TODO: add feature here to only propagate poison iff:
-	Src1 is poisoned
-	or
-	the selected element of {Src2, Src3} is poisoned.
-    */
-  }
   SetValue(&I, R, SF);
 }
 
