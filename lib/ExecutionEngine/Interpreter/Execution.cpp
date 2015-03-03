@@ -934,7 +934,8 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
       std::cerr << "in select: \n";;
       if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
 	    Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
-	 std::cout << "   select: Src1=" << Src1.IntVal.getPoisoned() <<
+	 std::cout << "   select: poison bits " << 
+	     "Src1=" << Src1.IntVal.getPoisoned() <<
 	     " Src2=" << Src2.IntVal.getPoisoned() <<
 	     " Src3=" << Src3.IntVal.getPoisoned() <<
 	     " Dest=" << Dest.IntVal.getPoisoned() << "\n";
