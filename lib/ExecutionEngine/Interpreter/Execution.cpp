@@ -907,6 +907,7 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 
     // LUFAS= "lli_undef_fix antidote select"
     char* luf_antidote_select_st= getenv("LUFAS" );
+    static bool need_luf_antidote_select_msg= true;
 
     if ( luf_antidote_select_st == NULL )  {
       /* this is the default behavior */
@@ -914,6 +915,10 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
       Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
       Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
     } else {
+      if ( need_luf_antidote_select_msg )  {
+	std::cout << "using proposed 2-way poison behavior for 'select'.\n";;
+        need_luf_antidote_select_msg= false;
+      }
       /* only propagate poison iff:
 	  Src1 is poisoned
 	  or
