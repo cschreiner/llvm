@@ -908,7 +908,7 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
     /* TODO: replace this code with a full command-line option */
     luf_antidote_select_st= getenv( "LUFAS" );
     if ( luf_antidote_select_st == NULL )  {
-       std.cout << "found env var LUFAS.\n";
+       std::cout << "found env var LUFAS.\n";
     }
    
     if ( 1 )  { //;; 1= default behavior
