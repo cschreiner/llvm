@@ -24,7 +24,7 @@ define i32 @main() {   ; i32()*
   %selector= sub i1 0, 1
   
   %unpoisoned_2= add i8 125, 5
-  %poisoned_2= add i8 nsw 125, 5
+  %poisoned_2= add nsw i8 125, 5
 
   %third= add i8 17, 3
 
