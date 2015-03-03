@@ -52,6 +52,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Instrumentation.h"
 #include <cerrno>
+#include "llvm/Support/LLIUndefFix.h"
 
 #ifdef __CYGWIN__
 #include <cygwin/version.h>
