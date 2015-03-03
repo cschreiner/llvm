@@ -12,6 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/DebugLoc.h"
+
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/APIntPoison.h"
 
@@ -411,6 +415,36 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
    *
    */
 //void poisonIfNeeded_getelementptr()
+
+/*** --------------------------------------------------------------------------
+   * function printIfPoison()
+   * --------------------------------------------------------------------------
+   * Description: prints to stdout the source file and line number if the given
+   *	APInt is poisoned.
+   *
+   * Method: 
+   *
+   * Reentrancy: 
+   *
+   * Inputs: 
+   *   In: the Instruction where the poison was generated
+   *   val: the APInt to check
+   *    
+   * Outputs: none
+   *
+   * Return Value: void
+   *
+   */
+void printIfPoison( Instruction& In, APInt& val )
+{{
+  static raw_fd_ostream stream( 2, false, true );
+
+  if ( ! val.getPoisoned() )  { return; }
+
+  DebugLoc dl= In.getDebugLoc();
+  dl.print( stream );
+   
+}}
 
 
 

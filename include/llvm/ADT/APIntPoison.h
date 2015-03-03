@@ -62,6 +62,9 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 void poisonIfNeeded_getelementptr( 
     Value& dest, APInt& lhs, APInt& rhs, bool inbounds );
 
+void printIfPoison( Instruction& In, APInt& val );
+// TODO: see if const qualifiers can be applied to I or val
+
 } // End of APIntPoison namespace
 
 } // End of llvm namespace
