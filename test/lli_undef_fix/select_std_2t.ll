@@ -6,7 +6,7 @@
 ;	program when output.
 
 ; Verify that the select statement pass along poison from its second parameter
-; when the selector is false.
+; when the selector is true.
 
 ; Declare the printf() control strings as global constants.
 @unpoison_st = private unnamed_addr constant [21 x i8] c"unpoisoned: '0x%x' \0A\00"
@@ -21,7 +21,7 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  %selector= add i1 1, 1
+  %selector= sub i1 0, 1
   
   %unpoisoned_2= add i8 125, 5
   %poisoned_2= add i8 nsw 125, 5
