@@ -28,12 +28,12 @@ define i32 @main() {   ; i32()*
 
   %third= add i8 17, 3
 
-  %poisoned_result1= select i1 %selector, i8 %unpoisoned_2, i8 %third
-  %poisoned_result2= select i1 %selector, i8 %poisoned_2, i8 %third
+  %unpoisoned_result1= select i1 %selector, i8 %unpoisoned_2, i8 %third
+  %unpoisoned_result2= select i1 %selector, i8 %poisoned_2, i8 %third
 
   ; Call puts function to write out the string to stdout.
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_result )
-  call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i8 %poisoned_result )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_result1 )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_result2 )
 
   ; clean up and return
   ret i32 0
