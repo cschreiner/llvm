@@ -5,15 +5,13 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; Add signed numbers together, twice under conditions should not generate
-; poision, once under conditions that would generate poison if banned (but
-; it isn't banned), once that generates poison.
+; verify that the select statement pass along poison from its first parameter.
 
 ; Declare the printf() control strings as global constants.
 @unpoison_st = private unnamed_addr constant [21 x i8] c"unpoisoned: '0x%x' \0A\00"
 @poison_st = private unnamed_addr constant [19 x i8] c"poisoned: '0x%x' \0A\00"
 
-; External declaration of the puts function
+; External declaration of the printf function
 declare i32 @printf(i8* nocapture readonly, ...)
 
 ; Definition of main function
@@ -22,19 +20,18 @@ define i32 @main() {   ; i32()*
   %unpoison_st_i8 = getelementptr [21 x i8]* @unpoison_st, i64 0, i64 0
   %poison_st_i8 = getelementptr [19 x i8]* @poison_st, i64 0, i64 0
 
-  %nowrap1= add i8 178, 7
-  %nowrap2= add nsw i8 178, 7
-
-  ; Call puts function to write out the string to stdout.
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap1 )
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %nowrap2 )
-
   %unpoisoned_1= add i8 122, 7
   %poisoned_1= add nsw i8 122, 7
 
+  %a= add i8 2, 3
+  %b= add i8 4, 5
+
+  %unpoisoned_result= select i8 %unpoisoned_1, i8 %a, i8 %b
+  %poisoned_result= select i8 %poisoned_1, i8 %a, i8 %b
+
   ; Call puts function to write out the string to stdout.
-  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_1 )
-  call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i8 %poisoned_1 )
+  call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_result )
+  call i32 (i8*, ...)* @printf(i8* %poison_st_i8, i8 %poisoned_result )
 
   ; clean up and return
   ret i32 0
