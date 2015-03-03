@@ -841,17 +841,19 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       R.IntVal = Src1.IntVal + Src2.IntVal; 
       APIntPoison::poisonIfNeeded_add( R.IntVal, Src1.IntVal, Src2.IntVal, 
 	  I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
-      APIntPoison::printIfPoison( I, R.IntVal );
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::Sub:   
       R.IntVal = Src1.IntVal - Src2.IntVal; 
       APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::Mul:   
       R.IntVal = Src1.IntVal * Src2.IntVal; 
       APIntPoison::poisonIfNeeded_mul( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::FAdd:  executeFAddInst(R, Src1, Src2, Ty); break;
     case Instruction::FSub:  executeFSubInst(R, Src1, Src2, Ty); break;
@@ -862,31 +864,38 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       R.IntVal = Src1.IntVal.udiv(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
 	  I.isExact() );
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::SDiv:  
       R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
 	  I.isExact() );
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::URem:  
       R.IntVal = Src1.IntVal.urem(Src2.IntVal); 
       // Poison propogation is handled within the APInt class.
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::SRem:  
       R.IntVal = Src1.IntVal.srem(Src2.IntVal); 
       // Poison propogation is handled within the APInt class.
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::And:   
       R.IntVal = Src1.IntVal & Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::Or:    
       R.IntVal = Src1.IntVal | Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     case Instruction::Xor:   
       R.IntVal = Src1.IntVal ^ Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
+      APIntPoison::printIfPoison( I, R.IntVal );;
       break;
     }
   }
@@ -955,6 +964,7 @@ void Interpreter::visitSelectInst(SelectInst &I) {
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue Src3 = getOperandValue(I.getOperand(2), SF);
   GenericValue R = executeSelectInst(Src1, Src2, Src3, Ty);
+  APIntPoison::printIfPoison( I, R.IntVal );;
   SetValue(&I, R, SF);
 }
 
