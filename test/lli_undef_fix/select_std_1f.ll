@@ -5,7 +5,8 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; verify that the select statement pass along poison from its first parameter.
+; verify that the select statement pass along poison from its first parameter
+; when it is false.
 
 ; Declare the printf() control strings as global constants.
 @unpoison_st = private unnamed_addr constant [21 x i8] c"unpoisoned: '0x%x' \0A\00"
