@@ -23,13 +23,13 @@ define i32 @main() {   ; i32()*
 
   %selector= add i1 1, 1
   
-  %unpoisoned_2= add i8 125, 5
-  %poisoned_2= add i8 nsw 125, 5
+  %unpoisoned_3= add i8 125, 5
+  %poisoned_3= add i8 nsw 125, 5
 
-  %third= add i8 17, 3
+  %second= add i8 17, 3
 
-  %poisoned_result1= select i1 %selector, i8 %unpoisoned_2, i8 %third
-  %poisoned_result2= select i1 %selector, i8 %poisoned_2, i8 %third
+  %poisoned_result1= select i1 %selector, i8 %second, i8 %unpoisoned_3
+  %poisoned_result2= select i1 %selector, i8 %second, i8 %poisoned_3
 
   ; Call puts function to write out the string to stdout.
   call i32 (i8*, ...)* @printf(i8* %unpoison_st_i8, i8 %unpoisoned_result )
