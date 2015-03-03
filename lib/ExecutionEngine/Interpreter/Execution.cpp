@@ -905,13 +905,11 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
 
-    /* TODO: replace this code with a full command-line option */
-    char* luf_antidote_select_st= getenv( "LUFAS" );
-    if ( luf_antidote_select_st != NULL )  {
-       std::cout << "found env var LUFAS.\n";
-    }
-   
-    if ( 1 )  { //;; 1= default behavior
+    // LUFAS= "lli_undef_fix antidote select"
+    char* luf_antidote_select_st= getenv("LUFAS" );
+
+    if ( luf_antidote_select_st == NULL )  {
+      /* this is the default behavior */
       /* CAS TODO: make the above if be dependant on a command-line parameter */
       Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
       Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
@@ -928,16 +926,16 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	  );
     }
     #if 1 //;; 
-    std::cerr << "in select: \n";;
-    if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
-	  Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
-       std::cout << "   select: Src1=" << Src1.IntVal.getPoisoned() <<
-	   " Src2=" << Src2.IntVal.getPoisoned() <<
-	   " Src3=" << Src3.IntVal.getPoisoned() <<
-	   " Dest=" << Dest.IntVal.getPoisoned() << "\n";
-    }
-    fflush( stdout );;
-    fflush( stderr );;
+      std::cerr << "in select: \n";;
+      if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
+	    Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
+	 std::cout << "   select: Src1=" << Src1.IntVal.getPoisoned() <<
+	     " Src2=" << Src2.IntVal.getPoisoned() <<
+	     " Src3=" << Src3.IntVal.getPoisoned() <<
+	     " Dest=" << Dest.IntVal.getPoisoned() << "\n";
+      }
+      fflush( stdout );;
+      fflush( stderr );;
     #endif
   }
   return Dest;
