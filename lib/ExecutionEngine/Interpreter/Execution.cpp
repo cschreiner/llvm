@@ -841,6 +841,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       R.IntVal = Src1.IntVal + Src2.IntVal; 
       APIntPoison::poisonIfNeeded_add( R.IntVal, Src1.IntVal, Src2.IntVal, 
 	  I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
+      APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Sub:   
       R.IntVal = Src1.IntVal - Src2.IntVal; 
