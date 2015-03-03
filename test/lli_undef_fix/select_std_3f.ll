@@ -5,7 +5,7 @@
 ;	affected by the intent that a poisoned value should crash this 
 ;	program when output.
 
-; Verify that the select statement pass along poison from its second parameter
+; Verify that the select statement pass along poison from its third parameter
 ; when the selector is false.
 
 ; Declare the printf() control strings as global constants.
