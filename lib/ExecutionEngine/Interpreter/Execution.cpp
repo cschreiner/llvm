@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdio.h> //;;
+#include <stdlib.h> //;;
 #include <iostream> //;;
 using namespace llvm;
 
@@ -903,6 +904,12 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	Src3.AggregateVal[i] : Src2.AggregateVal[i];
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
+
+    /* TODO: replace this code with a full command-line option */
+    luf_antidote_select_st= getenv( "LUFAS" );
+    if ( luf_antidote_select_st == NULL )  {
+       std.cout << "found env var LUFAS.\n";
+    }
    
     if ( 1 )  { //;; 1= default behavior
       /* CAS TODO: make the above if be dependant on a command-line parameter */
