@@ -3,7 +3,7 @@
    *
    * \file LUF_opts.cpp 
    *
-   * \brief 
+   * \brief Code to handle options for lli_undef_fix extensions to LLVM.
    *
    * \b Detailed_Description: 
    *
@@ -31,10 +31,29 @@
    * **************************************************************************
    */
 
+#include <string.h>
+#include <stdlib.h>
+
+#include "llvm/Support/LUF_opts.h"
+
 /*++ **************************************************************************
    *   declarations
    * **************************************************************************
    */
+
+bool llvm::lli_undef_fix::opt_select_antidote= false;
+
+typedef struct filelocal_opt_t {
+   const char* name;
+   bool* dest_ptr;
+   bool default_val;
+}
+
+const filelocal_opt_t opt_array[]= {
+   { "select_antidote", &opt_select_antidote, false },
+   # end of the list
+   { NULL, NULL, false }
+};
 
 /*++ ==========================================================================
    *   un-submoduled function prototypes
@@ -45,6 +64,73 @@
    *   source code
    * **************************************************************************
    */
+
+// ----------------------------------------------------------------------------
+///  \fn parse_opts()
+// ----------------------------------------------------------------------------
+/*** \brief parse LLI Undef Fix-specific options
+   *
+   * \b Detailed_Description: 
+   *
+   * These options are usually passed in via the LLI_LUF_OPTS environment
+   * variable.
+   *
+   * \b Method: 
+   *
+   * \b Reentrancy: 
+   *
+   * \return void
+   *
+   */
+void llvm::lli_undef_fix::parse_opts()
+{{
+  const char* ENV_VAR_NAME= "LLI_LUF_OPTS";
+  const char* env_val= getenv( ENV_VAR_NAME );
+
+  /* initialize all options to their default values */
+  {
+    filelocal_opt_t* opt_array_p= NULL:
+    for ( opt_array_p= &opt_array[0]; 
+	opt_array_p->name != NULL; 
+	opt_array_p++ ) {
+      *(opt_array_p->dest_ptr)= opt_array_p->default_val;
+    }
+  }
+  
+  /* read the options from the environment */
+  bool need_to_exit= false;
+  char* saveptr= NULL;
+  const char* opt= strtok_r( env_val, ",", &saveptr );
+  while ( opt != NULL ) {
+    filelocal_opt_t* opt_array_p= NULL:
+    bool found= false;
+    for ( opt_array_p= &opt_array[0]; 
+	opt_array_p->name != NULL; 
+	opt_array_p++ ) {
+       if ( 0 == strcmp( opt, opt_array_p->name ) ) {
+	 found= true;
+	 *(opt_array_p->dest_ptr)= !(opt_array_p->default_val);
+       }
+    }
+    if ( ! found ) {
+      std::cerr << "do not understand option \"" << opt << 
+	  "\" in environment variable \"" << ENV_VAR_NAME << "\". \n";
+      need_to_exit= true;
+    }
+
+    /* increment */
+    opt= strtok_r( NULL, ",", &saveptr );
+  }
+
+  if ( need_to_exit ) {
+    std::cerr << "Too many errors, exiting. \n";
+    exit( EXIT_FAILURE );
+  }
+
+  /* clean up and return */
+  return;
+}}
+
 
 // template is 22 lines long
 // ----------------------------------------------------------------------------
