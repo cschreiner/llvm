@@ -51,7 +51,7 @@ typedef struct filelocal_opt_t {
 
 const filelocal_opt_t opt_array[]= {
    { "select_antidote", &opt_select_antidote, false },
-   # end of the list
+   // end of the list
    { NULL, NULL, false }
 };
 
