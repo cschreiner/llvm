@@ -90,7 +90,7 @@ void llvm::lli_undef_fix::parse_opts()
 
   /* initialize all options to their default values */
   {
-    filelocal_opt_t* opt_array_p= NULL;
+    const filelocal_opt_t* opt_array_p= NULL;
     for ( opt_array_p= &opt_array[0]; 
 	opt_array_p->name != NULL; 
 	opt_array_p++ ) {
@@ -103,7 +103,7 @@ void llvm::lli_undef_fix::parse_opts()
   char* saveptr= NULL;
   const char* opt= strtok_r( env_val, ",", &saveptr );
   while ( opt != NULL ) {
-    filelocal_opt_t* opt_array_p= NULL:
+    const filelocal_opt_t* opt_array_p= NULL;
     bool found= false;
     for ( opt_array_p= &opt_array[0]; 
 	opt_array_p->name != NULL; 
