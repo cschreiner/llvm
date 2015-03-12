@@ -442,8 +442,14 @@ void printIfPoison( Instruction& In, APInt& val )
   if ( ! val.getPoisoned() )  { return; }
 
   DebugLoc dl= In.getDebugLoc();
+  stream << "poison found at: line " << dl.getLine() << ": " << 
+      In.getOpcodeName() << " \n";
   dl.print( stream );
-   
+  /* TODO: figure out why dl.print(~) prints nothing for .ll files--
+	is it that there is no C source debug info in the .ll files we're
+	using?
+  */
+  return;
 }}
 
 
