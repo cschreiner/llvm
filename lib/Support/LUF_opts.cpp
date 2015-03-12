@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "llvm/Support/LUF_opts.h"
+//;;#include "llvm/Support/LUF_opts.h"
 
 /*++ **************************************************************************
    *   declarations
