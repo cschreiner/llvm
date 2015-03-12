@@ -897,16 +897,19 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::And:   
+      std::cout << "starting Instruction::And: \n";;
       R.IntVal = Src1.IntVal & Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Or:    
+      std::cout << "starting Instruction::Or: \n";;
       R.IntVal = Src1.IntVal | Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Xor:   
+      std::cout << "starting Instruction::Xor: \n";;
       R.IntVal = Src1.IntVal ^ Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
