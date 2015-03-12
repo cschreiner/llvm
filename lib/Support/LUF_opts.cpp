@@ -33,6 +33,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <iostream>
 
 #include "llvm/Support/LUF_opts.h"
 
