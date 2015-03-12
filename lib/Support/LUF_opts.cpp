@@ -37,6 +37,8 @@
 
 namespace llvm { //;;
    namespace lli_undef_fix { //;;
+      extern bool opt_antidote_select; //;;
+      extern bool opt_antidote_select_msg; //;;
    } //;;
 } //;;
 
