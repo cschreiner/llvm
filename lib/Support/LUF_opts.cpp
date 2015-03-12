@@ -35,6 +35,11 @@
 #include <stdlib.h>
 #include <iostream>
 
+namespace llvm { //;;
+   namespace lli_undef_fix { //;;
+   } //;;
+} //;;
+
 //;;#include "llvm/Support/LUF_opts.h"
 
 /*++ **************************************************************************
