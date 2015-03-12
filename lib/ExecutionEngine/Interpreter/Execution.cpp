@@ -207,6 +207,7 @@ static void executeFRemInst(GenericValue &Dest, GenericValue Src1,
 
 static GenericValue executeICMP_EQ(GenericValue Src1, GenericValue Src2,
                                    Type *Ty) {
+  std::cout << "starting executeICMP_EQ(~)... \n";;
   GenericValue Dest;
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(eq,Ty);
@@ -277,6 +278,7 @@ static GenericValue executeICMP_UGT(GenericValue Src1, GenericValue Src2,
 
 static GenericValue executeICMP_SGT(GenericValue Src1, GenericValue Src2,
                                     Type *Ty) {
+  std::cout << "starting executeICMP_SGT(~)... \n";;
   GenericValue Dest;
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(sgt,Ty);
