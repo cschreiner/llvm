@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <iostream>
 
+#if 0
 namespace llvm { //;;
    namespace lli_undef_fix { //;;
       extern bool opt_antidote_select; //;;
@@ -42,8 +43,9 @@ namespace llvm { //;;
       void parse_opts(); //;;
    } //;;
 } //;;
+#endif
 
-//;;#include "llvm/Support/LUF_opts.h"
+#include "llvm/Support/LUF_opts.h"
 
 /*++ **************************************************************************
    *   declarations
