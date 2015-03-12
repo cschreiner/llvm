@@ -420,7 +420,7 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
    * function printIfPoison()
    * --------------------------------------------------------------------------
    * Description: prints to stdout the source file and line number if the given
-   *	APInt is poisoned.
+   *	APInt is poisoned.  Only prints if option opt_print_new_poison is set.
    *
    * Method: 
    *
@@ -437,6 +437,7 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
    */
 void printIfPoison( Instruction& In, APInt& val )
 {{
+  if ( ! llvm::lli_undef_fix::opt_print_new_poison ) { return; }
   static raw_fd_ostream stream( 2, false, true );
 
   if ( ! val.getPoisoned() )  { return; }
