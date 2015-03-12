@@ -43,11 +43,11 @@
 
 bool llvm::lli_undef_fix::opt_select_antidote= false;
 
-typedef struct filelocal_opt_t {
+typedef struct {
    const char* name;
    bool* dest_ptr;
    bool default_val;
-}
+} filelocal_opt_t;
 
 const filelocal_opt_t opt_array[]= {
    { "select_antidote", &opt_select_antidote, false },
