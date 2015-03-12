@@ -852,7 +852,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
       APIntPoison::printIfPoison( I, R.IntVal );
-      if ( R.IntVal.get_poisoned() )  { //;;
+      if ( R.IntVal.getPoisoned() )  { //;;
         std::cout << "\t" "Src1= " << Src1.IntVal.toString() << "\n" <<
 	    "\t" "Src2= " << Src2.IntVal.toString() << "\n" <<
 	    "\t" "result= " << R.IntVal.toString() << "\n";;
