@@ -42,7 +42,8 @@
    * **************************************************************************
    */
 
-bool llvm::lli_undef_fix::opt_select_antidote= false;
+bool llvm::lli_undef_fix::opt_antidote_select= false;
+bool llvm::lli_undef_fix::opt_antidote_select_msg= false;
 
 typedef struct {
    const char* name;
@@ -51,9 +52,16 @@ typedef struct {
 } filelocal_opt_t;
 
 const filelocal_opt_t opt_array[]= {
-   { "select_antidote", &llvm::lli_undef_fix::opt_select_antidote, false },
-   // end of the list
-   { NULL, NULL, false }
+  { "antidote_select", 
+    &llvm::lli_undef_fix::opt_antidote_select, 
+    false },
+
+  { "antidote_select_msg", 
+    &llvm::lli_undef_fix::opt_antidote_select_msg, 
+    false },
+
+  // end of the list
+  { NULL, NULL, false }
 };
 
 /*++ ==========================================================================

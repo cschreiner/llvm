@@ -43,6 +43,7 @@ namespace lli_undef_fix {
    */
 
 extern bool opt_select_antidote;
+extern bool opt_select_antidote_msg;
 
 /*** ==========================================================================
    *   function prototypes
