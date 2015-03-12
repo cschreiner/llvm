@@ -854,8 +854,8 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::printIfPoison( I, R.IntVal );
       if ( R.IntVal.get_poisoned() )  { //;;
         std::cout << "\t" "Src1= " << Src1.IntVal.toString() << "\n" <<
-	    "\t" "Src2= " << Src2.IntVal.toString() . "\n" <<
-	    "\t" "result= " << R.IntVal.toString() . "\n";;
+	    "\t" "Src2= " << Src2.IntVal.toString() << "\n" <<
+	    "\t" "result= " << R.IntVal.toString() << "\n";;
       }
       break;
     case Instruction::Mul:   
