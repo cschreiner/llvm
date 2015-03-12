@@ -24,11 +24,15 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
+
+#include "llvm/Support/LUF_opts.h"
+
 #include <algorithm>
 #include <cmath>
 #include <stdio.h> //;;
 #include <stdlib.h> //;;
 #include <iostream> //;;
+
 using namespace llvm;
 
 #define DEBUG_TYPE "interpreter"
@@ -915,11 +919,16 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
 
-    // LUFAS= "lli_undef_fix antidote select"
-    char* luf_antidote_select_st= getenv("LUFAS" );
-    static bool need_luf_antidote_select_msg= true;
+    //;;// LUFAS= "lli_undef_fix antidote select"
+    //;;char* luf_antidote_select_st= getenv("LUFAS" );
+    //;;static bool need_luf_antidote_select_msg= true;
 
-    if ( luf_antidote_select_st == NULL )  {
+    /* TODO: get rid of this, and the #include <stdlib.h> above, if we can use
+	the opt_select_antidote variable. 
+    */
+
+    //;;if ( luf_antidote_select_st == NULL )  {
+    if ( llvm::lli_undef_fix::opt_select_antidote )  { //;;
       /* this is the default behavior */
       /* CAS TODO: make the above if be dependant on a command-line parameter */
       Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
