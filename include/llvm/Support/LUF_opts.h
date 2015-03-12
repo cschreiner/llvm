@@ -3,7 +3,7 @@
    *
    * File Name: LUF_opts.h
    *
-   * File Description: 
+   * File Description: handle options for LLI Undef Fix additions to llvm.
    *
    * lli_undef_fix was written by Christian A. Schreiner at University of
    * Utah.  Copyright (C) 2015-2015 by University of Utah.  All rights
@@ -32,38 +32,53 @@
    * **************************************************************************
    */
 
+
+namespace llvm { 
+namespace lli_undef_fix { 
+
+
 /*** **************************************************************************
    *   declarations
    * **************************************************************************
    */
 
+extern bool opt_select_antidote;
+
 /*** ==========================================================================
    *   function prototypes
    */
 
-// template is 17 lines long
-/*** --------------------------------------------------------------------------
-   * function name()
-   * --------------------------------------------------------------------------
-   * Description: 
+void parse_opts();
+
+// template is 22 lines long
+// ----------------------------------------------------------------------------
+///  \fn name()
+// ----------------------------------------------------------------------------
+/*** \brief 
    *
-   * Method: 
+   * \b Detailed_Description: 
    *
-   * Reentrancy: 
+   * \b Method: 
    *
-   * Inputs: 
+   * \b Reentrancy: 
+   *
+   * \param xx (input) 
    *    
-   * Outputs: 
+   * \param yy (output) 
    *
-   * Return Value: 
+   * \return 
    *
    */
 //void name()
-
+//{{
+//}}
 
 /*** **************************************************************************
    *   end of file
    * **************************************************************************
    */
+} // namespace lli_undef_fix
+} // namespace llvm
+
 #endif /* !defined(__LUF_OPTS_H__) */
 
