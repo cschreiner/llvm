@@ -51,7 +51,7 @@ typedef struct {
 } filelocal_opt_t;
 
 const filelocal_opt_t opt_array[]= {
-   { "select_antidote", &opt_select_antidote, false },
+   { "select_antidote", &llvm::lli_undef_fix::opt_select_antidote, false },
    // end of the list
    { NULL, NULL, false }
 };
@@ -90,7 +90,7 @@ void llvm::lli_undef_fix::parse_opts()
 
   /* initialize all options to their default values */
   {
-    filelocal_opt_t* opt_array_p= NULL:
+    filelocal_opt_t* opt_array_p= NULL;
     for ( opt_array_p= &opt_array[0]; 
 	opt_array_p->name != NULL; 
 	opt_array_p++ ) {
