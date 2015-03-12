@@ -86,7 +86,7 @@ const filelocal_opt_t opt_array[]= {
 void llvm::lli_undef_fix::parse_opts()
 {{
   const char* ENV_VAR_NAME= "LLI_LUF_OPTS";
-  const char* env_val= getenv( ENV_VAR_NAME );
+  char* env_val= getenv( ENV_VAR_NAME );
 
   /* initialize all options to their default values */
   {
