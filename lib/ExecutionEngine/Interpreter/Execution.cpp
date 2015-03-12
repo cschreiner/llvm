@@ -758,6 +758,8 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue R;   // Result
 
+  std::cout << "starting visitBinaryOperator(~)... \n";;
+
   // First process vector operation
   if (Ty->isVectorTy()) {
     assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());
