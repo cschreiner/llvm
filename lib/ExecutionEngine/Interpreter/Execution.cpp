@@ -758,8 +758,6 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
   GenericValue Src2 = getOperandValue(I.getOperand(1), SF);
   GenericValue R;   // Result
 
-  std::cout << "starting visitBinaryOperator(~)... \n";;
-
   // First process vector operation
   if (Ty->isVectorTy()) {
     assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());
@@ -838,6 +836,8 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
     }
   } else { 
     // this is a scalar instruction, not a vector one.
+    std::cout << "starting visitBinaryOperator(~) for scalar op... \n";;
+
     switch (I.getOpcode()) {
     default:
       dbgs() << "Don't know how to handle this binary operator!\n-->" << I;
