@@ -848,6 +848,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Sub:   
+      std::cout << "starting Instruction::Sub: \n";;
       R.IntVal = Src1.IntVal - Src2.IntVal; 
       APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
