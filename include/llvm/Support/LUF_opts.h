@@ -3,7 +3,7 @@
    *
    * File Name: LUF_opts.h
    *
-   * File Description: handle options for LLI Undef Fix additions to llvm.
+   * File Description: handle options for LLI Undef Fix (LUF) additions to llvm.
    *
    * lli_undef_fix was written by Christian A. Schreiner at University of
    * Utah.  Copyright (C) 2015-2015 by University of Utah.  All rights
