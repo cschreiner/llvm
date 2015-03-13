@@ -141,7 +141,7 @@ void llvm::lli_undef_fix::parse_opts()
   { 
     const filelocal_opt_t* opt_array_p= NULL;
 
-    std::cout << "LUF Option settings: \n";
+    std::cout << "LUF Option settings via " << ENV_VAR_NAME << ": \n";
 
     for ( opt_array_p= &opt_array[0]; 
 	opt_array_p->name != NULL; 
