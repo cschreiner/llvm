@@ -3,7 +3,7 @@
    *
    * \file LUF_opts.cpp 
    *
-   * \brief Code to handle options for lli_undef_fix extensions to LLVM.
+   * \brief Code to handle options for lli_undef_fix (LUF) extensions to LLVM.
    *
    * \b Detailed_Description: 
    *
@@ -95,6 +95,7 @@ void llvm::lli_undef_fix::parse_opts()
 {{
   const char* ENV_VAR_NAME= "LLI_LUF_OPTS";
   char* env_val= getenv( ENV_VAR_NAME );
+  const char* INDENT= "  ";
 
   /* initialize all options to their default values */
   {
@@ -134,6 +135,22 @@ void llvm::lli_undef_fix::parse_opts()
   if ( need_to_exit ) {
     std::cerr << "Too many errors, exiting. \n";
     exit( EXIT_FAILURE );
+  }
+
+  /* print out the options in force */
+  { 
+    const filelocal_opt_t* opt_array_p= NULL;
+
+    std::cout << "LUF Option settings: \n";
+
+    for ( opt_array_p= &opt_array[0]; 
+	opt_array_p->name != NULL; 
+	opt_array_p++ ) {
+      std::cout << INDENT << opt_array_p->name << "=" << 
+	  *(opt_array_p->dest_ptr) << "(default=" << 
+	  opt_array_p->default_val << ") \n";
+    }
+    std::cout << INDENT << "(end of options) \n\n";
   }
 
   /* clean up and return */
