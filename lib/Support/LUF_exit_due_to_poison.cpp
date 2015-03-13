@@ -3,7 +3,7 @@
    *
    * \file LUF_exit_due_to_poison.cpp 
    *
-   * \brief 
+   * \brief implements the exit_due_to_poison() function
    *
    * \b Detailed_Description: 
    *
@@ -30,6 +30,10 @@
    *   includes
    * **************************************************************************
    */
+#include <iostream>
+#include <stdlib.h>
+
+#include "llvm/Support/LUF_etc.h"
 
 /*++ **************************************************************************
    *   declarations
@@ -45,6 +49,29 @@
    *   source code
    * **************************************************************************
    */
+
+// ----------------------------------------------------------------------------
+///  \fn exit_due_to_poison()
+// ----------------------------------------------------------------------------
+/*** \brief exits with an appropriate error message about poison
+   *
+   * \b Detailed_Description: 
+   *
+   * \b Method: 
+   *
+   * \b Reentrancy: 
+   *
+   * \return void
+   *
+   */
+void llvm::lli_undef_fix::exit_due_to_poison()
+{{
+  fflush ( stdout );
+  fflush ( stderr );
+  std::cerr << "exiting due to external poison propogation. \n";
+  exit( EXIT_FAILURE );
+}}
+
 
 // template is 22 lines long
 // ----------------------------------------------------------------------------
