@@ -3,7 +3,10 @@
    *
    * File Name: LUF_etc.h
    *
-   * File Description: 
+   * \brief: miscelaneous facilities related to lli_undef_fix (LUF)
+   *
+   * \b Detailed_Description:
+   *
    *
    * Copyright (C) 2015-2015 by Christian A. Schreiner.  All rights
    * reserved.  You may use, examine, or modify this file only in accordance
@@ -31,6 +34,9 @@
    * **************************************************************************
    */
 
+namespace llvm {
+namespace lli_undef_fix {
+
 /*** **************************************************************************
    *   declarations
    * **************************************************************************
@@ -40,9 +46,14 @@
    *   function prototypes
    */
 
+void exit_due_to_poison();
+
 /*** **************************************************************************
    *   end of file
    * **************************************************************************
    */
+} // namespace lli_undef_fix
+} // namespace llvm
+
 #endif /* !defined(__LUF_ETC_H__) */
 
