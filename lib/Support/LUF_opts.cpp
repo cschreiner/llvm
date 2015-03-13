@@ -147,7 +147,7 @@ void llvm::lli_undef_fix::parse_opts()
 	opt_array_p->name != NULL; 
 	opt_array_p++ ) {
       std::cout << INDENT << opt_array_p->name << "=" << 
-	  *(opt_array_p->dest_ptr) << "(default=" << 
+	  *(opt_array_p->dest_ptr) << " (default=" << 
 	  opt_array_p->default_val << ") \n";
     }
     std::cout << INDENT << "(end of options) \n\n";
