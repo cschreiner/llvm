@@ -26,6 +26,7 @@
 #include "llvm/Support/MathExtras.h"
 
 #include "llvm/Support/LUF_opts.h"
+#include "llvm/Support/LUF_etc.h"
 
 #include <algorithm>
 #include <cmath>
@@ -98,7 +99,7 @@ void Interpreter::checkFtnCallForPoisonedArgs(
 	    "value in arg# " << arg_num << ".\n";
 	std::cerr << "  ftn name=\"" << ftn_ptr->getName().str() << 
 	    "\", numArgs=" << cs.arg_size() << "\n";
-	exit( EXIT_FAILURE );
+	lli_undef_fix::exit_due_to_poison();
       }
     }
   }
