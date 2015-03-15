@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/APInt.h"
+#include "llvm/ADT/APIntPoison.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
@@ -456,13 +457,15 @@ APInt& APInt::operator&=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL &= RHS.VAL;
-    orPoisoned( RHS );
+    //orPoisoned( RHS );
+    APIntPoison::poisonIfNeeded_bitAnd( RHS, LHS, RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] &= RHS.pVal[i];
-  orPoisoned( RHS );
+  //orPoisoned( RHS );
+  APIntPoison::poisonIfNeeded_bitAnd( RHS, LHS, RHS );
   return *this;
 }
 

@@ -17,6 +17,7 @@
 #define LLVM_ADT_APINT_H
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/APIntPoison.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/MathExtras.h"
 #include <cassert>
@@ -885,12 +886,14 @@ public:
     } else {
       result= AndSlowCase(RHS);
     }
-    result.poisoned= poisoned || RHS.poisoned;
+    //result.poisoned= poisoned || RHS.poisoned;
+    APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT And(const APInt &RHS) const {
     APInt result= this->operator&(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
+    //result.poisoned= this->poisoned || RHS.poisoned;
+    APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
 
