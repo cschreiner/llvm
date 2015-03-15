@@ -521,6 +521,6 @@ void poisonIfNeeded_bitAnd( APInt& dest, APInt& lhs, APInt& rhs )
 //{{
 //}}
 	
-# CAS TODO2: figure out what this DEBUG_TYPE is for -- 2015mar14
+// CAS TODO2: figure out what this DEBUG_TYPE is for -- 2015mar14
 #define DEBUG_TYPE "apint"
 
