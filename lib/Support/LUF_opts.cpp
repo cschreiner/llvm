@@ -43,6 +43,7 @@
    */
 
 bool llvm::lli_undef_fix::opt_antidote_select= false;
+bool llvm::lli_undef_fix::opt_antidote_and_or= false;
 bool llvm::lli_undef_fix::opt_print_new_poison= false;
 
 typedef struct {
@@ -54,6 +55,9 @@ typedef struct {
 const filelocal_opt_t opt_array[]= {
   { "antidote_select", 
     &llvm::lli_undef_fix::opt_antidote_select, 
+    false },
+  { "antidote_and_or", 
+    &llvm::lli_undef_fix::opt_antidote_and_or, 
     false },
 
   { "print_new_poison", 

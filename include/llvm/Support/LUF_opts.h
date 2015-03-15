@@ -43,6 +43,7 @@ namespace lli_undef_fix {
    */
 
 extern bool opt_antidote_select;
+extern bool opt_antidote_and_or;
 extern bool opt_print_new_poison;
 
 /*** ==========================================================================
