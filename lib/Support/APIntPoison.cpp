@@ -440,6 +440,55 @@ void printIfPoison( Instruction& In, APInt& val )
   return;
 }}
 
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_logAnd()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a "logical and" operation is poisoned
+   *
+   * \b Detailed_Description: 
+   *
+   * \b Method: 
+   *
+   * \b Reentrancy: 
+   *
+   * \param lhs, rhs (input) the left and right operands
+   *    
+   * \param dest (output) the result of the AND operation
+   *
+   * \return void
+   *
+   */
+void poisonIfNeeded_bitAnd( APInt& dest, APInt& lhs, APInt& rhs )
+{{
+  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
+    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
+       dest.setPoisoned( true );
+       return;
+    }
+    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is poisoned, rhs is unpoisoned and zero.
+    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && (!rhs) )  {
+       // a corrupted value in lhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is unpoisoned and zero, rhs is poisoned.
+    if ( (!lhs.getPoisoned()) && (!lhs) && rhs.getPoisoned() )  {
+       // a corrupted value in lhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+  } 
+
+  // use the classical definition of poison
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
+
 
 
 } // end namespace APIntPoison
@@ -449,26 +498,29 @@ void printIfPoison( Instruction& In, APInt& val )
 } // end namespace llvm
 // ############################################################################
 
-// template is 16 lines long
-/*** --------------------------------------------------------------------------
-   * function name()
-   * --------------------------------------------------------------------------
-   * Description: 
+// template is 21 lines long
+// ----------------------------------------------------------------------------
+///  \fn name()
+// ----------------------------------------------------------------------------
+/*** \brief 
    *
-   * Method: 
+   * \b Detailed_Description: 
    *
-   * Reentrancy: 
+   * \b Method: 
    *
-   * Inputs: 
+   * \b Reentrancy: 
+   *
+   * \param xx (input) 
    *    
-   * Outputs: 
+   * \param yy (output) 
    *
-   * Return Value: 
+   * \return 
    *
    */
 //void name()
-
-
-
+//{{
+//}}
+	
+# CAS TODO2: figure out what this DEBUG_TYPE is for -- 2015mar14
 #define DEBUG_TYPE "apint"
 
