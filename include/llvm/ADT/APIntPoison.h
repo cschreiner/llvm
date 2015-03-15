@@ -58,6 +58,11 @@ void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
 			  bool exact );
 
+void poisonIfNeeded_bitAnd( APInt& dest, APInt& lhs, APInt& rhs );
+void poisonIfNeeded_logAnd( APInt& dest, APInt& lhs, APInt& rhs );
+void poisonIfNeeded_bitOr( APInt& dest, APInt& lhs, APInt& rhs );
+void poisonIfNeeded_logOr( APInt& dest, APInt& lhs, APInt& rhs );
+
 // CAS TODO3: check the types for these arguments.
 void poisonIfNeeded_getelementptr( 
     Value& dest, APInt& lhs, APInt& rhs, bool inbounds );
