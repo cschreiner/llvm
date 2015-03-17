@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/APInt.h"
-//;;#include "llvm/ADT/APIntPoison.h"
+#include "llvm/ADT/APIntPoison.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
