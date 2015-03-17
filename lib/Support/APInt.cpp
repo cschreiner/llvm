@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/APInt.h"
-#include "llvm/ADT/APIntPoison.h"
+//;;#include "llvm/ADT/APIntPoison.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
@@ -458,14 +458,14 @@ APInt& APInt::operator&=(const APInt& RHS) {
   if (isSingleWord()) {
     VAL &= RHS.VAL;
     //orPoisoned( RHS );
-    APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
+    //;;APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] &= RHS.pVal[i];
   //orPoisoned( RHS );
-  APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
+  //;;APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
   return *this;
 }
 
