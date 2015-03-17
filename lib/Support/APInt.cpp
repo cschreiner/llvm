@@ -458,14 +458,14 @@ APInt& APInt::operator&=(const APInt& RHS) {
   if (isSingleWord()) {
     VAL &= RHS.VAL;
     //orPoisoned( RHS );
-    //;;APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
+    APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] &= RHS.pVal[i];
   //orPoisoned( RHS );
-  //;;APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
+  APIntPoison::poisonIfNeeded_bitAnd( *this, *this, RHS );
   return *this;
 }
 
