@@ -441,7 +441,7 @@ void printIfPoison( Instruction& In, APInt& val )
 }}
 
 // ----------------------------------------------------------------------------
-///  \fn poisonIfNeeded_logAnd()
+///  \fn poisonIfNeeded_bitAnd()
 // ----------------------------------------------------------------------------
 /*** \brief determines if the result of a "logical and" operation is poisoned
    *
