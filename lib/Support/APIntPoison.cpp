@@ -458,6 +458,7 @@ void printIfPoison( Instruction& In, APInt& val )
    * \return void
    *
    */
+#if 0 //;;
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
 {{
   if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
@@ -487,6 +488,7 @@ void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
   dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
   return;
 }}
+#endif //;;
 
 
 
