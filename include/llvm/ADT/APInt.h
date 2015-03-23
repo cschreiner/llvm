@@ -878,24 +878,8 @@ public:
   /// Performs a bitwise AND operation on *this and RHS.
   ///
   /// \returns An APInt value representing the bitwise AND of *this and RHS.
-  APInt operator&(const APInt &RHS) const {
-    assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-    APInt result;
-    if (isSingleWord()) {
-      result= APInt(getBitWidth(), VAL & RHS.VAL);
-    } else {
-      result= AndSlowCase(RHS);
-    }
-    //result.poisoned= poisoned || RHS.poisoned;
-    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
-    return result;
-  }
-  APInt LLVM_ATTRIBUTE_UNUSED_RESULT And(const APInt &RHS) const {
-    APInt result= this->operator&(RHS);
-    //result.poisoned= this->poisoned || RHS.poisoned;
-    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
-    return result;
-  }
+  APInt operator&(const APInt &RHS) const; 
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT And(const APInt &RHS) const;
 
   /// \brief Bitwise OR operator.
   ///

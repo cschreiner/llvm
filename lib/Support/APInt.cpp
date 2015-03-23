@@ -3203,3 +3203,41 @@ APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
   while (i < parts)
     dst[i++] = 0;
 }
+
+/* =======================================================================
+* Stuff moved here by CAS to resolve an include-file loop while implementing
+* short-circuit poison propogation.  
+* TODO: remove this notice when this works.
+*/
+
+  /// \brief Bitwise AND operator.
+  ///
+  /// Performs a bitwise AND operation on *this and RHS.
+  ///
+  /// \returns An APInt value representing the bitwise AND of *this and RHS.
+  APInt APInt::operator&(const APInt &RHS) const {
+    assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
+    APInt result;
+    if (isSingleWord()) {
+      result= APInt(getBitWidth(), VAL & RHS.VAL);
+    } else {
+      result= AndSlowCase(RHS);
+    }
+    //;;result.poisoned= poisoned || RHS.poisoned;
+    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
+    return result;
+  }
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT APInt::And(const APInt &RHS) const {
+    APInt result= this->operator&(RHS);
+    //;;result.poisoned= this->poisoned || RHS.poisoned;
+    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
+    return result;
+  }
+
+/* ======================================================================= 
+* end of Stuff moved here by CAS to resolve an include-file loop while
+* implementing short-circuit poison propogation.
+*
+* TODO: remove this notice when this works.
+*/
+
