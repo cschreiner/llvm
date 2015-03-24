@@ -473,13 +473,13 @@ APInt& APInt::operator|=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL |= RHS.VAL;
-    orPoisoned( RHS );
+    poisonIfNeeded_bitOr( *this, *this, RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] |= RHS.pVal[i];
-  orPoisoned( RHS );
+  poisonIfNeeded_bitOr( *this, *this, RHS );
   return *this;
 }
 
@@ -504,7 +504,7 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] & RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
-  Result.orPoisoned( *this, RHS );
+  poisonIfNeeded_bitAnd( Result, *this, RHS );
   // Note: the APInt instance will free val's memory.
   return Result;
 }
@@ -515,7 +515,7 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] | RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
-  Result.orPoisoned( *this, RHS );
+  poisonIfNeeded_bitOr( Result, *this, RHS );
   // Note: the APInt instance will free val's memory.
   return Result;
 }
@@ -3223,13 +3223,11 @@ APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
     } else {
       result= AndSlowCase(RHS);
     }
-    result.poisoned= poisoned || RHS.poisoned;
     APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT APInt::And(const APInt &RHS) const {
     APInt result= this->operator&(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
     APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
