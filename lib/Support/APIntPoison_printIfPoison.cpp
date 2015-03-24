@@ -31,7 +31,7 @@ namespace APIntPoison {
 
 
 // ----------------------------------------------------------------------------
-/// function printIfPoison()
+/// \fn function printIfPoison()
 /** ---------------------------------------------------------------------------
  * \brief: prints to stdout the source file and line number if the given
  *	APInt is poisoned.  Only prints if option opt_print_new_poison is set.
