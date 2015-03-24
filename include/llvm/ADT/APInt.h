@@ -885,17 +885,7 @@ public:
   /// Performs a bitwise OR operation on *this and RHS.
   ///
   /// \returns An APInt value representing the bitwise OR of *this and RHS.
-  APInt operator|(const APInt &RHS) const {
-    assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-    APInt result;
-    if (isSingleWord())  {
-      result= APInt(getBitWidth(), VAL | RHS.VAL);
-    } else { 
-      result= OrSlowCase(RHS);
-    }
-    poisonIfNeeded_bitOr( result, *this, RHS );
-    return result;
-  }
+  APInt operator|(const APInt &RHS) const;
 
   /// \brief Bitwise OR function.
   ///
@@ -903,11 +893,7 @@ public:
   /// calling operator|.
   ///
   /// \returns An APInt value representing the bitwise OR of *this and RHS.
-  APInt LLVM_ATTRIBUTE_UNUSED_RESULT Or(const APInt &RHS) const {
-    APInt result= this->operator|(RHS);
-    // poison propogation handled by operator|().
-    return result;
-  }
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT Or(const APInt &RHS) const;
 
   /// \brief Bitwise XOR operator.
   ///

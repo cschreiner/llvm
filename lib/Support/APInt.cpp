@@ -3232,6 +3232,36 @@ APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
     return result;
   }
 
+  /// \brief Bitwise OR operator.
+  ///
+  /// Performs a bitwise OR operation on *this and RHS.
+  ///
+  /// \returns An APInt value representing the bitwise OR of *this and RHS.
+  APInt APInt::operator|(const APInt &RHS) const {
+    assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
+    APInt result;
+    if (isSingleWord())  {
+      result= APInt(getBitWidth(), VAL | RHS.VAL);
+    } else { 
+      result= OrSlowCase(RHS);
+    }
+    poisonIfNeeded_bitOr( result, *this, RHS );
+    return result;
+  }
+
+  /// \brief Bitwise OR function.
+  ///
+  /// Performs a bitwise or on *this and RHS. This is implemented bny simply
+  /// calling operator|.
+  ///
+  /// \returns An APInt value representing the bitwise OR of *this and RHS.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT APInt::Or(const APInt &RHS) const {
+    APInt result= this->operator|(RHS);
+    // poison propogation handled by operator|().
+    return result;
+  }
+
+
 /* ======================================================================= 
 * end of Stuff moved here by CAS to resolve an include-file loop while
 * implementing short-circuit poison propogation.
