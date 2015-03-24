@@ -446,8 +446,8 @@ void printIfPoison( Instruction& In, APInt& val )
 	   In.getOpcodeName() << " \n";
     #endif
   #else
-     stream << "poison found at: line " << "(unknown)" << ": " << 
-	 "instruction unknown" << " \n";
+    std::cout << "poison found at: line " << "(unknown)" << ": " << 
+	"instruction unknown" << " \n";
   #endif
   return;
 }}
