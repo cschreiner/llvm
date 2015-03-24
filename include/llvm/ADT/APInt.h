@@ -893,7 +893,7 @@ public:
     } else { 
       result= OrSlowCase(RHS);
     }
-    result.poisoned= this->poisoned || RHS.poisoned;
+    poisonIfNeeded_bitOr( result, *this, RHS );
     return result;
   }
 
@@ -905,7 +905,7 @@ public:
   /// \returns An APInt value representing the bitwise OR of *this and RHS.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT Or(const APInt &RHS) const {
     APInt result= this->operator|(RHS);
-    result.poisoned= this->poisoned || RHS.poisoned;
+    // poison propogation handled by operator|().
     return result;
   }
 
