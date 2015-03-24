@@ -30,25 +30,24 @@ namespace llvm {
 namespace APIntPoison {
 
 
-/*** --------------------------------------------------------------------------
-   * function printIfPoison()
-   * --------------------------------------------------------------------------
-   * Description: prints to stdout the source file and line number if the given
-   *	APInt is poisoned.  Only prints if option opt_print_new_poison is set.
-   *
-   * Method: 
-   *
-   * Reentrancy: 
-   *
-   * Inputs: 
-   *   In: the Instruction where the poison was generated
-   *   val: the APInt to check
-   *    
-   * Outputs: none
-   *
-   * Return Value: void
-   *
-   */
+// ----------------------------------------------------------------------------
+/// function printIfPoison()
+/** ---------------------------------------------------------------------------
+ * \brief: prints to stdout the source file and line number if the given
+ *	APInt is poisoned.  Only prints if option opt_print_new_poison is set.
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param In (input) the Instruction where the poison was generated
+ * \param val (input) the APInt to check
+ *    
+ * \return void
+ *
+ */
 void printIfPoison( Instruction& In, APInt& val )
 {{
   if ( ! llvm::lli_undef_fix::opt_print_new_poison ) { return; }
