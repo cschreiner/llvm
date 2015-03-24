@@ -429,14 +429,20 @@ void printIfPoison( Instruction& In, APInt& val )
 
   if ( ! val.getPoisoned() )  { return; }
 
-  DebugLoc dl= In.getDebugLoc();
-  stream << "poison found at: line " << dl.getLine() << ": " << 
-      In.getOpcodeName() << " \n";
-  dl.print( stream );
-  /* TODO: figure out why dl.print(~) prints nothing for .ll files--
-	is it that there is no C source debug info in the .ll files we're
-	using?
-  */
+  #if 0 // this is generating a link error for some innane reason
+     // TODO: get this to link and remove the #if.
+     DebugLoc dl= In.getDebugLoc();
+     stream << "poison found at: line " << dl.getLine() << ": " << 
+	 In.getOpcodeName() << " \n";
+     dl.print( stream );
+     /* TODO2: figure out why dl.print(~) prints nothing for .ll files--
+	   is it that there is no C source debug info in the .ll files we're
+	   using?
+     */
+  #else
+     stream << "poison found at: line " << "(unknown)" << ": " << 
+	 In.getOpcodeName() << " \n";
+  #endif
   return;
 }}
 
