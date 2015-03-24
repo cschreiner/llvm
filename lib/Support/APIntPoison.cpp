@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file implements a class to represent arbitrary precision integer
-// constant values and provide a variety of arithmetic operations on them.
+// This file implements functions to help class APInt track poison
+// propogation through its arithmetic operations.
 //
 //===----------------------------------------------------------------------===//
 
@@ -402,55 +402,6 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
    *
    */
 //void poisonIfNeeded_getelementptr()
-
-/*** --------------------------------------------------------------------------
-   * function printIfPoison()
-   * --------------------------------------------------------------------------
-   * Description: prints to stdout the source file and line number if the given
-   *	APInt is poisoned.  Only prints if option opt_print_new_poison is set.
-   *
-   * Method: 
-   *
-   * Reentrancy: 
-   *
-   * Inputs: 
-   *   In: the Instruction where the poison was generated
-   *   val: the APInt to check
-   *    
-   * Outputs: none
-   *
-   * Return Value: void
-   *
-   */
-void printIfPoison( Instruction& In, APInt& val )
-{{
-  #if 0 // stub out this whole function to see if affects the link error.  
-    // TODO: resolve this link error.
-    if ( ! llvm::lli_undef_fix::opt_print_new_poison ) { return; }
-    static raw_fd_ostream stream( 2, false, true );
-
-    if ( ! val.getPoisoned() )  { return; }
-
-    #if 0 // this is generating a link error for some innane reason
-       // TODO: get this to link and remove the #if.
-       DebugLoc dl= In.getDebugLoc();
-       stream << "poison found at: line " << dl.getLine() << ": " << 
-	   In.getOpcodeName() << " \n";
-       dl.print( stream );
-       /* TODO2: figure out why dl.print(~) prints nothing for .ll files--
-	     is it that there is no C source debug info in the .ll files we're
-	     using?
-       */
-    #elif 0 // this generates a similar link error for some innane reason
-       stream << "poison found at: line " << "(unknown)" << ": " << 
-	   In.getOpcodeName() << " \n";
-    #endif
-  #else
-    std::cout << "poison found at: line " << "(unknown)" << ": " << 
-	"instruction unknown" << " \n";
-  #endif
-  return;
-}}
 
 // ----------------------------------------------------------------------------
 ///  \fn poisonIfNeeded_bitAnd()
