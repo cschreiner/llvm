@@ -3223,14 +3223,14 @@ APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
     } else {
       result= AndSlowCase(RHS);
     }
-    //;;result.poisoned= poisoned || RHS.poisoned;
-    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
+    result.poisoned= poisoned || RHS.poisoned;
+    APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT APInt::And(const APInt &RHS) const {
     APInt result= this->operator&(RHS);
-    //;;result.poisoned= this->poisoned || RHS.poisoned;
-    //;;APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
+    result.poisoned= this->poisoned || RHS.poisoned;
+    APIntPoison::poisonIfNeeded_bitAnd( result, *this, RHS );
     return result;
   }
 
