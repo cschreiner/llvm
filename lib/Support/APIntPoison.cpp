@@ -406,11 +406,14 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
 // ----------------------------------------------------------------------------
 ///  \fn poisonIfNeeded_bitAnd()
 // ----------------------------------------------------------------------------
-/*** \brief determines if the result of a "logical and" operation is poisoned
+/*** \brief determines if the result of a "bitwise and" operation is poisoned
    *
    * \b Detailed_Description: 
    *
-   * \b Method: 
+   * \b Method: If option opt_antidote_and_or is set, uses
+   *	short-circuit poison propogation (i.e. 0 and poison= unpoisoned
+   *	0).  Otherwise propogates poison if either operand is
+   *	poisoned.
    *
    * \b Reentrancy: 
    *
@@ -440,7 +443,59 @@ void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
     }
     // check for lhs is unpoisoned and zero, rhs is poisoned.
     if ( (!lhs.getPoisoned()) && (!lhs) && rhs.getPoisoned() )  {
+       // a corrupted value in rhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+  } 
+
+  // use the classical definition of poison
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_bitOr()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a "bitwise or" operation is poisoned
+   *
+   * \b Detailed_Description: 
+   *
+   * \b Method: If option opt_antidote_and_or is set, uses
+   *	short-circuit poison propogation (i.e. 1 or poison= unpoisoned
+   *	1).  Otherwise propogates poison if either operand is
+   *	poisoned.
+   *
+   * \b Reentrancy: 
+   *
+   * \param lhs, rhs (input) the left and right operands
+   *    
+   * \param dest (output) the result of the AND operation
+   *
+   * \return void
+   *
+   */
+void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs )
+{{
+  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
+    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
+       dest.setPoisoned( true );
+       return;
+    }
+    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is poisoned, rhs is unpoisoned and one.
+    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && rhs.isAllOnesValue() )  {
        // a corrupted value in lhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is unpoisoned and zero, rhs is poisoned.
+    if ( (!lhs.getPoisoned()) && lhs.isAllOnesValue() && rhs.getPoisoned() )  {
+       // a corrupted value in rhs does not affect the result.
        dest.setPoisoned( false );
        return;
     }
