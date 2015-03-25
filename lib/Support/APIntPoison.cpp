@@ -149,6 +149,30 @@ void poisonIfNeeded_sub( APInt& dest, APInt& lhs, APInt& rhs,
 void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs, 
 			 bool nsw, bool nuw )
 {{
+
+  /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+     quick check for special cases that propogate or clear poison
+   */
+  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
+    if ( lhs.getPoisoned() && (!rhs) )  { 
+      // poison times zero is unpoisoned zero
+      dest.setPoisoned( false );
+      return;
+    }
+    if ( (!lhs) && rhs.getPoisoned() )  { 
+      // zero times poison is unpoisoned zero
+      dest.setPoisoned( false );
+      return;
+    }
+  }
+  if ( lhs.getPoisoned() || rhs.getPoisoned() )  {
+    dest.setPoisoned( true );
+    return;
+  }
+  
+  /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+     determine if new poison was created by forbidden signed wraparound
+   */
   if ( nsw )  { 
     // algorithm from:
     // https://www.securecoding.cert.org/confluence/display/seccode/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow
@@ -181,6 +205,10 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
       } /* End if lhs and rhs are nonpositive */
     } /* End if lhs is nonpositive */
   }
+
+  /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+     determine if new poison was created by forbidden unsigned wraparound
+   */
   if ( nuw )  { 
     // algorithm from: 
     // http://stackoverflow.com/questions/199333/best-way-to-detect-integer-overflow-in-c-c
@@ -191,6 +219,10 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
       dest.orPoisoned(true);
     }
   }
+
+  /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+     clean up and return
+   */
   return;
 }}
 
