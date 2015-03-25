@@ -473,13 +473,13 @@ APInt& APInt::operator|=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL |= RHS.VAL;
-    poisonIfNeeded_bitOr( *this, *this, RHS );
+    APIntPoison::poisonIfNeeded_bitOr( *this, *this, RHS );
     return *this;
   }
   unsigned numWords = getNumWords();
   for (unsigned i = 0; i < numWords; ++i)
     pVal[i] |= RHS.pVal[i];
-  poisonIfNeeded_bitOr( *this, *this, RHS );
+  APIntPoison::poisonIfNeeded_bitOr( *this, *this, RHS );
   return *this;
 }
 
@@ -504,7 +504,7 @@ APInt APInt::AndSlowCase(const APInt& RHS) const {
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] & RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
-  poisonIfNeeded_bitAnd( Result, *this, RHS );
+  APIntPoison::poisonIfNeeded_bitAnd( Result, *this, RHS );
   // Note: the APInt instance will free val's memory.
   return Result;
 }
@@ -515,7 +515,7 @@ APInt APInt::OrSlowCase(const APInt& RHS) const {
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] | RHS.pVal[i];
   APInt Result= APInt(val, getBitWidth());
-  poisonIfNeeded_bitOr( Result, *this, RHS );
+  APIntPoison::poisonIfNeeded_bitOr( Result, *this, RHS );
   // Note: the APInt instance will free val's memory.
   return Result;
 }
@@ -3245,7 +3245,7 @@ APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
     } else { 
       result= OrSlowCase(RHS);
     }
-    poisonIfNeeded_bitOr( result, *this, RHS );
+    APIntPoison::poisonIfNeeded_bitOr( result, *this, RHS );
     return result;
   }
 
