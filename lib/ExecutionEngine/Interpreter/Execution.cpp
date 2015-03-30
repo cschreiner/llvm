@@ -1057,6 +1057,9 @@ void Interpreter::visitBranchInst(BranchInst &I) {
   Dest = I.getSuccessor(0);          // Uncond branches have a fixed dest...
   if (!I.isUnconditional()) {
     Value *Cond = I.getCondition();
+    if ( getOperandValue(Cond, SF).IntVal.getPoisoned() )  {
+      lli_undef_fix::exit_due_to_poison();
+    }
     if (getOperandValue(Cond, SF).IntVal == 0) // If false cond...
       Dest = I.getSuccessor(1);
   }
