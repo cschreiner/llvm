@@ -411,6 +411,8 @@ APInt& APInt::operator*=(const APInt& RHS) {
   if (isSingleWord()) {
     VAL *= RHS.VAL;
     clearUnusedBits();
+    // TODO: fill this in: APIntPoison::poisonIfNeeded_mul asdf hmmm
+    //	was: 
     orPoisoned( RHS );
     return *this;
   }
