@@ -1071,6 +1071,9 @@ void Interpreter::visitSwitchInst(SwitchInst &I) {
   Value* Cond = I.getCondition();
   Type *ElTy = Cond->getType();
   GenericValue CondVal = getOperandValue(Cond, SF);
+  if ( CondVal.IntVal.getPoisoned() )  {
+    lli_undef_fix::exit_due_to_poison();
+  }
 
   // Check to see if any of the cases match...
   BasicBlock *Dest = nullptr;
