@@ -1666,11 +1666,14 @@ GenericValue Interpreter::executePtrToIntInst(Value *SrcVal, Type *DstTy,
 
 GenericValue Interpreter::executeIntToPtrInst(Value *SrcVal, Type *DstTy,
                                               ExecutionContext &SF) {
-  /* TODO: put something here to poison the pointer if the integer was
-     poisoned.
-   */
   GenericValue Dest, Src = getOperandValue(SrcVal, SF);
   assert(DstTy->isPointerTy() && "Invalid PtrToInt instruction");
+  if ( Src.IntVal.getPoisoned() )  {
+    /* TODO2: should we exit here or propogate poison into the pointer
+       and only halt if the pointer is used?
+     */
+    lli_undef_fix::exit_due_to_poison();
+  }
 
   uint32_t PtrSize = TD.getPointerSizeInBits();
   if (PtrSize != Src.IntVal.getBitWidth())
