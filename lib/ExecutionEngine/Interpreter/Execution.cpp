@@ -208,7 +208,9 @@ static void executeFRemInst(GenericValue &Dest, GenericValue Src1,
 
 static GenericValue executeICMP_EQ(GenericValue Src1, GenericValue Src2,
                                    Type *Ty) {
-  std::cout << "starting executeICMP_EQ(~)... \n";;
+  #if 0
+    std::cout << "starting executeICMP_EQ(~)... \n";
+  #endif
   GenericValue Dest;
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(eq,Ty);
@@ -279,7 +281,9 @@ static GenericValue executeICMP_UGT(GenericValue Src1, GenericValue Src2,
 
 static GenericValue executeICMP_SGT(GenericValue Src1, GenericValue Src2,
                                     Type *Ty) {
-  std::cout << "starting executeICMP_SGT(~)... \n";;
+  #if 0
+    std::cout << "starting executeICMP_SGT(~)... \n";
+  #endif
   GenericValue Dest;
   switch (Ty->getTypeID()) {
     IMPLEMENT_INTEGER_ICMP(sgt,Ty);
@@ -839,7 +843,9 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
     }
   } else { 
     // this is a scalar instruction, not a vector one.
-    std::cout << "starting visitBinaryOperator(~) for scalar op... \n";;
+    #if 0
+      std::cout << "starting visitBinaryOperator(~) for scalar op... \n";
+    #endif
 
     switch (I.getOpcode()) {
     default:
@@ -853,18 +859,20 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Sub:   
-      std::cout << "starting Instruction::Sub: \n";;
+      #if 0
+	std::cout << "starting Instruction::Sub: \n";
+      #endif
       R.IntVal = Src1.IntVal - Src2.IntVal; 
       APIntPoison::poisonIfNeeded_sub( R.IntVal, Src1.IntVal, Src2.IntVal, 
           I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
       APIntPoison::printIfPoison( I, R.IntVal );
       //;;if ( R.IntVal.getPoisoned() )  { //;;
-      if ( true )  { //;;
+      #if 0
         std::cout << 
 	    "\t" "Src1  = " << Src1.IntVal.toString() << "\n" <<
 	    "\t" "Src2  = " << Src2.IntVal.toString() << "\n" <<
-	    "\t" "result= " << R.IntVal.toString() << "\n";;
-      }
+	    "\t" "result= " << R.IntVal.toString() << "\n";
+      #endif 
       break;
     case Instruction::Mul:   
       R.IntVal = Src1.IntVal * Src2.IntVal; 
@@ -900,19 +908,25 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::And:   
-      std::cout << "starting Instruction::And: \n";;
+      #if 0
+	std::cout << "starting Instruction::And: \n";
+      #endif
       R.IntVal = Src1.IntVal & Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Or:    
-      std::cout << "starting Instruction::Or: \n";;
+      #if 0
+	std::cout << "starting Instruction::Or: \n";
+      #endif
       R.IntVal = Src1.IntVal | Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Xor:   
-      std::cout << "starting Instruction::Xor: \n";;
+      #if 0
+	std::cout << "starting Instruction::Xor: \n";
+      #endif 
       R.IntVal = Src1.IntVal ^ Src2.IntVal; 
       // Poison propogation is handled within the APInt class.
       APIntPoison::printIfPoison( I, R.IntVal );
@@ -1859,8 +1873,8 @@ void Interpreter::visitTruncInst(TruncInst &I) {
     Type *destType= I.getType();
     IntegerType *destInstType= cast<IntegerType>(destType);
     std::cout << "starting visitTruncInst(TruncInst &I), src=" << 
-        Src.IntVal.toString(10,false) << 
-        " /w width=" << destInstType->getBitWidth() << ".\n";
+	Src.IntVal.toString(10,false) << 
+	" /w width=" << destInstType->getBitWidth() << ".\n";
   }
   #endif
   SetValue(&I, executeTruncInst(I.getOperand(0), I.getType(), SF), SF);
@@ -2289,7 +2303,9 @@ void Interpreter::callFunction(Function *F,
           ECStack.back().Caller.arg_size() == ArgVals.size()) &&
          "Incorrect number of arguments passed into function call!");
 
-  //std::cout << "starting Execution/Interpreter::callFunction(~)... \n";;
+  #if 0
+    std::cout << "starting Execution/Interpreter::callFunction(~)... \n";
+  #endif 
 
   // Make a new stack frame... and fill it in.
   ECStack.push_back(ExecutionContext());
