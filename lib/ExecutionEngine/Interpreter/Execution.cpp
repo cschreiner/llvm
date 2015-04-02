@@ -178,6 +178,11 @@ static void executeFRemInst(GenericValue &Dest, GenericValue Src1,
 /// icmp operations (such as less than, less-than-or-equal, greater
 /// than, etc, in signed and unsigned permutations).
 ///
+/// TODO2: make the poison computation able to trap cases where the
+/// result can be computed without knowing the poison value.  E.g. (x
+/// <= INT_MAX) is always true, therefore a poison value in x is
+/// irrelevant.
+///
 /// \param OP must be the name of an APInt comparison method.
 /// \param TY is currently unused.
 #define IMPLEMENT_INTEGER_ICMP(OP, TY)					\
@@ -832,7 +837,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       else {
         if (dyn_cast<VectorType>(Ty)->getElementType()->isDoubleTy())
           for (unsigned i = 0; i < R.AggregateVal.size(); ++i)
-            R.AggregateVal[i].DoubleVal = 
+.AggregateVal[i].DoubleVal = 
             fmod(Src1.AggregateVal[i].DoubleVal, Src2.AggregateVal[i].DoubleVal);
         else {
           dbgs() << "Unhandled type for Rem instruction: " << *Ty << "\n";
@@ -899,12 +904,12 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       break;
     case Instruction::URem:  
       R.IntVal = Src1.IntVal.urem(Src2.IntVal); 
-      // Poison propogation is handled within the APInt class.
+      APIntPoison::poisonIfNeeded_rem( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::SRem:  
       R.IntVal = Src1.IntVal.srem(Src2.IntVal); 
-      // Poison propogation is handled within the APInt class.
+      APIntPoison::poisonIfNeeded_rem( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::And:   
@@ -912,7 +917,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 	std::cout << "starting Instruction::And: \n";
       #endif
       R.IntVal = Src1.IntVal & Src2.IntVal; 
-      // Poison propogation is handled within the APInt class.
+      APIntPoison::poisonIfNeeded_bitAnd( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Or:    
@@ -920,7 +925,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 	std::cout << "starting Instruction::Or: \n";
       #endif
       R.IntVal = Src1.IntVal | Src2.IntVal; 
-      // Poison propogation is handled within the APInt class.
+      APIntPoison::poisonIfNeeded_bitOr( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::Xor:   
@@ -928,7 +933,7 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
 	std::cout << "starting Instruction::Xor: \n";
       #endif 
       R.IntVal = Src1.IntVal ^ Src2.IntVal; 
-      // Poison propogation is handled within the APInt class.
+      APIntPoison::poisonIfNeeded_bitXor( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     }
@@ -1304,7 +1309,11 @@ void Interpreter::visitCallSite(CallSite CS) {
   //    NumArgs << "\n";;
   if ( F->isDeclaration() )  { // only check external functions
     Interpreter::checkFtnCallForPoisonedArgs( CS, SF ); 
+    /* TODO2: check if this would be better placed in the "if
+       F->isDeclaration()" statement above.
+     */
   }
+
   ArgVals.reserve(NumArgs);
   uint16_t pNum = 1;
   for (CallSite::arg_iterator i = SF.Caller.arg_begin(),
@@ -1434,6 +1443,7 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
+    poisonIfNeeded_trunc( APInt& dest, const APInt& lhs, const APInt& rhs );
   }
   return Dest;
 }
@@ -1454,6 +1464,7 @@ GenericValue Interpreter::executeSExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.sext(DBitWidth);
+    poisonIfNeeded_sext( APInt& dest, const APInt& lhs, const APInt& rhs );
   }
   return Dest;
 }
@@ -1475,6 +1486,7 @@ GenericValue Interpreter::executeZExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.zext(DBitWidth);
+    poisonIfNeeded_zext( APInt& dest, const APInt& lhs, const APInt& rhs );
   }
   return Dest;
 }
@@ -1622,6 +1634,10 @@ GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid UIToFP instruction");
+    if ( SrcVal->IntVal.getPoisoned() )  {
+      APIntPoison::haltDueToPoison(); 
+      // TODO: fill this in properly
+    }
     if (DstTy->getTypeID() == Type::FloatTyID)
       Dest.FloatVal = APIntOps::RoundAPIntToFloat(Src.IntVal);
     else {
@@ -1654,6 +1670,10 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid SIToFP instruction");
+    if ( SrcVal->IntVal.getPoisoned() )  {
+      APIntPoison::haltDueToPoison(); 
+      // TODO: fill this in properly
+    }
 
     if (DstTy->getTypeID() == Type::FloatTyID)
       Dest.FloatVal = APIntOps::RoundSignedAPIntToFloat(Src.IntVal);
@@ -2024,6 +2044,10 @@ void Interpreter::visitInsertElementInst(InsertElementInst &I) {
     default:
       llvm_unreachable("Unhandled dest type for insertelement instruction");
     case Type::IntegerTyID:
+      if ( Src2.IntVal.getPoisoned() )  {
+	APIntPoison::haltIfPoisoned( Src2.IntVal );
+	// TODO: clean up this if() 
+      }
       Dest.AggregateVal[indx].IntVal = Src2.IntVal;
       break;
     case Type::FloatTyID:
@@ -2173,6 +2197,9 @@ void Interpreter::visitInsertValueInst(InsertValueInst &I) {
       llvm_unreachable("Unhandled dest type for insertelement instruction");
     break;
     case Type::IntegerTyID:
+      if ( Src2.IntVal.getPoisoned() )  {
+	APIntPoison::halt_if_poisoned(); // TODO: clean this up
+      }
       pDest->IntVal = Src2.IntVal;
     break;
     case Type::FloatTyID:
