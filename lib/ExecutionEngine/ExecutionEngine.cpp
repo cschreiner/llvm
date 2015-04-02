@@ -37,6 +37,8 @@
 #include <cmath>
 #include <cstring>
 #include <iostream> // CAS: TODO: should this be here when debugging is done?
+#include "llvm/Support/LUF_etc.h"
+#include "llvm/Support/LUF_opts.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "jit"
@@ -985,7 +987,7 @@ static void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst,
 	  "Attempt to write a poison value to a volatile memory location. \n";
       std::cerr << "   addr=" << Dst << ", length=" << StoreBytes << 
 	  ", val=" << IntVal.toString( 10, false ) << ".\n";
-      exit( EXIT_FAILURE );
+      lli_undef_fix::exit_due_to_poison();
     }
   }
   for ( unsigned int ii= 0; ii < StoreBytes; ii++ )  {
