@@ -50,7 +50,7 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
 
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs );
-inline void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
+void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
 
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs );
 void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs );
