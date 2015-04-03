@@ -630,6 +630,87 @@ void poisonIfNeeded_select( APInt& dest,
   return;
 }}
 
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_trunc()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a trunc instruction is poisoned
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param dest (output) write the result here
+ *    
+ * \param src (intput) the value to truncate
+ *
+ * \param newBitWidth (input) the value's new width
+ *
+ * \return void
+ *
+ */
+void poisonIfNeeded_trunc( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth )
+{{
+  dest.setPoisoned( src.getPoisoned() );
+  return;
+}}
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_sext()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a sext instruction is poisoned
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param dest (output) write the result here
+ *    
+ * \param src (intput) the value to extend
+ *
+ * \param newBitWidth (input) the value's new width
+ *
+ * \return void
+ *
+ */
+void poisonIfNeeded_sext( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth )
+{{
+  dest.setPoisoned( src.getPoisoned() );
+  return;
+}}
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_zext()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a zext instruction is poisoned
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param dest (output) write the result here
+ *    
+ * \param src (intput) the value to extend
+ *
+ * \param newBitWidth (input) the value's new width
+ *
+ * \return void
+ *
+ */
+void poisonIfNeeded_zext( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth )
+{{
+  dest.setPoisoned( src.getPoisoned() );
+  return;
+}}
+
 /*** --------------------------------------------------------------------------
    * function poisonIfNeeded_getelementptr()
    * --------------------------------------------------------------------------
