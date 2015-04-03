@@ -840,8 +840,8 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
       else {
         if (dyn_cast<VectorType>(Ty)->getElementType()->isDoubleTy())
           for (unsigned i = 0; i < R.AggregateVal.size(); ++i)
-.AggregateVal[i].DoubleVal = 
-            fmod(Src1.AggregateVal[i].DoubleVal, Src2.AggregateVal[i].DoubleVal);
+	    R.AggregateVal[i].DoubleVal = fmod(Src1.AggregateVal[i].DoubleVal, 
+	        Src2.AggregateVal[i].DoubleVal);
         else {
           dbgs() << "Unhandled type for Rem instruction: " << *Ty << "\n";
           llvm_unreachable(nullptr);
@@ -956,7 +956,8 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	Src3.AggregateVal[i] : Src2.AggregateVal[i];
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
-    APIntPoison::poisonIfNeeded_select( dest, Src1.IntVal, Src2,IntVal, Src3.IntVal );
+    APIntPoison::poisonIfNeeded_select( dest, 
+	Src1.IntVal, Src2,IntVal, Src3.IntVal );
   }
   return Dest;
 }
