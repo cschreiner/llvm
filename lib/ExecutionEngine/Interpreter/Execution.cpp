@@ -1632,7 +1632,7 @@ GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid UIToFP instruction");
     if ( SrcVal->IntVal.getPoisoned() )  {
-      APIntPoison::haltDueToPoison(); 
+      lli_undef_fix::exit_due_to_poison();
       // TODO: fill this in properly
     }
     if (DstTy->getTypeID() == Type::FloatTyID)
@@ -1668,8 +1668,7 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid SIToFP instruction");
     if ( SrcVal->IntVal.getPoisoned() )  {
-      APIntPoison::haltDueToPoison(); 
-      // TODO: fill this in properly
+      lli_undef_fix::exit_due_to_poison();
     }
 
     if (DstTy->getTypeID() == Type::FloatTyID)
@@ -2042,8 +2041,7 @@ void Interpreter::visitInsertElementInst(InsertElementInst &I) {
       llvm_unreachable("Unhandled dest type for insertelement instruction");
     case Type::IntegerTyID:
       if ( Src2.IntVal.getPoisoned() )  {
-	APIntPoison::haltIfPoisoned( Src2.IntVal );
-	// TODO: clean up this if() 
+	lli_undef_fix::exit_due_to_poison();
       }
       Dest.AggregateVal[indx].IntVal = Src2.IntVal;
       break;
@@ -2195,7 +2193,7 @@ void Interpreter::visitInsertValueInst(InsertValueInst &I) {
     break;
     case Type::IntegerTyID:
       if ( Src2.IntVal.getPoisoned() )  {
-	APIntPoison::halt_if_poisoned(); // TODO: clean this up
+	lli_undef_fix::exit_due_to_poison();
       }
       pDest->IntVal = Src2.IntVal;
     break;
