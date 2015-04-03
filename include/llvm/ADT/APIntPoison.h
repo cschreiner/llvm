@@ -56,9 +56,12 @@ void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs );
 void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs );
 void poisonIfNeeded_bitXor( APInt& dest, const APInt& lhs, const APInt& rhs );
 
-void poisonIfNeeded_shl( APInt& dest, APInt& src, unsigned shiftAmt );
-void poisonIfNeeded_lshr( APInt& dest, APInt& src, unsigned shiftAmt );
-void poisonIfNeeded_ashr( APInt& dest, APInt& src, unsigned shiftAmt );
+void poisonIfNeeded_shl( APInt& dest, APInt& src, unsigned shiftAmt, 
+    bool nsw, bool nuw );
+void poisonIfNeeded_lshr( APInt& dest, APInt& src, unsigned shiftAmt, 
+    bool exact );
+void poisonIfNeeded_ashr( APInt& dest, APInt& src, unsigned shiftAmt, 
+    bool exact );
 
 void poisonIfNeeded_select( APInt& dest, 
     const APInt& src1, const APInt& src2, const APInt& src3 );
