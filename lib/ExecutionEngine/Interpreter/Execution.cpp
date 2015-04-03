@@ -1332,7 +1332,8 @@ void Interpreter::visitShl(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.shl(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_shl( Dest.IntVal, valueToShift, shiftAmount );
+    APIntPoison::poisonIfNeeded_shl( Dest.IntVal, valueToShift, shiftAmount, 
+	  I.hasNoSignedWrap(), I.hasNoUnsignedWrap() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1360,7 +1361,8 @@ void Interpreter::visitLShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.lshr(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_lshr( Dest.IntVal, valueToShift, shiftAmount );
+    APIntPoison::poisonIfNeeded_lshr( Dest.IntVal, valueToShift, shiftAmount,
+	  I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
@@ -1388,7 +1390,8 @@ void Interpreter::visitAShr(BinaryOperator &I) {
     uint64_t shiftAmount = Src2.IntVal.getZExtValue();
     llvm::APInt valueToShift = Src1.IntVal;
     Dest.IntVal = valueToShift.ashr(getShiftAmount(shiftAmount, valueToShift));
-    APIntPoison::poisonIfNeeded_ashr( Dest.IntVal, valueToShift, shiftAmount );
+    APIntPoison::poisonIfNeeded_ashr( Dest.IntVal, valueToShift, shiftAmount,
+	  I.isExact() );
   }
 
   SetValue(&I, Dest, SF);
