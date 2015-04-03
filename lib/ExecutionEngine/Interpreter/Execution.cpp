@@ -192,6 +192,9 @@ static void executeFRemInst(GenericValue &Dest, GenericValue Src1,
 	  Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() );	\
       break;
 
+// TODO: poison should be set by a poisonIfNeeded_icmp(~) ftn, even if
+// it is a trivial task.
+
 #define IMPLEMENT_VECTOR_INTEGER_ICMP(OP, TY)				\
   case Type::VectorTyID: {						\
     assert(Src1.AggregateVal.size() == Src2.AggregateVal.size());	\
@@ -953,41 +956,7 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	Src3.AggregateVal[i] : Src2.AggregateVal[i];
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
-
-    /* TODO: get rid of this, and the #include <stdlib.h> above, if we can use
-	the opt_select_antidote variable. 
-    */
-
-    if ( lli_undef_fix::opt_antidote_select )  { 
-      /* this is the default behavior */
-      /* CAS TODO: make the above if be dependant on a command-line parameter */
-      Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
-      Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
-    } else {
-      /* only propagate poison iff:
-	  Src1 is poisoned
-	  or
-	  the selected element of {Src2, Src3} is poisoned.
-	*/
-      Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
-      Dest.IntVal.orPoisoned( 
-	  (Src1.IntVal == 0) ? 
-	    Src3.IntVal.getPoisoned() : Src2.IntVal.getPoisoned() 
-	  );
-    }
-    #if 1 //;; 
-      std::cerr << "in select: \n";;
-      if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
-	    Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
-	 std::cout << "   select: poison bits " << 
-	     "Src1=" << Src1.IntVal.getPoisoned() <<
-	     " Src2=" << Src2.IntVal.getPoisoned() <<
-	     " Src3=" << Src3.IntVal.getPoisoned() <<
-	     " Dest=" << Dest.IntVal.getPoisoned() << "\n";
-      }
-      fflush( stdout );;
-      fflush( stderr );;
-    #endif
+    APIntPoison::poisonIfNeeded_select( dest, Src1.IntVal, Src2,IntVal, Src3.IntVal );
   }
   return Dest;
 }
@@ -1631,7 +1600,7 @@ GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid UIToFP instruction");
-    if ( Src->IntVal.getPoisoned() )  {
+    if ( Src.IntVal.getPoisoned() )  {
       lli_undef_fix::exit_due_to_poison();
       // TODO: fill this in properly
     }
@@ -1667,7 +1636,7 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid SIToFP instruction");
-    if ( Src->IntVal.getPoisoned() )  {
+    if ( Src.IntVal.getPoisoned() )  {
       lli_undef_fix::exit_due_to_poison();
     }
 
