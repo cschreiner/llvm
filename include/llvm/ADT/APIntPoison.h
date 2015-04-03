@@ -50,10 +50,7 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
 
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs );
-  // TODO: add this
-  // poison propogation is currently provided within the APInt class
-void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
-  // TODO: is this needed, or can this be a synonym for _div?
+inline void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
 
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs );
   // TODO: add this
@@ -91,6 +88,32 @@ void poisonIfNeeded_getelementptr(
 
 void printIfPoison( Instruction& In, APInt& val );
 // TODO: see if const qualifiers can be applied to I or val
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_div()
+// ----------------------------------------------------------------------------
+/*** \brief propogates poison for a division instruction (udiv or
+ * sdiv).  Effectively, the instruction's "exact" flag is assumed to
+ * be not present, so no new poison can be created.
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param  dest (output) the quotient to check
+ * \param  lhs, rhs (inputs) the two operands to check
+ *    
+ * \return void
+ *
+ */
+inline void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs )  
+{{
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
 
 } // End of APIntPoison namespace
 
