@@ -229,7 +229,7 @@ void poisonIfNeeded_mul( APInt& dest, APInt& lhs, APInt& rhs,
 /*** --------------------------------------------------------------------------
  * function poisonIfNeeded_div()
  * ----------------------------------------------------------------------------
-
+ *
  * Description: if a remainder is forbidden, mark the destination as poisoned
  *	if the given div operands would create a poison value.
  *	This works for both the sdiv and udiv instructions.
@@ -262,6 +262,160 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs,
       dest.orPoisoned(true);
     }
   }
+  return;
+}}
+
+/*** --------------------------------------------------------------------------
+ * function poisonIfNeeded_rem()
+ * ----------------------------------------------------------------------------
+ *
+ * Description: propogates poison for a remainder (srem or urem) instruction.
+ *	Note that neither remainder instruction can create new poison.
+ *
+ * Method: 
+ *
+ * Reentrancy: 
+ *
+ * Inputs: 
+ *   dest: the quotient to check
+ *   lhs, rhs: the two operands to check
+ *    
+ * Outputs: 
+ *   dest: write the poison result here
+ *
+ * Return Value: none
+ *
+ */
+void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs )
+{{
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_bitAnd()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a "bitwise and" operation is poisoned
+   *
+   * \b Detailed_Description: 
+   *
+   * \b Method: If option opt_antidote_and_or is set, uses
+   *	short-circuit poison propogation (i.e. 0 and poison= unpoisoned
+   *	0).  Otherwise propogates poison if either operand is
+   *	poisoned.
+   *
+   * \b Reentrancy: 
+   *
+   * \param lhs, rhs (input) the left and right operands
+   *    
+   * \param dest (output) the result of the AND operation
+   *
+   * \return void
+   *
+   */
+void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
+{{
+  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
+    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
+       dest.setPoisoned( true );
+       return;
+    }
+    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is poisoned, rhs is unpoisoned and zero.
+    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && (!rhs) )  {
+       // a corrupted value in lhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is unpoisoned and zero, rhs is poisoned.
+    if ( (!lhs.getPoisoned()) && (!lhs) && rhs.getPoisoned() )  {
+       // a corrupted value in rhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+  } 
+
+  // use the classical definition of poison
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_bitOr()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a "bitwise or" operation is poisoned
+   *
+   * \b Detailed_Description: 
+   *
+   * \b Method: If option opt_antidote_and_or is set, uses
+   *	short-circuit poison propogation (i.e. 1 or poison= unpoisoned
+   *	1).  Otherwise propogates poison if either operand is
+   *	poisoned.
+   *
+   * \b Reentrancy: 
+   *
+   * \param lhs, rhs (input) the left and right operands
+   *    
+   * \param dest (output) the result of the AND operation
+   *
+   * \return void
+   *
+   */
+void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs )
+{{
+  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
+    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
+       dest.setPoisoned( true );
+       return;
+    }
+    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is poisoned, rhs is unpoisoned and one.
+    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && rhs.isAllOnesValue() )  {
+       // a corrupted value in lhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+    // check for lhs is unpoisoned and zero, rhs is poisoned.
+    if ( (!lhs.getPoisoned()) && lhs.isAllOnesValue() && rhs.getPoisoned() )  {
+       // a corrupted value in rhs does not affect the result.
+       dest.setPoisoned( false );
+       return;
+    }
+  } 
+
+  // use the classical definition of poison
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
+  return;
+}}
+
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_bitXor()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a bitwise XOR instruction is poisoned
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param dest (output) write the result here
+ *    
+ * \param lhs, rhs (intputs) the two sides of the XOR
+ *
+ * \return void
+ *
+ */
+void poisonIfNeeded_bitXor()
+{{
+  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
   return;
 }}
 
@@ -417,6 +571,65 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
   return;
 }}
 
+// ----------------------------------------------------------------------------
+///  \fn poisonIfNeeded_select()
+// ----------------------------------------------------------------------------
+/*** \brief determines if the result of a select instruction is poisoned
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param dest (output) write the result here
+ *    
+ * \param src1, src2, src3 (intputs) the parameters of the select
+ *
+ * \return void
+ *
+ */
+void poisonIfNeeded_select( APInt& dest,
+    const APInt& src1, const APInt& src2, const APInt& src3 )
+{{
+  /* TODO: get rid of this, and the #include <stdlib.h> above, if we can use
+      the opt_select_antidote variable. 
+  */
+
+  if ( lli_undef_fix::opt_antidote_select )  { 
+    /* this is the default behavior */
+    /* CAS TODO: make the above if be dependant on a command-line parameter */
+    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
+    Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
+  } else {
+    /* only propagate poison iff:
+	Src1 is poisoned
+	or
+	the selected element of {Src2, Src3} is poisoned.
+      */
+    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
+    Dest.IntVal.orPoisoned( 
+	(Src1.IntVal == 0) ? 
+	  Src3.IntVal.getPoisoned() : Src2.IntVal.getPoisoned() 
+	);
+  }
+  #if 1 //;; 
+    std::cerr << "in select: \n";;
+    if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
+	  Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
+       std::cout << "   select: poison bits " << 
+	   "Src1=" << Src1.IntVal.getPoisoned() <<
+	   " Src2=" << Src2.IntVal.getPoisoned() <<
+	   " Src3=" << Src3.IntVal.getPoisoned() <<
+	   " Dest=" << Dest.IntVal.getPoisoned() << "\n";
+    }
+    fflush( stdout );;
+    fflush( stderr );;
+  #endif
+
+  return;
+}}
+
 /*** --------------------------------------------------------------------------
    * function poisonIfNeeded_getelementptr()
    * --------------------------------------------------------------------------
@@ -435,110 +648,6 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
    */
 //void poisonIfNeeded_getelementptr()
 
-// ----------------------------------------------------------------------------
-///  \fn poisonIfNeeded_bitAnd()
-// ----------------------------------------------------------------------------
-/*** \brief determines if the result of a "bitwise and" operation is poisoned
-   *
-   * \b Detailed_Description: 
-   *
-   * \b Method: If option opt_antidote_and_or is set, uses
-   *	short-circuit poison propogation (i.e. 0 and poison= unpoisoned
-   *	0).  Otherwise propogates poison if either operand is
-   *	poisoned.
-   *
-   * \b Reentrancy: 
-   *
-   * \param lhs, rhs (input) the left and right operands
-   *    
-   * \param dest (output) the result of the AND operation
-   *
-   * \return void
-   *
-   */
-void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
-{{
-  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
-    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
-       dest.setPoisoned( true );
-       return;
-    }
-    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
-       dest.setPoisoned( false );
-       return;
-    }
-    // check for lhs is poisoned, rhs is unpoisoned and zero.
-    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && (!rhs) )  {
-       // a corrupted value in lhs does not affect the result.
-       dest.setPoisoned( false );
-       return;
-    }
-    // check for lhs is unpoisoned and zero, rhs is poisoned.
-    if ( (!lhs.getPoisoned()) && (!lhs) && rhs.getPoisoned() )  {
-       // a corrupted value in rhs does not affect the result.
-       dest.setPoisoned( false );
-       return;
-    }
-  } 
-
-  // use the classical definition of poison
-  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
-  return;
-}}
-
-
-// ----------------------------------------------------------------------------
-///  \fn poisonIfNeeded_bitOr()
-// ----------------------------------------------------------------------------
-/*** \brief determines if the result of a "bitwise or" operation is poisoned
-   *
-   * \b Detailed_Description: 
-   *
-   * \b Method: If option opt_antidote_and_or is set, uses
-   *	short-circuit poison propogation (i.e. 1 or poison= unpoisoned
-   *	1).  Otherwise propogates poison if either operand is
-   *	poisoned.
-   *
-   * \b Reentrancy: 
-   *
-   * \param lhs, rhs (input) the left and right operands
-   *    
-   * \param dest (output) the result of the AND operation
-   *
-   * \return void
-   *
-   */
-void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs )
-{{
-  if ( llvm::lli_undef_fix::opt_antidote_and_or )  {
-    if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
-       dest.setPoisoned( true );
-       return;
-    }
-    if ( (!lhs.getPoisoned()) && (!rhs.getPoisoned()) )  {
-       dest.setPoisoned( false );
-       return;
-    }
-    // check for lhs is poisoned, rhs is unpoisoned and one.
-    if ( lhs.getPoisoned() && (!rhs.getPoisoned()) && rhs.isAllOnesValue() )  {
-       // a corrupted value in lhs does not affect the result.
-       dest.setPoisoned( false );
-       return;
-    }
-    // check for lhs is unpoisoned and zero, rhs is poisoned.
-    if ( (!lhs.getPoisoned()) && lhs.isAllOnesValue() && rhs.getPoisoned() )  {
-       // a corrupted value in rhs does not affect the result.
-       dest.setPoisoned( false );
-       return;
-    }
-  } 
-
-  // use the classical definition of poison
-  dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
-  return;
-}}
-
-
 } // end namespace APIntPoison
 // ############################################################################
 
@@ -551,20 +660,20 @@ void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs )
 ///  \fn name()
 // ----------------------------------------------------------------------------
 /*** \brief 
-   *
-   * \b Detailed_Description: 
-   *
-   * \b Method: 
-   *
-   * \b Reentrancy: 
-   *
-   * \param xx (input) 
-   *    
-   * \param yy (output) 
-   *
-   * \return 
-   *
-   */
+ *
+ * \b Detailed_Description: 
+ *
+ * \b Method: 
+ *
+ * \b Reentrancy: 
+ *
+ * \param xx (input) 
+ *    
+ * \param yy (output) 
+ *
+ * \return 
+ *
+ */
 //void name()
 //{{
 //}}
