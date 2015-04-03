@@ -1440,8 +1440,7 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
-    poisonIfNeeded_trunc( APInt& Dest.IntVal, const APInt& Src.IntVal, 
-	const unsigned newBitWidth );
+    poisonIfNeeded_trunc( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
@@ -1462,8 +1461,7 @@ GenericValue Interpreter::executeSExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.sext(DBitWidth);
-    poisonIfNeeded_sext( APInt& Dest.IntVal, const APInt& Src.IntVal, 
-	const unsigned newBitWidth );
+    poisonIfNeeded_sext( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
@@ -1485,8 +1483,7 @@ GenericValue Interpreter::executeZExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.zext(DBitWidth);
-    poisonIfNeeded_zext( APInt& Dest.IntVal, const APInt& Src.IntVal, 
-	const unsigned newBitWidth );
+    poisonIfNeeded_zext( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
