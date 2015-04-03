@@ -1440,7 +1440,7 @@ GenericValue Interpreter::executeTruncInst(Value *SrcVal, Type *DstTy,
     IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.trunc(DBitWidth);
-    poisonIfNeeded_trunc( Dest.IntVal, Src.IntVal, DBitWidth );
+    APIntPoison::poisonIfNeeded_trunc( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
@@ -1461,7 +1461,7 @@ GenericValue Interpreter::executeSExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.sext(DBitWidth);
-    poisonIfNeeded_sext( Dest.IntVal, Src.IntVal, DBitWidth );
+    APIntPoison::poisonIfNeeded_sext( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
@@ -1483,7 +1483,7 @@ GenericValue Interpreter::executeZExtInst(Value *SrcVal, Type *DstTy,
     const IntegerType *DITy = cast<IntegerType>(DstTy);
     unsigned DBitWidth = DITy->getBitWidth();
     Dest.IntVal = Src.IntVal.zext(DBitWidth);
-    poisonIfNeeded_zext( Dest.IntVal, Src.IntVal, DBitWidth );
+    APIntPoison::poisonIfNeeded_zext( Dest.IntVal, Src.IntVal, DBitWidth );
   }
   return Dest;
 }
@@ -1631,7 +1631,7 @@ GenericValue Interpreter::executeUIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid UIToFP instruction");
-    if ( SrcVal->IntVal.getPoisoned() )  {
+    if ( Src->IntVal.getPoisoned() )  {
       lli_undef_fix::exit_due_to_poison();
       // TODO: fill this in properly
     }
@@ -1667,7 +1667,7 @@ GenericValue Interpreter::executeSIToFPInst(Value *SrcVal, Type *DstTy,
   } else {
     // scalar
     assert(DstTy->isFloatingPointTy() && "Invalid SIToFP instruction");
-    if ( SrcVal->IntVal.getPoisoned() )  {
+    if ( Src->IntVal.getPoisoned() )  {
       lli_undef_fix::exit_due_to_poison();
     }
 
