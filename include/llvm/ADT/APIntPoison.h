@@ -52,14 +52,8 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs, bool exact );
 void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs );
   // TODO: add this
   // poison propogation is currently provided within the APInt class
-
-void poisonIfNeeded_shl( APInt& dest, APInt& lhs, unsigned shiftAmt,
-			 bool nsw, bool nuw );
-
-void poisonIfNeeded_lshr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
-			  bool exact );
-void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt, 
-			  bool exact );
+void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
+  // TODO: is this needed, or can this be a synonym for _div?
 
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs );
   // TODO: add this
@@ -71,17 +65,24 @@ void poisonIfNeeded_bitXor( APInt& dest, const APInt& lhs, const APInt& rhs );
   // TODO: add this
   // Poison propogation is handled within the APInt class.
 
+void poisonIfNeeded_shl( APInt& dest, APInt& src, unsigned shiftAmt );
+void poisonIfNeeded_lshr( APInt& dest, APInt& src, unsigned shiftAmt );
+void poisonIfNeeded_ashr( APInt& dest, APInt& src, unsigned shiftAmt );
+
 void poisonIfNeeded_select( APInt& dest, 
     const APInt& src1, const APInt& src2, const APInt& src3 );
   // TODO: add this
   // currently handled within Execution.cpp's executeSelectInst(~).
 
-poisonIfNeeded_trunc( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
-poisonIfNeeded_sext( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
-poisonIfNeeded_zext( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
+void poisonIfNeeded_trunc( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth );
+    // TODO: add this
+void poisonIfNeeded_sext( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth );
+    // TODO: add this
+void poisonIfNeeded_zext( APInt& dest, const APInt& src, 
+    const unsigned newBitWidth );
+    // TODO: add this
 
 
 // CAS TODO3: check the types for these arguments.
