@@ -413,7 +413,7 @@ void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs )
  * \return void
  *
  */
-void poisonIfNeeded_bitXor()
+void poisonIfNeeded_bitXor( APInt& dest, const APInt& lhs, const APInt& rhs )
 {{
   dest.setPoisoned( lhs.getPoisoned() || rhs.getPoisoned() );
   return;
@@ -589,8 +589,8 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& lhs, unsigned shiftAmt,
  * \return void
  *
  */
-void poisonIfNeeded_select( APInt& dest,
-    const APInt& src1, const APInt& src2, const APInt& src3 )
+void poisonIfNeeded_select( APInt& Dest,
+    const APInt& Src1, const APInt& Src2, const APInt& Src3 )
 {{
   /* TODO: get rid of this, and the #include <stdlib.h> above, if we can use
       the opt_select_antidote variable. 
@@ -599,29 +599,29 @@ void poisonIfNeeded_select( APInt& dest,
   if ( lli_undef_fix::opt_antidote_select )  { 
     /* this is the default behavior */
     /* CAS TODO: make the above if be dependant on a command-line parameter */
-    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
-    Dest.IntVal.orPoisoned( Src2.IntVal, Src3.IntVal );
+    Dest.setPoisoned( Src1.getPoisoned() );
+    Dest.orPoisoned( Src2, Src3 );
   } else {
     /* only propagate poison iff:
 	Src1 is poisoned
 	or
 	the selected element of {Src2, Src3} is poisoned.
       */
-    Dest.IntVal.setPoisoned( Src1.IntVal.getPoisoned() );
-    Dest.IntVal.orPoisoned( 
-	(Src1.IntVal == 0) ? 
-	  Src3.IntVal.getPoisoned() : Src2.IntVal.getPoisoned() 
+    Dest.setPoisoned( Src1.getPoisoned() );
+    Dest.orPoisoned( 
+	(Src1 == 0) ? 
+	  Src3.getPoisoned() : Src2.getPoisoned() 
 	);
   }
   #if 1 //;; 
     std::cerr << "in select: \n";;
-    if ( Src1.IntVal.getPoisoned() || Src2.IntVal.getPoisoned() || 
-	  Src3.IntVal.getPoisoned() || Dest.IntVal.getPoisoned() )  {
+    if ( Src1.getPoisoned() || Src2.getPoisoned() || 
+	  Src3.getPoisoned() || Dest.getPoisoned() )  {
        std::cout << "   select: poison bits " << 
-	   "Src1=" << Src1.IntVal.getPoisoned() <<
-	   " Src2=" << Src2.IntVal.getPoisoned() <<
-	   " Src3=" << Src3.IntVal.getPoisoned() <<
-	   " Dest=" << Dest.IntVal.getPoisoned() << "\n";
+	   "Src1=" << Src1.getPoisoned() <<
+	   " Src2=" << Src2.getPoisoned() <<
+	   " Src3=" << Src3.getPoisoned() <<
+	   " Dest=" << Dest.getPoisoned() << "\n";
     }
     fflush( stdout );;
     fflush( stderr );;
