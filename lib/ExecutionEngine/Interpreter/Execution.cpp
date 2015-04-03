@@ -956,8 +956,8 @@ static GenericValue executeSelectInst(GenericValue Src1, GenericValue Src2,
 	Src3.AggregateVal[i] : Src2.AggregateVal[i];
   } else {
     Dest = (Src1.IntVal == 0) ? Src3 : Src2;
-    APIntPoison::poisonIfNeeded_select( dest, 
-	Src1.IntVal, Src2,IntVal, Src3.IntVal );
+    APIntPoison::poisonIfNeeded_select( Dest.IntVal, 
+	Src1.IntVal, Src2.IntVal, Src3.IntVal );
   }
   return Dest;
 }
