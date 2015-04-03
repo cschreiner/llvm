@@ -33,7 +33,7 @@ namespace APIntPoison {
 /* There should be exactly one function here for each LLVM instruction
    that can generate a poison value.
  */
-// TODO: add const designations here as appropriate.
+// TODO: see if more const designations can be added to parameters.
 
 // TODO: add overloads here as appropriate, for example, one operand
 // may be an integer (signed or not).
@@ -53,14 +53,8 @@ void poisonIfNeeded_div( APInt& dest, APInt& lhs, APInt& rhs );
 inline void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs );
 
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
-  // Poison propogation is handled within the APInt class.
 void poisonIfNeeded_bitOr( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
-  // Poison propogation is handled within the APInt class.
 void poisonIfNeeded_bitXor( APInt& dest, const APInt& lhs, const APInt& rhs );
-  // TODO: add this
-  // Poison propogation is handled within the APInt class.
 
 void poisonIfNeeded_shl( APInt& dest, APInt& src, unsigned shiftAmt );
 void poisonIfNeeded_lshr( APInt& dest, APInt& src, unsigned shiftAmt );
@@ -68,18 +62,13 @@ void poisonIfNeeded_ashr( APInt& dest, APInt& src, unsigned shiftAmt );
 
 void poisonIfNeeded_select( APInt& dest, 
     const APInt& src1, const APInt& src2, const APInt& src3 );
-  // TODO: add this
-  // currently handled within Execution.cpp's executeSelectInst(~).
 
 void poisonIfNeeded_trunc( APInt& dest, const APInt& src, 
     const unsigned newBitWidth );
-    // TODO: add this
 void poisonIfNeeded_sext( APInt& dest, const APInt& src, 
     const unsigned newBitWidth );
-    // TODO: add this
 void poisonIfNeeded_zext( APInt& dest, const APInt& src, 
     const unsigned newBitWidth );
-    // TODO: add this
 
 
 // CAS TODO3: check the types for these arguments.
