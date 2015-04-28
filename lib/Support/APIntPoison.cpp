@@ -316,7 +316,7 @@ void poisonIfNeeded_rem( APInt& dest, APInt& lhs, APInt& rhs )
 void poisonIfNeeded_bitAnd( APInt& dest, const APInt& lhs, const APInt& rhs )
 {{
   if ( llvm::lli_undef_fix::opt_antidote_and_or || 
-      llvm:lli_undef_fix::opt_poison_eq_undef )  {
+      llvm::lli_undef_fix::opt_poison_eq_undef )  {
     if ( lhs.getPoisoned() && rhs.getPoisoned() )  {
        dest.setPoisoned( true );
        return;
