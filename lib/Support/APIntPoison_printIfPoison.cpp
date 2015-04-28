@@ -50,6 +50,12 @@ namespace APIntPoison {
  */
 void printIfPoison( Instruction& In, APInt& val )
 {{
+
+  if ( llvm::lli_undef_fix::opt_poison_eq_undef_early ) {  
+    val.setRandom();
+    val.setPoisoned(false);
+  }
+
   if ( ! llvm::lli_undef_fix::opt_print_new_poison ) { return; }
   static raw_fd_ostream stream( 2, false, true );
 
