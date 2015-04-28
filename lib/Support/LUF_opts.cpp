@@ -42,9 +42,20 @@
    * **************************************************************************
    */
 
+/** do not propogate poison from the unused branch of a select opcode */
 bool llvm::lli_undef_fix::opt_antidote_select= false;
+
+/** use short circuit evaluation to remove poison from unused operands of and
+and or opcodes.  */ 
 bool llvm::lli_undef_fix::opt_antidote_and_or= false;
+
+/** prints a message when a new poison value is generated */
 bool llvm::lli_undef_fix::opt_print_new_poison= false;
+
+/** implements David Majnemer's and Nuno Lopes' April 2015 proposal that
+   poison should be merged with undef.
+*/
+bool llvm::lli_undef_fix::opt_poison_eq_undef= false;
 
 typedef struct {
    const char* name;
@@ -61,6 +72,10 @@ const filelocal_opt_t opt_array[]= {
     false },
 
   { "print_new_poison", 
+    &llvm::lli_undef_fix::opt_print_new_poison, 
+    false },
+
+  { "poison_eq_undef", 
     &llvm::lli_undef_fix::opt_print_new_poison, 
     false },
 
