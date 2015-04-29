@@ -615,8 +615,8 @@ void poisonIfNeeded_select( APInt& Dest,
 	  Src3.getPoisoned() : Src2.getPoisoned() 
 	);
   }
-  #if 1 //;; 
-    std::cerr << "in select: \n";;
+  #if 0 
+    std::cerr << "in select opcode: \n";
     if ( Src1.getPoisoned() || Src2.getPoisoned() || 
 	  Src3.getPoisoned() || Dest.getPoisoned() )  {
        std::cout << "   select: poison bits " << 
@@ -625,8 +625,8 @@ void poisonIfNeeded_select( APInt& Dest,
 	   " Src3=" << Src3.getPoisoned() <<
 	   " Dest=" << Dest.getPoisoned() << "\n";
     }
-    fflush( stdout );;
-    fflush( stderr );;
+    fflush( stdout );
+    fflush( stderr );
   #endif
 
   return;
