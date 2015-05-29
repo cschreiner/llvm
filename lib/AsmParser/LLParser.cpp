@@ -3139,7 +3139,7 @@ bool LLParser::ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
   case ValID::t_InlineAsm: {
     PointerType *PTy = dyn_cast<PointerType>(Ty);
     FunctionType *FTy =
-	PTy ? dyn_cast<FunctionType>(PTy->getElementType()) : nullptr;
+      PTy ? dyn_cast<FunctionType>(PTy->getElementType()) : nullptr;
     if (!FTy || !InlineAsm::Verify(FTy, ID.StrVal2))
       return Error(ID.Loc, "invalid type for inline asm constraint string");
     V = InlineAsm::get(FTy, ID.StrVal, ID.StrVal2, ID.UIntVal&1,
@@ -3156,9 +3156,6 @@ bool LLParser::ConvertValIDToValue(Type *Ty, ValID &ID, Value *&V,
     if (!Ty->isIntegerTy())
       return Error(ID.Loc, "integer constant must have integer type");
     ID.APSIntVal = ID.APSIntVal.extOrTrunc(Ty->getPrimitiveSizeInBits());
-    //@casdbg@: does this assert false fire?
-    assert ( ID.APSIntVal.getBitWidth() > 0 && 
-	"ID.APSIntVal.getBitWidth() too small" ); 
     V = ConstantInt::get(Context, ID.APSIntVal);
     return false;
   case ValID::t_APFloat:
