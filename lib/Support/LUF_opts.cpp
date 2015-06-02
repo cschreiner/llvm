@@ -56,10 +56,15 @@ bool llvm::lli_undef_fix::opt_print_new_poison= false;
    poison should be merged with undef.
 */
 bool llvm::lli_undef_fix::opt_poison_eq_undef= false;
+
 /** adds an interpretation of David's & Nuno's plan with early
     undef-to-random-value resolution.
  */
 bool llvm::lli_undef_fix::opt_poison_eq_undef_early= false;
+
+/** if and IR opcode attempts division by zero, return instead of crashing.
+ */
+bool llvm:lli_undef_fix::opt_return_if_div_0;
 
 typedef struct {
    const char* name;
@@ -85,6 +90,10 @@ const filelocal_opt_t opt_array[]= {
 
   { "poison_eq_undef_early", 
     &llvm::lli_undef_fix::opt_poison_eq_undef_early, 
+    false },
+
+  { "return_if_div_0", 
+    &llvm::lli_undef_fix::opt_return_if_div_0, 
     false },
 
   // end of the list

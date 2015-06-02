@@ -47,6 +47,7 @@ extern bool opt_antidote_and_or;
 extern bool opt_print_new_poison;
 extern bool opt_poison_eq_undef;
 extern bool opt_poison_eq_undef_early;
+extern bool opt_return_if_div_0;
 
 /*** ==========================================================================
    *   function prototypes

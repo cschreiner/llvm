@@ -43,6 +43,43 @@ STATISTIC(NumDynamicInsts, "Number of dynamic instructions executed");
 static cl::opt<bool> PrintVolatile("interpreter-print-volatile", cl::Hidden,
           cl::desc("make the interpreter print every volatile load and store"));
 
+//   --------------------------------------------------------------------------
+///  \fn PROTECT_VS_DIV_0()
+//   --------------------------------------------------------------------------
+/*** \brief protect against division by zero if runtime option is set
+   * 
+   * \b Detailed_Description: 
+   *	if the appropriate LUF opt is set and the denominator is zero, then
+   *	return from the current function with a 0 value.  
+   *
+   *	It is envisioned that the human user will only set the LUF option when 
+   *	running regression tests that, when one test item attempts to divide 
+   *	by zero, should move on to the next test item instead of crashing.
+   *
+   * \b Method: 
+   *
+   * \b Reentrancy: 
+   *
+   * \param denom (input) the denominator
+   * 
+   * \return void
+   *
+   */
+#define PROTECT_VS_DIV_0						\
+{{									\
+  if ( llvm::lli_undef_fix::opt_return_if_div_0 )  {			\
+    Type* retType= new IntegerType();					\
+    GenericValue retVal;						\
+    retVal.IntVal= new APInt(0);					\
+    /*asdf*/								\
+    /* prototype: */							\
+    /*Interpreter::popStackAndReturnValueToCaller(Type *RetTy, */	\
+    /*                                             GenericValue Result); */ \
+    Interpreter::popStackAndReturnValueToCaller( retType, retVal );	\
+    return;								\
+  }									\
+}}	
+
 //===----------------------------------------------------------------------===//
 //                     Various Helper Functions
 //===----------------------------------------------------------------------===//
@@ -894,23 +931,27 @@ void Interpreter::visitBinaryOperator(BinaryOperator &I) {
     case Instruction::FDiv:  executeFDivInst(R, Src1, Src2, Ty); break;
     case Instruction::FRem:  executeFRemInst(R, Src1, Src2, Ty); break;
     case Instruction::UDiv:  
+      PROTECT_VS_DIV_0( Src2.IntVal );
       R.IntVal = Src1.IntVal.udiv(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
 	  I.isExact() );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::SDiv:  
+      PROTECT_VS_DIV_0( Src2.IntVal );
       R.IntVal = Src1.IntVal.sdiv(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_div( R.IntVal, Src1.IntVal, Src2.IntVal,
 	  I.isExact() );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::URem:  
+      PROTECT_VS_DIV_0( Src2.IntVal );
       R.IntVal = Src1.IntVal.urem(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_rem( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
       break;
     case Instruction::SRem:  
+      PROTECT_VS_DIV_0( Src2.IntVal );
       R.IntVal = Src1.IntVal.srem(Src2.IntVal); 
       APIntPoison::poisonIfNeeded_rem( R.IntVal, Src1.IntVal, Src2.IntVal );
       APIntPoison::printIfPoison( I, R.IntVal );
