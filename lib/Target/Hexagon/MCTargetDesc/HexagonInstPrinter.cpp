@@ -94,9 +94,10 @@ void HexagonInstPrinter::printInst(const HexagonMCInst *MI, raw_ostream &O,
     if (MI->isPacketBegin()) {
       // There must be a packet to end a loop.
       // FIXME: when shuffling is always run, this shouldn't be needed.
-      HexagonMCInst Nop (Hexagon::NOP);
+      HexagonMCInst Nop;
       StringRef NoAnnot;
 
+      Nop.setOpcode (Hexagon::A2_nop);
       Nop.setPacketBegin (MI->isPacketBegin());
       printInst (&Nop, O, NoAnnot);
     }

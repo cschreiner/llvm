@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ProfileData/CoverageMapping.h"
-
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallSet.h"
@@ -170,6 +169,14 @@ ErrorOr<int64_t> CounterMappingContext::evaluate(const Counter &C) const {
   llvm_unreachable("Unhandled CounterKind");
 }
 
+void FunctionRecordIterator::skipOtherFiles() {
+  while (Current != Records.end() && !Filename.empty() &&
+         Filename != Current->Filenames[0])
+    ++Current;
+  if (Current == Records.end())
+    *this = FunctionRecordIterator();
+}
+
 ErrorOr<std::unique_ptr<CoverageMapping>>
 CoverageMapping::load(ObjectFileCoverageMappingReader &CoverageReader,
                       IndexedInstrProfReader &ProfileReader) {
@@ -302,7 +309,7 @@ public:
       while (!ActiveRegions.empty() &&
              ActiveRegions.back()->endLoc() <= Region.startLoc())
         popRegion();
-      if (Segments.size() && Segments.back().Line == Region.LineStart &&
+      if (!Segments.empty() && Segments.back().Line == Region.LineStart &&
           Segments.back().Col == Region.ColumnStart) {
         if (Region.Kind != coverage::CounterMappingRegion::SkippedRegion)
           Segments.back().addCount(Region.ExecutionCount);
@@ -320,7 +327,7 @@ public:
 };
 }
 
-std::vector<StringRef> CoverageMapping::getUniqueSourceFiles() {
+std::vector<StringRef> CoverageMapping::getUniqueSourceFiles() const {
   std::vector<StringRef> Filenames;
   for (const auto &Function : getCoveredFunctions())
     for (const auto &Filename : Function.Filenames)

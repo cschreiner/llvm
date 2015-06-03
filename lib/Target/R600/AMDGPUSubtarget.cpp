@@ -16,10 +16,9 @@
 #include "R600ISelLowering.h"
 #include "R600InstrInfo.h"
 #include "R600MachineScheduler.h"
-#include "SIInstrInfo.h"
 #include "SIISelLowering.h"
-#include "llvm/ADT/SmallString.h"
-
+#include "SIInstrInfo.h"
+#include "SIMachineFunctionInfo.h"
 #include "llvm/ADT/SmallString.h"
 
 using namespace llvm;
@@ -80,11 +79,13 @@ AMDGPUSubtarget::AMDGPUSubtarget(StringRef TT, StringRef GPU, StringRef FS,
       FlatAddressSpace(false), EnableIRStructurizer(true),
       EnablePromoteAlloca(false), EnableIfCvt(true),
       EnableLoadStoreOpt(false), WavefrontSize(0), CFALUBug(false), LocalMemorySize(0),
+      EnableVGPRSpilling(false),
       DL(computeDataLayout(initializeSubtargetDependencies(GPU, FS))),
       FrameLowering(TargetFrameLowering::StackGrowsUp,
                     64 * 16, // Maximum stack alignment (long16)
                     0),
-      InstrItins(getInstrItineraryForCPU(GPU)) {
+      InstrItins(getInstrItineraryForCPU(GPU)),
+      TargetTriple(TT) {
   if (getGeneration() <= AMDGPUSubtarget::NORTHERN_ISLANDS) {
     InstrInfo.reset(new R600InstrInfo(*this));
     TLInfo.reset(new R600TargetLowering(TM));
@@ -106,4 +107,16 @@ unsigned AMDGPUSubtarget::getStackEntrySize() const {
   default:
     llvm_unreachable("Illegal wavefront size.");
   }
+}
+
+unsigned AMDGPUSubtarget::getAmdKernelCodeChipID() const {
+  switch(getGeneration()) {
+  default: llvm_unreachable("ChipID unknown");
+  case SEA_ISLANDS: return 12;
+  }
+}
+
+bool AMDGPUSubtarget::isVGPRSpillingEnabled(
+                                       const SIMachineFunctionInfo *MFI) const {
+  return MFI->getShaderType() == ShaderType::COMPUTE || EnableVGPRSpilling;
 }

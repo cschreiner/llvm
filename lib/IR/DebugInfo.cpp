@@ -52,7 +52,7 @@ bool DIDescriptor::Verify() const {
           DIImportedEntity(DbgNode).Verify() || DIExpression(DbgNode).Verify());
 }
 
-static Value *getField(const MDNode *DbgNode, unsigned Elt) {
+static Metadata *getField(const MDNode *DbgNode, unsigned Elt) {
   if (!DbgNode || Elt >= DbgNode->getNumOperands())
     return nullptr;
   return DbgNode->getOperand(Elt);
@@ -73,25 +73,17 @@ StringRef DIDescriptor::getStringField(unsigned Elt) const {
 }
 
 uint64_t DIDescriptor::getUInt64Field(unsigned Elt) const {
-  if (!DbgNode)
-    return 0;
-
-  if (Elt < DbgNode->getNumOperands())
-    if (ConstantInt *CI =
-            dyn_cast_or_null<ConstantInt>(DbgNode->getOperand(Elt)))
+  if (auto *C = getConstantField(Elt))
+    if (ConstantInt *CI = dyn_cast<ConstantInt>(C))
       return CI->getZExtValue();
 
   return 0;
 }
 
 int64_t DIDescriptor::getInt64Field(unsigned Elt) const {
-  if (!DbgNode)
-    return 0;
-
-  if (Elt < DbgNode->getNumOperands())
-    if (ConstantInt *CI =
-            dyn_cast_or_null<ConstantInt>(DbgNode->getOperand(Elt)))
-      return CI->getSExtValue();
+  if (auto *C = getConstantField(Elt))
+    if (ConstantInt *CI = dyn_cast<ConstantInt>(C))
+      return CI->getZExtValue();
 
   return 0;
 }
@@ -102,12 +94,7 @@ DIDescriptor DIDescriptor::getDescriptorField(unsigned Elt) const {
 }
 
 GlobalVariable *DIDescriptor::getGlobalVariableField(unsigned Elt) const {
-  if (!DbgNode)
-    return nullptr;
-
-  if (Elt < DbgNode->getNumOperands())
-    return dyn_cast_or_null<GlobalVariable>(DbgNode->getOperand(Elt));
-  return nullptr;
+  return dyn_cast_or_null<GlobalVariable>(getConstantField(Elt));
 }
 
 Constant *DIDescriptor::getConstantField(unsigned Elt) const {
@@ -115,17 +102,14 @@ Constant *DIDescriptor::getConstantField(unsigned Elt) const {
     return nullptr;
 
   if (Elt < DbgNode->getNumOperands())
-    return dyn_cast_or_null<Constant>(DbgNode->getOperand(Elt));
+    if (auto *C =
+            dyn_cast_or_null<ConstantAsMetadata>(DbgNode->getOperand(Elt)))
+      return C->getValue();
   return nullptr;
 }
 
 Function *DIDescriptor::getFunctionField(unsigned Elt) const {
-  if (!DbgNode)
-    return nullptr;
-
-  if (Elt < DbgNode->getNumOperands())
-    return dyn_cast_or_null<Function>(DbgNode->getOperand(Elt));
-  return nullptr;
+  return dyn_cast_or_null<Function>(getConstantField(Elt));
 }
 
 void DIDescriptor::replaceFunctionField(unsigned Elt, Function *F) {
@@ -134,7 +118,7 @@ void DIDescriptor::replaceFunctionField(unsigned Elt, Function *F) {
 
   if (Elt < DbgNode->getNumOperands()) {
     MDNode *Node = const_cast<MDNode *>(DbgNode);
-    Node->replaceOperandWith(Elt, F);
+    Node->replaceOperandWith(Elt, F ? ConstantAsMetadata::get(F) : nullptr);
   }
 }
 
@@ -164,17 +148,26 @@ uint64_t DIExpression::getElement(unsigned Idx) const {
 }
 
 bool DIExpression::isVariablePiece() const {
-  return getNumElements() && getElement(0) == dwarf::DW_OP_piece;
+  unsigned N = getNumElements();
+  return N >=3 && getElement(N-3) == dwarf::DW_OP_piece;
 }
 
 uint64_t DIExpression::getPieceOffset() const {
-  assert(isVariablePiece());
-  return getElement(1);
+  assert(isVariablePiece() && "not a piece");
+  return getElement(getNumElements()-2);
 }
 
 uint64_t DIExpression::getPieceSize() const {
-  assert(isVariablePiece());
-  return getElement(2);
+  assert(isVariablePiece() && "not a piece");
+  return getElement(getNumElements()-1);
+}
+
+DIExpression::iterator DIExpression::begin() const {
+ return DIExpression::iterator(*this);
+}
+
+DIExpression::iterator DIExpression::end() const {
+ return DIExpression::iterator();
 }
 
 //===----------------------------------------------------------------------===//
@@ -182,7 +175,7 @@ uint64_t DIExpression::getPieceSize() const {
 //===----------------------------------------------------------------------===//
 
 bool DIDescriptor::isSubroutineType() const {
-  return isCompositeType() && getTag() == dwarf::DW_TAG_subroutine_type;
+  return DbgNode && getTag() == dwarf::DW_TAG_subroutine_type;
 }
 
 bool DIDescriptor::isBasicType() const {
@@ -347,27 +340,25 @@ void DIDescriptor::replaceAllUsesWith(LLVMContext &VMContext, DIDescriptor D) {
   // itself.
   const MDNode *DN = D;
   if (DbgNode == DN) {
-    SmallVector<Value*, 10> Ops(DbgNode->getNumOperands());
+    SmallVector<Metadata *, 10> Ops(DbgNode->getNumOperands());
     for (size_t i = 0; i != Ops.size(); ++i)
       Ops[i] = DbgNode->getOperand(i);
     DN = MDNode::get(VMContext, Ops);
   }
 
-  MDNode *Node = const_cast<MDNode *>(DbgNode);
-  const Value *V = cast_or_null<Value>(DN);
-  Node->replaceAllUsesWith(const_cast<Value *>(V));
+  assert(DbgNode->isTemporary() && "Expected temporary node");
+  auto *Node = const_cast<MDNode *>(DbgNode);
+  Node->replaceAllUsesWith(const_cast<MDNode *>(DN));
   MDNode::deleteTemporary(Node);
   DbgNode = DN;
 }
 
 void DIDescriptor::replaceAllUsesWith(MDNode *D) {
-
   assert(DbgNode && "Trying to replace an unverified type!");
   assert(DbgNode != D && "This replacement should always happen");
-  MDNode *Node = const_cast<MDNode *>(DbgNode);
-  const MDNode *DN = D;
-  const Value *V = cast_or_null<Value>(DN);
-  Node->replaceAllUsesWith(const_cast<Value *>(V));
+  assert(DbgNode->isTemporary() && "Expected temporary node");
+  auto *Node = const_cast<MDNode *>(DbgNode);
+  Node->replaceAllUsesWith(D);
   MDNode::deleteTemporary(Node);
 }
 
@@ -398,7 +389,7 @@ bool DIObjCProperty::Verify() const {
 static bool fieldIsMDNode(const MDNode *DbgNode, unsigned Elt) {
   // FIXME: This function should return true, if the field is null or the field
   // is indeed a MDNode: return !Fld || isa<MDNode>(Fld).
-  Value *Fld = getField(DbgNode, Elt);
+  Metadata *Fld = getField(DbgNode, Elt);
   if (Fld && isa<MDString>(Fld) && !cast<MDString>(Fld)->getString().empty())
     return false;
   return true;
@@ -406,36 +397,38 @@ static bool fieldIsMDNode(const MDNode *DbgNode, unsigned Elt) {
 
 /// \brief Check if a field at position Elt of a MDNode is a MDString.
 static bool fieldIsMDString(const MDNode *DbgNode, unsigned Elt) {
-  Value *Fld = getField(DbgNode, Elt);
+  Metadata *Fld = getField(DbgNode, Elt);
   return !Fld || isa<MDString>(Fld);
 }
 
 /// \brief Check if a value can be a reference to a type.
-static bool isTypeRef(const Value *Val) {
-  return !Val ||
-         (isa<MDString>(Val) && !cast<MDString>(Val)->getString().empty()) ||
-         (isa<MDNode>(Val) && DIType(cast<MDNode>(Val)).isType());
+static bool isTypeRef(const Metadata *MD) {
+  if (!MD)
+    return true;
+  if (auto *S = dyn_cast<MDString>(MD))
+    return !S->getString().empty();
+  if (auto *N = dyn_cast<MDNode>(MD))
+    return DIType(N).isType();
+  return false;
 }
 
 /// \brief Check if referenced field might be a type.
 static bool fieldIsTypeRef(const MDNode *DbgNode, unsigned Elt) {
-  Value *Fld = getField(DbgNode, Elt);
-  return isTypeRef(Fld);
+  return isTypeRef(dyn_cast_or_null<Metadata>(getField(DbgNode, Elt)));
 }
 
 /// \brief Check if a value can be a ScopeRef.
-static bool isScopeRef(const Value *Val) {
-  return !Val ||
-    (isa<MDString>(Val) && !cast<MDString>(Val)->getString().empty()) ||
-    // Not checking for Val->isScope() here, because it would work
-    // only for lexical scopes and not all subclasses of DIScope.
-    isa<MDNode>(Val);
+static bool isScopeRef(const Metadata *MD) {
+  if (!MD)
+    return true;
+  if (auto *S = dyn_cast<MDString>(MD))
+    return !S->getString().empty();
+  return isa<MDNode>(MD);
 }
 
 /// \brief Check if a field at position Elt of a MDNode can be a ScopeRef.
 static bool fieldIsScopeRef(const MDNode *DbgNode, unsigned Elt) {
-  Value *Fld = getField(DbgNode, Elt);
-  return isScopeRef(Fld);
+  return isScopeRef(dyn_cast_or_null<Metadata>(getField(DbgNode, Elt)));
 }
 
 bool DIType::Verify() const {
@@ -531,7 +524,6 @@ bool DISubprogram::Verify() const {
   // If a DISubprogram has an llvm::Function*, then scope chains from all
   // instructions within the function should lead to this DISubprogram.
   if (auto *F = getFunction()) {
-    LLVMContext &Ctxt = F->getContext();
     for (auto &BB : *F) {
       for (auto &I : BB) {
         DebugLoc DL = I.getDebugLoc();
@@ -541,15 +533,19 @@ bool DISubprogram::Verify() const {
         MDNode *Scope = nullptr;
         MDNode *IA = nullptr;
         // walk the inlined-at scopes
-        while (DL.getScopeAndInlinedAt(Scope, IA, F->getContext()), IA)
+        while ((IA = DL.getInlinedAt()))
           DL = DebugLoc::getFromDILocation(IA);
-        DL.getScopeAndInlinedAt(Scope, IA, Ctxt);
+        DL.getScopeAndInlinedAt(Scope, IA);
+        if (!Scope)
+          return false;
         assert(!IA);
         while (!DIDescriptor(Scope).isSubprogram()) {
           DILexicalBlockFile D(Scope);
           Scope = D.isLexicalBlockFile()
                       ? D.getScope()
-                      : DebugLoc::getFromDILexicalBlock(Scope).getScope(Ctxt);
+                      : DebugLoc::getFromDILexicalBlock(Scope).getScope();
+          if (!Scope)
+            return false;
         }
         if (!DISubprogram(Scope).describes(F))
           return false;
@@ -607,14 +603,29 @@ bool DIExpression::Verify() const {
   if (!DbgNode)
     return true;
 
-  return isExpression() && DbgNode->getNumOperands() == 1;
+  if (!(isExpression() && DbgNode->getNumOperands() == 1))
+    return false;
+
+  for (auto E = end(), I = begin(); I != E; ++I)
+    switch (*I) {
+    case DW_OP_piece:
+      // Must be the last element of the expression.
+      return std::distance(I.getBase(), DIHeaderFieldIterator()) == 3;
+    case DW_OP_plus:
+      if (std::distance(I.getBase(), DIHeaderFieldIterator()) < 2)
+        return false;
+      break;
+    case DW_OP_deref:
+      break;
+    default:
+      // Other operators are not yet supported by the backend.
+      return false;
+    }
+  return true;
 }
 
 bool DILocation::Verify() const {
-  if (!DbgNode)
-    return false;
-
-  return DbgNode->getNumOperands() == 4;
+  return DbgNode && isa<MDLocation>(DbgNode);
 }
 
 bool DINameSpace::Verify() const {
@@ -676,19 +687,19 @@ MDString *DICompositeType::getIdentifier() const {
 static void VerifySubsetOf(const MDNode *LHS, const MDNode *RHS) {
   for (unsigned i = 0; i != LHS->getNumOperands(); ++i) {
     // Skip the 'empty' list (that's a single i32 0, rather than truly empty).
-    if (i == 0 && isa<ConstantInt>(LHS->getOperand(i)))
+    if (i == 0 && mdconst::hasa<ConstantInt>(LHS->getOperand(i)))
       continue;
     const MDNode *E = cast<MDNode>(LHS->getOperand(i));
     bool found = false;
     for (unsigned j = 0; !found && j != RHS->getNumOperands(); ++j)
-      found = E == RHS->getOperand(j);
+      found = (E == cast<MDNode>(RHS->getOperand(j)));
     assert(found && "Losing a member during member list replacement");
   }
 }
 #endif
 
 void DICompositeType::setArraysHelper(MDNode *Elements, MDNode *TParams) {
-  TrackingVH<MDNode> N(*this);
+  TrackingMDNodeRef N(*this);
   if (Elements) {
 #ifndef NDEBUG
     // Check that the new list of members contains all the old members as well.
@@ -712,7 +723,7 @@ DIScopeRef DIScope::getRef() const {
 }
 
 void DICompositeType::setContainingType(DICompositeType ContainingType) {
-  TrackingVH<MDNode> N(*this);
+  TrackingMDNodeRef N(*this);
   N->replaceOperandWith(5, ContainingType.getRef());
   DbgNode = N;
 }
@@ -746,8 +757,8 @@ DIArray DISubprogram::getVariables() const {
   return DIArray(getNodeField(DbgNode, 8));
 }
 
-Value *DITemplateValueParameter::getValue() const {
-  return getField(DbgNode, 3);
+Metadata *DITemplateValueParameter::getValue() const {
+  return DbgNode->getOperand(3);
 }
 
 DIScopeRef DIScope::getContext() const {
@@ -849,16 +860,12 @@ void DICompileUnit::replaceGlobalVariables(DIArray GlobalVariables) {
 
 DILocation DILocation::copyWithNewScope(LLVMContext &Ctx,
                                         DILexicalBlockFile NewScope) {
-  SmallVector<Value *, 10> Elts;
   assert(Verify());
-  for (unsigned I = 0; I < DbgNode->getNumOperands(); ++I) {
-    if (I != 2)
-      Elts.push_back(DbgNode->getOperand(I));
-    else
-      Elts.push_back(NewScope);
-  }
-  MDNode *NewDIL = MDNode::get(Ctx, Elts);
-  return DILocation(NewDIL);
+  assert(NewScope && "Expected valid scope");
+
+  const auto *Old = cast<MDLocation>(DbgNode);
+  return DILocation(MDLocation::get(Ctx, Old->getLine(), Old->getColumn(),
+                                    NewScope, Old->getInlinedAt()));
 }
 
 unsigned DILocation::computeNewDiscriminator(LLVMContext &Ctx) {
@@ -873,7 +880,7 @@ DIVariable llvm::createInlinedVariable(MDNode *DV, MDNode *InlinedScope,
     return cleanseInlinedVariable(DV, VMContext);
 
   // Insert inlined scope.
-  SmallVector<Value *, 8> Elts;
+  SmallVector<Metadata *, 8> Elts;
   for (unsigned I = 0, E = DIVariableInlinedAtIndex; I != E; ++I)
     Elts.push_back(DV->getOperand(I));
   Elts.push_back(InlinedScope);
@@ -889,7 +896,7 @@ DIVariable llvm::cleanseInlinedVariable(MDNode *DV, LLVMContext &VMContext) {
     return DIVariable(DV);
 
   // Remove inlined scope.
-  SmallVector<Value *, 8> Elts;
+  SmallVector<Metadata *, 8> Elts;
   for (unsigned I = 0, E = DIVariableInlinedAtIndex; I != E; ++I)
     Elts.push_back(DV->getOperand(I));
 
@@ -914,17 +921,16 @@ DISubprogram llvm::getDISubprogram(const MDNode *Scope) {
 
 DISubprogram llvm::getDISubprogram(const Function *F) {
   // We look for the first instr that has a debug annotation leading back to F.
-  const LLVMContext &Ctx = F->getParent()->getContext();
   for (auto &BB : *F) {
-    for (auto &Inst : BB.getInstList()) {
-      DebugLoc DLoc = Inst.getDebugLoc();
-      if (DLoc.isUnknown())
-        continue;
-      const MDNode *Scope = DLoc.getScopeNode(Ctx);
-      DISubprogram Subprogram = getDISubprogram(Scope);
-      if (Subprogram.describes(F))
-       return Subprogram;
-    }
+    auto Inst = std::find_if(BB.begin(), BB.end(), [](const Instruction &Inst) {
+      return !Inst.getDebugLoc().isUnknown();
+    });
+    if (Inst == BB.end())
+      continue;
+    DebugLoc DLoc = Inst->getDebugLoc();
+    const MDNode *Scope = DLoc.getScopeNode();
+    DISubprogram Subprogram = getDISubprogram(Scope);
+    return Subprogram.describes(F) ? Subprogram : DISubprogram();
   }
 
   return DISubprogram();
@@ -1126,7 +1132,7 @@ void DebugInfoFinder::processDeclare(const Module &M,
   if (!DV.isVariable())
     return;
 
-  if (!NodesSeen.insert(DV))
+  if (!NodesSeen.insert(DV).second)
     return;
   processScope(DIVariable(N).getContext());
   processType(DIVariable(N).getType().resolve(TypeIdentifierMap));
@@ -1142,7 +1148,7 @@ void DebugInfoFinder::processValue(const Module &M, const DbgValueInst *DVI) {
   if (!DV.isVariable())
     return;
 
-  if (!NodesSeen.insert(DV))
+  if (!NodesSeen.insert(DV).second)
     return;
   processScope(DIVariable(N).getContext());
   processType(DIVariable(N).getType().resolve(TypeIdentifierMap));
@@ -1152,7 +1158,7 @@ bool DebugInfoFinder::addType(DIType DT) {
   if (!DT)
     return false;
 
-  if (!NodesSeen.insert(DT))
+  if (!NodesSeen.insert(DT).second)
     return false;
 
   TYs.push_back(DT);
@@ -1162,7 +1168,7 @@ bool DebugInfoFinder::addType(DIType DT) {
 bool DebugInfoFinder::addCompileUnit(DICompileUnit CU) {
   if (!CU)
     return false;
-  if (!NodesSeen.insert(CU))
+  if (!NodesSeen.insert(CU).second)
     return false;
 
   CUs.push_back(CU);
@@ -1173,7 +1179,7 @@ bool DebugInfoFinder::addGlobalVariable(DIGlobalVariable DIG) {
   if (!DIG)
     return false;
 
-  if (!NodesSeen.insert(DIG))
+  if (!NodesSeen.insert(DIG).second)
     return false;
 
   GVs.push_back(DIG);
@@ -1184,7 +1190,7 @@ bool DebugInfoFinder::addSubprogram(DISubprogram SP) {
   if (!SP)
     return false;
 
-  if (!NodesSeen.insert(SP))
+  if (!NodesSeen.insert(SP).second)
     return false;
 
   SPs.push_back(SP);
@@ -1198,7 +1204,7 @@ bool DebugInfoFinder::addScope(DIScope Scope) {
   // as null for now.
   if (Scope->getNumOperands() == 0)
     return false;
-  if (!NodesSeen.insert(Scope))
+  if (!NodesSeen.insert(Scope).second)
     return false;
   Scopes.push_back(Scope);
   return true;
@@ -1400,24 +1406,23 @@ void DIVariable::printInternal(raw_ostream &OS) const {
 }
 
 void DIExpression::printInternal(raw_ostream &OS) const {
-  for (unsigned I = 0; I < getNumElements(); ++I) {
-    uint64_t OpCode = getElement(I);
+  for (auto E = end(), I = begin(); I != E; ++I) {
+    uint64_t OpCode = *I;
     OS << " [" << OperationEncodingString(OpCode);
     switch (OpCode) {
     case DW_OP_plus: {
-      OS << " " << getElement(++I);
+      OS << " " << I.getArg(1);
       break;
     }
     case DW_OP_piece: {
-      unsigned Offset = getElement(++I);
-      unsigned Size = getElement(++I);
-      OS << " offset=" << Offset << ", size=" << Size;
+      OS << " offset=" << I.getArg(1) << ", size=" << I.getArg(2);
       break;
     }
+    case DW_OP_deref:
+      // No arguments.
+      break;
     default:
-      // Else bail out early. This may be a line table entry.
-      OS << "Unknown]";
-      return;
+      llvm_unreachable("unhandled operation");
     }
     OS << "]";
   }
@@ -1466,19 +1471,19 @@ void DIVariable::printExtendedName(raw_ostream &OS) const {
   }
 }
 
-template <> DIRef<DIScope>::DIRef(const Value *V) : Val(V) {
+template <> DIRef<DIScope>::DIRef(const Metadata *V) : Val(V) {
   assert(isScopeRef(V) && "DIScopeRef should be a MDString or MDNode");
 }
-template <> DIRef<DIType>::DIRef(const Value *V) : Val(V) {
+template <> DIRef<DIType>::DIRef(const Metadata *V) : Val(V) {
   assert(isTypeRef(V) && "DITypeRef should be a MDString or MDNode");
 }
 
 template <>
 DIScopeRef DIDescriptor::getFieldAs<DIScopeRef>(unsigned Elt) const {
-  return DIScopeRef(getField(DbgNode, Elt));
+  return DIScopeRef(cast_or_null<Metadata>(getField(DbgNode, Elt)));
 }
 template <> DITypeRef DIDescriptor::getFieldAs<DITypeRef>(unsigned Elt) const {
-  return DITypeRef(getField(DbgNode, Elt));
+  return DITypeRef(cast_or_null<Metadata>(getField(DbgNode, Elt)));
 }
 
 bool llvm::StripDebugInfo(Module &M) {
@@ -1529,10 +1534,10 @@ bool llvm::StripDebugInfo(Module &M) {
 }
 
 unsigned llvm::getDebugMetadataVersionFromModule(const Module &M) {
-  Value *Val = M.getModuleFlag("Debug Info Version");
-  if (!Val)
-    return 0;
-  return cast<ConstantInt>(Val)->getZExtValue();
+  if (auto *Val = mdconst::extract_or_null<ConstantInt>(
+          M.getModuleFlag("Debug Info Version")))
+    return Val->getZExtValue();
+  return 0;
 }
 
 llvm::DenseMap<const llvm::Function *, llvm::DISubprogram>
