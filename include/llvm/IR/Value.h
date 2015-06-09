@@ -69,9 +69,8 @@ class Value {
   Type *VTy;
   Use *UseList;
 
-  friend class ValueAsMetadata; // Allow access to NameAndIsUsedByMD.
+  friend class ValueAsMetadata; // Allow access to IsUsedByMD.
   friend class ValueHandleBase;
-  PointerIntPair<ValueName *, 1> NameAndIsUsedByMD;
 
   const unsigned char SubclassID;   // Subclass identifier (for isa/dyn_cast)
   unsigned char HasValueHandle : 1; // Has a ValueHandle pointing to this?
@@ -101,22 +100,20 @@ protected:
   /// This is stored here to save space in User on 64-bit hosts.  Since most
   /// instances of Value have operands, 32-bit hosts aren't significantly
   /// affected.
-  unsigned NumOperands;
+  unsigned NumOperands : 30;
+
+  bool IsUsedByMD : 1;
+  bool HasName : 1;
 
 private:
   template <typename UseT> // UseT == 'Use' or 'const Use'
   class use_iterator_impl
-      : public std::iterator<std::forward_iterator_tag, UseT *, ptrdiff_t> {
-    typedef std::iterator<std::forward_iterator_tag, UseT *, ptrdiff_t> super;
-
+      : public std::iterator<std::forward_iterator_tag, UseT *> {
     UseT *U;
     explicit use_iterator_impl(UseT *u) : U(u) {}
     friend class Value;
 
   public:
-    typedef typename super::reference reference;
-    typedef typename super::pointer pointer;
-
     use_iterator_impl() : U() {}
 
     bool operator==(const use_iterator_impl &x) const { return U == x.U; }
@@ -147,17 +144,12 @@ private:
 
   template <typename UserTy> // UserTy == 'User' or 'const User'
   class user_iterator_impl
-      : public std::iterator<std::forward_iterator_tag, UserTy *, ptrdiff_t> {
-    typedef std::iterator<std::forward_iterator_tag, UserTy *, ptrdiff_t> super;
-
+      : public std::iterator<std::forward_iterator_tag, UserTy *> {
     use_iterator_impl<Use> UI;
     explicit user_iterator_impl(Use *U) : UI(U) {}
     friend class Value;
 
   public:
-    typedef typename super::reference reference;
-    typedef typename super::pointer pointer;
-
     user_iterator_impl() {}
 
     bool operator==(const user_iterator_impl &x) const { return UI == x.UI; }
@@ -188,15 +180,10 @@ private:
     }
 
     Use &getUse() const { return *UI; }
-
-    /// \brief Return the operand # of this use in its User.
-    ///
-    /// FIXME: Replace all callers with a direct call to Use::getOperandNo.
-    unsigned getOperandNo() const { return UI->getOperandNo(); }
   };
 
-  void operator=(const Value &) LLVM_DELETED_FUNCTION;
-  Value(const Value &) LLVM_DELETED_FUNCTION;
+  void operator=(const Value &) = delete;
+  Value(const Value &) = delete;
 
 protected:
   Value(Type *Ty, unsigned scid);
@@ -225,12 +212,13 @@ public:
   LLVMContext &getContext() const;
 
   // \brief All values can potentially be named.
-  bool hasName() const { return getValueName() != nullptr; }
-  ValueName *getValueName() const { return NameAndIsUsedByMD.getPointer(); }
-  void setValueName(ValueName *VN) { NameAndIsUsedByMD.setPointer(VN); }
+  bool hasName() const { return HasName; }
+  ValueName *getValueName() const;
+  void setValueName(ValueName *VN);
 
 private:
   void destroyValueName();
+  void setNameImpl(const Twine &Name);
 
 public:
   /// \brief Return a constant reference to the value's name.
@@ -408,7 +396,7 @@ public:
   bool hasValueHandle() const { return HasValueHandle; }
 
   /// \brief Return true if there is metadata referencing this value.
-  bool isUsedByMetadata() const { return NameAndIsUsedByMD.getInt(); }
+  bool isUsedByMetadata() const { return IsUsedByMD; }
 
   /// \brief Strip off pointer casts, all-zero GEPs, and aliases.
   ///
@@ -461,12 +449,6 @@ public:
     return const_cast<Value*>(this)->stripInBoundsOffsets();
   }
 
-  /// \brief Check if this is always a dereferenceable pointer.
-  ///
-  /// Test if this value is always a pointer to allocated and suitably aligned
-  /// memory for a simple load or store.
-  bool isDereferenceablePointer(const DataLayout *DL = nullptr) const;
-
   /// \brief Translate PHI node to its predecessor from the given basic block.
   ///
   /// If this value is a PHI node with CurBB as its parent, return the value in
@@ -484,7 +466,8 @@ public:
   ///
   /// This is the greatest alignment value supported by load, store, and alloca
   /// instructions, and global values.
-  static const unsigned MaximumAlignment = 1u << 29;
+  static const unsigned MaxAlignmentExponent = 29;
+  static const unsigned MaximumAlignment = 1u << MaxAlignmentExponent;
 
   /// \brief Mutate the type of this Value to be of the specified type.
   ///

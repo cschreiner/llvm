@@ -32,7 +32,7 @@ class AttributeSet;
 /// function known by LLVM. The enum values are returned by
 /// Function::getIntrinsicID().
 namespace Intrinsic {
-  enum ID {
+  enum ID : unsigned {
     not_intrinsic = 0,   // Must be zero
 
     // Get the intrinsic enums generated from Intrinsics.td
@@ -77,7 +77,7 @@ namespace Intrinsic {
       Void, VarArg, MMX, Metadata, Half, Float, Double,
       Integer, Vector, Pointer, Struct,
       Argument, ExtendArgument, TruncArgument, HalfVecArgument,
-      SameVecWidthArgument, PtrToArgument
+      SameVecWidthArgument, PtrToArgument, VecOfPtrsToElt
     } Kind;
 
     union {
@@ -99,13 +99,15 @@ namespace Intrinsic {
     unsigned getArgumentNumber() const {
       assert(Kind == Argument || Kind == ExtendArgument ||
              Kind == TruncArgument || Kind == HalfVecArgument ||
-             Kind == SameVecWidthArgument || Kind == PtrToArgument);
+             Kind == SameVecWidthArgument || Kind == PtrToArgument ||
+             Kind == VecOfPtrsToElt);
       return Argument_Info >> 3;
     }
     ArgKind getArgumentKind() const {
       assert(Kind == Argument || Kind == ExtendArgument ||
              Kind == TruncArgument || Kind == HalfVecArgument ||
-             Kind == SameVecWidthArgument || Kind == PtrToArgument);
+             Kind == SameVecWidthArgument || Kind == PtrToArgument ||
+             Kind == VecOfPtrsToElt);
       return (ArgKind)(Argument_Info & 7);
     }
 

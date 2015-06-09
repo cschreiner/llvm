@@ -43,6 +43,7 @@ FunctionPass *createSILowerI1CopiesPass();
 FunctionPass *createSIShrinkInstructionsPass();
 FunctionPass *createSILoadStoreOptimizerPass(TargetMachine &tm);
 FunctionPass *createSILowerControlFlowPass(TargetMachine &tm);
+FunctionPass *createSIFixControlFlowLiveIntervalsPass();
 FunctionPass *createSIFixSGPRCopiesPass(TargetMachine &tm);
 FunctionPass *createSIFixSGPRLiveRangesPass();
 FunctionPass *createSICodeEmitterPass(formatted_raw_ostream &OS);
@@ -64,9 +65,8 @@ Pass *createAMDGPUStructurizeCFGPass();
 FunctionPass *createAMDGPUISelDag(TargetMachine &tm);
 ModulePass *createAMDGPUAlwaysInlinePass();
 
-/// \brief Creates an AMDGPU-specific Target Transformation Info pass.
-ImmutablePass *
-createAMDGPUTargetTransformInfoPass(const AMDGPUTargetMachine *TM);
+void initializeSIFixControlFlowLiveIntervalsPass(PassRegistry&);
+extern char &SIFixControlFlowLiveIntervalsID;
 
 void initializeSIFixSGPRLiveRangesPass(PassRegistry&);
 extern char &SIFixSGPRLiveRangesID;
@@ -137,7 +137,10 @@ enum AddressSpaces {
   CONSTANT_BUFFER_14 = 22,
   CONSTANT_BUFFER_15 = 23,
   ADDRESS_NONE = 24, ///< Address space for unknown memory.
-  LAST_ADDRESS = ADDRESS_NONE
+  LAST_ADDRESS = ADDRESS_NONE,
+
+  // Some places use this if the address space can't be determined.
+  UNKNOWN_ADDRESS_SPACE = ~0u
 };
 
 } // namespace AMDGPUAS

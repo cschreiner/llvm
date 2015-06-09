@@ -281,9 +281,49 @@ if.end85:
 
 sw.bb.i.i:
   %ref.tr.i.i = phi %str1* [ %0, %sw.bb.i.i ], [ undef, %entry ]
-  %operands.i.i = getelementptr inbounds %str1* %ref.tr.i.i, i64 0, i32 0, i32 2
+  %operands.i.i = getelementptr inbounds %str1, %str1* %ref.tr.i.i, i64 0, i32 0, i32 2
   %arrayidx.i.i = bitcast i32* %operands.i.i to %str1**
-  %0 = load %str1** %arrayidx.i.i, align 8
-  %code1.i.i.phi.trans.insert = getelementptr inbounds %str1* %0, i64 0, i32 0, i32 0, i64 16
+  %0 = load %str1*, %str1** %arrayidx.i.i, align 8
+  %code1.i.i.phi.trans.insert = getelementptr inbounds %str1, %str1* %0, i64 0, i32 0, i32 0, i64 16
   br label %sw.bb.i.i
+}
+
+; CHECK-LABEL: select_and
+define i64 @select_and(i32 %v1, i32 %v2, i64 %a, i64 %b) {
+; CHECK: cmp
+; CHECK: ccmp{{.*}}, #0, ne
+; CHECK: csel{{.*}}, lt
+  %1 = icmp slt i32 %v1, %v2
+  %2 = icmp ne i32 5, %v2
+  %3 = and i1 %1, %2
+  %sel = select i1 %3, i64 %a, i64 %b
+  ret i64 %sel
+}
+
+; CHECK-LABEL: select_or
+define i64 @select_or(i32 %v1, i32 %v2, i64 %a, i64 %b) {
+; CHECK: cmp
+; CHECK: ccmp{{.*}}, #8, eq
+; CHECK: csel{{.*}}, lt
+  %1 = icmp slt i32 %v1, %v2
+  %2 = icmp ne i32 5, %v2
+  %3 = or i1 %1, %2
+  %sel = select i1 %3, i64 %a, i64 %b
+  ret i64 %sel
+}
+
+; CHECK-LABEL: select_complicated
+define i16 @select_complicated(double %v1, double %v2, i16 %a, i16 %b) {
+; CHECK: fcmp
+; CHECK: fccmp{{.*}}, #4, ne
+; CHECK: fccmp{{.*}}, #1, ne
+; CHECK: fccmp{{.*}}, #4, vc
+; CEHCK: csel{{.*}}, eq
+  %1 = fcmp one double %v1, %v2
+  %2 = fcmp oeq double %v2, 13.0
+  %3 = fcmp oeq double %v1, 42.0
+  %or0 = or i1 %2, %3
+  %or1 = or i1 %1, %or0
+  %sel = select i1 %or1, i16 %a, i16 %b
+  ret i16 %sel
 }

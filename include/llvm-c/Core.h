@@ -169,6 +169,7 @@ typedef enum {
     LLVMNonNullAttribute = 1ULL << 37,
     LLVMJumpTableAttribute = 1ULL << 38,
     LLVMDereferenceableAttribute = 1ULL << 39,
+    LLVMDereferenceableOrNullAttribute = 1ULL << 40,
     */
 } LLVMAttribute;
 
@@ -995,6 +996,13 @@ unsigned LLVMCountStructElementTypes(LLVMTypeRef StructTy);
  * is contained in.
  */
 void LLVMGetStructElementTypes(LLVMTypeRef StructTy, LLVMTypeRef *Dest);
+
+/**
+ * Get the type of the element at a given index in the structure.
+ *
+ * @see llvm::StructType::getTypeAtIndex()
+ */
+LLVMTypeRef LLVMStructGetTypeAtIndex(LLVMTypeRef StructTy, unsigned i);
 
 /**
  * Determine whether a structure is packed.

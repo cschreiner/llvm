@@ -1,14 +1,9 @@
-; RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s
+; RUN: llc -march=r600 -mcpu=redwood -mtriple=r600-- < %s | FileCheck %s
 
 ; We want all MULLO_INT inst to be last in their instruction group
 ;CHECK: {{^}}fill3d:
 ;CHECK-NOT: MULLO_INT T[0-9]+
 
-; ModuleID = 'radeon'
-target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-v16:16:16-v24:32:32-v32:32:32-v48:64:64-v64:64:64-v96:128:128-v128:128:128-v192:256:256-v256:256:256-v512:512:512-v1024:1024:1024-v2048:2048:2048-n32:64"
-target triple = "r600--"
-
-; Function Attrs: nounwind
 define void @fill3d(i32 addrspace(1)* nocapture %out) #0 {
 entry:
   %x.i = tail call i32 @llvm.r600.read.global.size.x() #1
@@ -35,7 +30,7 @@ entry:
   %z.i8.i = tail call i32 @llvm.r600.read.tidig.z() #1
   %add.i = add i32 %z.i8.i, %mul33.i
   %add13 = add i32 %add.i, %add
-  %arrayidx = getelementptr inbounds i32 addrspace(1)* %out, i32 %add13
+  %arrayidx = getelementptr inbounds i32, i32 addrspace(1)* %out, i32 %add13
   store i32 %mul3, i32 addrspace(1)* %arrayidx, align 4
   ret void
 }

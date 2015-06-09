@@ -15,7 +15,9 @@
 #ifndef LLVM_TRANSFORMS_UTILS_SIMPLIFYLIBCALLS_H
 #define LLVM_TRANSFORMS_UTILS_SIMPLIFYLIBCALLS_H
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/IR/IRBuilder.h"
 
 namespace llvm {
@@ -35,12 +37,11 @@ class Function;
 /// is unknown) by passing true for OnlyLowerUnknownSize.
 class FortifiedLibCallSimplifier {
 private:
-  const DataLayout *DL;
   const TargetLibraryInfo *TLI;
   bool OnlyLowerUnknownSize;
 
 public:
-  FortifiedLibCallSimplifier(const DataLayout *DL, const TargetLibraryInfo *TLI,
+  FortifiedLibCallSimplifier(const TargetLibraryInfo *TLI,
                              bool OnlyLowerUnknownSize = false);
 
   /// \brief Take the given call instruction and return a more
@@ -53,8 +54,10 @@ private:
   Value *optimizeMemCpyChk(CallInst *CI, IRBuilder<> &B);
   Value *optimizeMemMoveChk(CallInst *CI, IRBuilder<> &B);
   Value *optimizeMemSetChk(CallInst *CI, IRBuilder<> &B);
-  Value *optimizeStrCpyChk(CallInst *CI, IRBuilder<> &B);
-  Value *optimizeStrNCpyChk(CallInst *CI, IRBuilder<> &B);
+
+  // Str/Stp cpy are similar enough to be handled in the same functions.
+  Value *optimizeStrpCpyChk(CallInst *CI, IRBuilder<> &B, LibFunc::Func Func);
+  Value *optimizeStrpNCpyChk(CallInst *CI, IRBuilder<> &B, LibFunc::Func Func);
 
   /// \brief Checks whether the call \p CI to a fortified libcall is foldable
   /// to the non-fortified version.
@@ -68,7 +71,7 @@ private:
 class LibCallSimplifier {
 private:
   FortifiedLibCallSimplifier FortifiedSimplifier;
-  const DataLayout *DL;
+  const DataLayout &DL;
   const TargetLibraryInfo *TLI;
   bool UnsafeFPShrink;
   function_ref<void(Instruction *, Value *)> Replacer;
@@ -83,7 +86,7 @@ private:
   void replaceAllUsesWith(Instruction *I, Value *With);
 
 public:
-  LibCallSimplifier(const DataLayout *TD, const TargetLibraryInfo *TLI,
+  LibCallSimplifier(const DataLayout &DL, const TargetLibraryInfo *TLI,
                     function_ref<void(Instruction *, Value *)> Replacer =
                         &replaceAllUsesWithDefault);
 
@@ -113,6 +116,7 @@ private:
   Value *optimizeStrSpn(CallInst *CI, IRBuilder<> &B);
   Value *optimizeStrCSpn(CallInst *CI, IRBuilder<> &B);
   Value *optimizeStrStr(CallInst *CI, IRBuilder<> &B);
+  Value *optimizeMemChr(CallInst *CI, IRBuilder<> &B);
   Value *optimizeMemCmp(CallInst *CI, IRBuilder<> &B);
   Value *optimizeMemCpy(CallInst *CI, IRBuilder<> &B);
   Value *optimizeMemMove(CallInst *CI, IRBuilder<> &B);

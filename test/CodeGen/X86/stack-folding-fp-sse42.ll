@@ -99,7 +99,9 @@ define <4 x float> @stack_fold_andnps(<4 x float> %a0, <4 x float> %a1) {
   %4 = xor <2 x i64> %2, <i64 -1, i64 -1>
   %5 = and <2 x i64> %4, %3
   %6 = bitcast <2 x i64> %5 to <4 x float>
-  ret <4 x float> %6
+  ; fadd forces execution domain
+  %7 = fadd <4 x float> %6, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %7
 }
 
 define <2 x double> @stack_fold_andpd(<2 x double> %a0, <2 x double> %a1) {
@@ -123,7 +125,9 @@ define <4 x float> @stack_fold_andps(<4 x float> %a0, <4 x float> %a1) {
   %3 = bitcast <4 x float> %a1 to <2 x i64>
   %4 = and <2 x i64> %2, %3
   %5 = bitcast <2 x i64> %4 to <4 x float>
-  ret <4 x float> %5
+  ; fadd forces execution domain
+  %6 = fadd <4 x float> %5, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %6
 }
 
 define <2 x double> @stack_fold_blendpd(<2 x double> %a0, <2 x double> %a1) {
@@ -837,7 +841,9 @@ define <4 x float> @stack_fold_orps(<4 x float> %a0, <4 x float> %a1) {
   %3 = bitcast <4 x float> %a1 to <2 x i64>
   %4 = or <2 x i64> %2, %3
   %5 = bitcast <2 x i64> %4 to <4 x float>
-  ret <4 x float> %5
+  ; fadd forces execution domain
+  %6 = fadd <4 x float> %5, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %6
 }
 
 ; TODO stack_fold_rcpps
@@ -902,7 +908,7 @@ define <2 x double> @stack_fold_shufpd(<2 x double> %a0, <2 x double> %a1) {
 
 define <4 x float> @stack_fold_shufps(<4 x float> %a0, <4 x float> %a1) {
   ;CHECK-LABEL: stack_fold_shufps
-  ;CHECK:       shufps $-56, {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
+  ;CHECK:       shufps $200, {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
   %1 = tail call <2 x i64> asm sideeffect "nop", "=x,~{xmm2},~{xmm3},~{xmm4},~{xmm5},~{xmm6},~{xmm7},~{xmm8},~{xmm9},~{xmm10},~{xmm11},~{xmm12},~{xmm13},~{xmm14},~{xmm15},~{flags}"()
   %2 = shufflevector <4 x float> %a0, <4 x float> %a1, <4 x i32> <i32 0, i32 2, i32 4, i32 7>
   ret <4 x float> %2
@@ -1029,7 +1035,9 @@ define <2 x double> @stack_fold_unpckhpd(<2 x double> %a0, <2 x double> %a1) {
   ;CHECK:       unpckhpd {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
   %1 = tail call <2 x i64> asm sideeffect "nop", "=x,~{xmm2},~{xmm3},~{xmm4},~{xmm5},~{xmm6},~{xmm7},~{xmm8},~{xmm9},~{xmm10},~{xmm11},~{xmm12},~{xmm13},~{xmm14},~{xmm15},~{flags}"()
   %2 = shufflevector <2 x double> %a0, <2 x double> %a1, <2 x i32> <i32 1, i32 3>
-  ret <2 x double> %2
+  ; fadd forces execution domain
+  %3 = fadd <2 x double> %2, <double 0x0, double 0x0>
+  ret <2 x double> %3
 }
 
 define <4 x float> @stack_fold_unpckhps(<4 x float> %a0, <4 x float> %a1) {
@@ -1037,7 +1045,9 @@ define <4 x float> @stack_fold_unpckhps(<4 x float> %a0, <4 x float> %a1) {
   ;CHECK:       unpckhps {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
   %1 = tail call <2 x i64> asm sideeffect "nop", "=x,~{xmm2},~{xmm3},~{xmm4},~{xmm5},~{xmm6},~{xmm7},~{xmm8},~{xmm9},~{xmm10},~{xmm11},~{xmm12},~{xmm13},~{xmm14},~{xmm15},~{flags}"()
   %2 = shufflevector <4 x float> %a0, <4 x float> %a1, <4 x i32> <i32 2, i32 6, i32 3, i32 7>
-  ret <4 x float> %2
+  ; fadd forces execution domain
+  %3 = fadd <4 x float> %2, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %3
 }
 
 define <2 x double> @stack_fold_unpcklpd(<2 x double> %a0, <2 x double> %a1) {
@@ -1045,7 +1055,9 @@ define <2 x double> @stack_fold_unpcklpd(<2 x double> %a0, <2 x double> %a1) {
   ;CHECK:       unpcklpd {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
   %1 = tail call <2 x i64> asm sideeffect "nop", "=x,~{xmm2},~{xmm3},~{xmm4},~{xmm5},~{xmm6},~{xmm7},~{xmm8},~{xmm9},~{xmm10},~{xmm11},~{xmm12},~{xmm13},~{xmm14},~{xmm15},~{flags}"()
   %2 = shufflevector <2 x double> %a0, <2 x double> %a1, <2 x i32> <i32 0, i32 2>
-  ret <2 x double> %2
+  ; fadd forces execution domain
+  %3 = fadd <2 x double> %2, <double 0x0, double 0x0>
+  ret <2 x double> %3
 }
 
 define <4 x float> @stack_fold_unpcklps(<4 x float> %a0, <4 x float> %a1) {
@@ -1053,7 +1065,9 @@ define <4 x float> @stack_fold_unpcklps(<4 x float> %a0, <4 x float> %a1) {
   ;CHECK:       unpcklps {{-?[0-9]*}}(%rsp), {{%xmm[0-9][0-9]*}} {{.*#+}} 16-byte Folded Reload
   %1 = tail call <2 x i64> asm sideeffect "nop", "=x,~{xmm2},~{xmm3},~{xmm4},~{xmm5},~{xmm6},~{xmm7},~{xmm8},~{xmm9},~{xmm10},~{xmm11},~{xmm12},~{xmm13},~{xmm14},~{xmm15},~{flags}"()
   %2 = shufflevector <4 x float> %a0, <4 x float> %a1, <4 x i32> <i32 0, i32 4, i32 1, i32 5>
-  ret <4 x float> %2
+  ; fadd forces execution domain
+  %3 = fadd <4 x float> %2, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %3
 }
 
 define <2 x double> @stack_fold_xorpd(<2 x double> %a0, <2 x double> %a1) {
@@ -1077,5 +1091,7 @@ define <4 x float> @stack_fold_xorps(<4 x float> %a0, <4 x float> %a1) {
   %3 = bitcast <4 x float> %a1 to <2 x i64>
   %4 = xor <2 x i64> %2, %3
   %5 = bitcast <2 x i64> %4 to <4 x float>
-  ret <4 x float> %5
+  ; fadd forces execution domain
+  %6 = fadd <4 x float> %5, <float 0x0, float 0x0, float 0x0, float 0x0>
+  ret <4 x float> %6
 }
