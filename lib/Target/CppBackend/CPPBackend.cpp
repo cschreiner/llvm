@@ -15,6 +15,7 @@
 #include "CPPTargetMachine.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/Config/config.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/Constants.h"
@@ -22,12 +23,12 @@
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Pass.h"
-#include "llvm/PassManager.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormattedStream.h"
@@ -91,6 +92,7 @@ namespace {
   /// CppWriter - This class is the main chunk of code that converts an LLVM
   /// module to a C++ translation unit.
   class CppWriter : public ModulePass {
+    std::unique_ptr<formatted_raw_ostream> OutOwner;
     formatted_raw_ostream &Out;
     const Module *TheModule;
     uint64_t uniqueNum;
@@ -105,8 +107,9 @@ namespace {
 
   public:
     static char ID;
-    explicit CppWriter(formatted_raw_ostream &o) :
-      ModulePass(ID), Out(o), uniqueNum(0), is_inline(false), indent_level(0){}
+    explicit CppWriter(std::unique_ptr<formatted_raw_ostream> o)
+        : ModulePass(ID), OutOwner(std::move(o)), Out(*OutOwner), uniqueNum(0),
+          is_inline(false), indent_level(0) {}
 
     const char *getPassName() const override { return "C++ backend"; }
 
@@ -642,8 +645,7 @@ void CppWriter::printType(Type* Ty) {
     if (DefinedTypes.find(Ty) == DefinedTypes.end()) {
       std::string elemName(getCppName(ET));
       Out << "ArrayType* " << typeName << " = ArrayType::get("
-          << elemName
-          << ", " << utostr(AT->getNumElements()) << ");";
+          << elemName << ", " << AT->getNumElements() << ");";
       nl(Out);
     }
     break;
@@ -655,8 +657,7 @@ void CppWriter::printType(Type* Ty) {
     if (DefinedTypes.find(Ty) == DefinedTypes.end()) {
       std::string elemName(getCppName(ET));
       Out << "PointerType* " << typeName << " = PointerType::get("
-          << elemName
-          << ", " << utostr(PT->getAddressSpace()) << ");";
+          << elemName << ", " << PT->getAddressSpace() << ");";
       nl(Out);
     }
     break;
@@ -668,8 +669,7 @@ void CppWriter::printType(Type* Ty) {
     if (DefinedTypes.find(Ty) == DefinedTypes.end()) {
       std::string elemName(getCppName(ET));
       Out << "VectorType* " << typeName << " = VectorType::get("
-          << elemName
-          << ", " << utostr(PT->getNumElements()) << ");";
+          << elemName << ", " << PT->getNumElements() << ");";
       nl(Out);
     }
     break;
@@ -1026,7 +1026,7 @@ void CppWriter::printVariableHead(const GlobalVariable *GV) {
   }
   if (GV->getAlignment()) {
     printCppName(GV);
-    Out << "->setAlignment(" << utostr(GV->getAlignment()) << ");";
+    Out << "->setAlignment(" << GV->getAlignment() << ");";
     nl(Out);
   }
   if (GV->getVisibility() != GlobalValue::DefaultVisibility) {
@@ -1721,7 +1721,7 @@ void CppWriter::printFunctionUses(const Function* F) {
   // initializers.
   if (GenerationType != GenFunction) {
     nl(Out) << "// Global Variable Definitions"; nl(Out);
-    for (const auto &GV : gvs) {
+    for (auto *GV : gvs) {
       if (GlobalVariable *Var = dyn_cast<GlobalVariable>(GV))
         printVariableBody(Var);
     }
@@ -1942,7 +1942,6 @@ void CppWriter::printModuleBody() {
 void CppWriter::printProgram(const std::string& fname,
                              const std::string& mName) {
   Out << "#include <llvm/Pass.h>\n";
-  Out << "#include <llvm/PassManager.h>\n";
 
   Out << "#include <llvm/ADT/SmallVector.h>\n";
   Out << "#include <llvm/Analysis/Verifier.h>\n";
@@ -1956,6 +1955,7 @@ void CppWriter::printProgram(const std::string& fname,
   Out << "#include <llvm/IR/InlineAsm.h>\n";
   Out << "#include <llvm/IR/Instructions.h>\n";
   Out << "#include <llvm/IR/LLVMContext.h>\n";
+  Out << "#include <llvm/IR/LegacyPassManager.h>\n";
   Out << "#include <llvm/IR/Module.h>\n";
   Out << "#include <llvm/Support/FormattedStream.h>\n";
   Out << "#include <llvm/Support/MathExtras.h>\n";
@@ -1981,7 +1981,8 @@ void CppWriter::printModule(const std::string& fname,
   printEscapedString(mName);
   Out << "\", getGlobalContext());";
   if (!TheModule->getTargetTriple().empty()) {
-    nl(Out) << "mod->setDataLayout(\"" << TheModule->getDataLayout() << "\");";
+    nl(Out) << "mod->setDataLayout(\"" << TheModule->getDataLayoutStr()
+            << "\");";
   }
   if (!TheModule->getTargetTriple().empty()) {
     nl(Out) << "mod->setTargetTriple(\"" << TheModule->getTargetTriple()
@@ -2145,13 +2146,12 @@ char CppWriter::ID = 0;
 //                       External Interface declaration
 //===----------------------------------------------------------------------===//
 
-bool CPPTargetMachine::addPassesToEmitFile(PassManagerBase &PM,
-                                           formatted_raw_ostream &o,
-                                           CodeGenFileType FileType,
-                                           bool DisableVerify,
-                                           AnalysisID StartAfter,
-                                           AnalysisID StopAfter) {
-  if (FileType != TargetMachine::CGFT_AssemblyFile) return true;
-  PM.add(new CppWriter(o));
+bool CPPTargetMachine::addPassesToEmitFile(
+    PassManagerBase &PM, raw_pwrite_stream &o, CodeGenFileType FileType,
+    bool DisableVerify, AnalysisID StartAfter, AnalysisID StopAfter) {
+  if (FileType != TargetMachine::CGFT_AssemblyFile)
+    return true;
+  auto FOut = llvm::make_unique<formatted_raw_ostream>(o);
+  PM.add(new CppWriter(std::move(FOut)));
   return false;
 }

@@ -50,7 +50,8 @@ public:
     armeb,      // ARM (big endian): armeb
     aarch64,    // AArch64 (little endian): aarch64
     aarch64_be, // AArch64 (big endian): aarch64_be
-    bpf,        // eBPF or extended BPF or 64-bit BPF (little endian)
+    bpfel,      // eBPF or extended BPF or 64-bit BPF (little endian)
+    bpfeb,      // eBPF or extended BPF or 64-bit BPF (big endian)
     hexagon,    // Hexagon: hexagon
     mips,       // MIPS: mips, mipsallegrex
     mipsel,     // MIPSEL: mipsel, mipsallegrexel
@@ -64,6 +65,7 @@ public:
     amdgcn,     // AMDGCN: AMD GCN GPUs
     sparc,      // Sparc: sparc
     sparcv9,    // Sparcv9: Sparcv9
+    sparcel,    // Sparc: (endianness = little). NB: 'Sparcle' is a CPU variant
     systemz,    // SystemZ: s390x
     tce,        // TCE (http://tce.cs.tut.fi/): tce
     thumb,      // Thumb (little endian): thumb, thumbv.*
@@ -81,11 +83,13 @@ public:
     hsail64,    // AMD HSAIL with 64-bit pointers
     spir,       // SPIR: standard portable IR for OpenCL 32-bit version
     spir64,     // SPIR: standard portable IR for OpenCL 64-bit version
-    kalimba     // Kalimba: generic kalimba
+    kalimba,    // Kalimba: generic kalimba
+    LastArchType = kalimba
   };
   enum SubArchType {
     NoSubArch,
 
+    ARMSubArch_v8_1a,
     ARMSubArch_v8,
     ARMSubArch_v7,
     ARMSubArch_v7em,
@@ -93,6 +97,7 @@ public:
     ARMSubArch_v7s,
     ARMSubArch_v6,
     ARMSubArch_v6m,
+    ARMSubArch_v6k,
     ARMSubArch_v6t2,
     ARMSubArch_v5,
     ARMSubArch_v5te,
@@ -115,11 +120,13 @@ public:
     ImaginationTechnologies,
     MipsTechnologies,
     NVIDIA,
-    CSR
+    CSR,
+    LastVendorType = CSR
   };
   enum OSType {
     UnknownOS,
 
+    CloudABI,
     Darwin,
     DragonFly,
     FreeBSD,
@@ -142,7 +149,8 @@ public:
     CUDA,       // NVIDIA CUDA
     NVCL,       // NVIDIA OpenCL
     AMDHSA,     // AMD HSA Runtime
-    PS4
+    PS4,
+    LastOSType = PS4
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -159,6 +167,7 @@ public:
     MSVC,
     Itanium,
     Cygnus,
+    LastEnvironmentType = Cygnus
   };
   enum ObjectFormatType {
     UnknownObjectFormat,
@@ -202,6 +211,13 @@ public:
   Triple(const Twine &ArchStr, const Twine &VendorStr, const Twine &OSStr,
          const Twine &EnvironmentStr);
 
+  bool operator==(const Triple &Other) const {
+    return Arch == Other.Arch && SubArch == Other.SubArch &&
+           Vendor == Other.Vendor && OS == Other.OS &&
+           Environment == Other.Environment &&
+           ObjectFormat == Other.ObjectFormat;
+  }
+
   /// @}
   /// @name Normalization
   /// @{
@@ -239,6 +255,15 @@ public:
 
   /// getEnvironment - Get the parsed environment type of this triple.
   EnvironmentType getEnvironment() const { return Environment; }
+
+  /// \brief Parse the version number from the OS name component of the
+  /// triple, if present.
+  ///
+  /// For example, "fooos1.2.3" would return (1, 2, 3).
+  ///
+  /// If an entry is not defined, it will be returned as 0.
+  void getEnvironmentVersion(unsigned &Major, unsigned &Minor,
+                             unsigned &Micro) const;
 
   /// getFormat - Get the object format for this triple.
   ObjectFormatType getObjectFormat() const { return ObjectFormat; }
@@ -339,6 +364,12 @@ public:
     return false;
   }
 
+  bool isOSVersionLT(const Triple &Other) const {
+    unsigned RHS[3];
+    Other.getOSVersion(RHS[0], RHS[1], RHS[2]);
+    return isOSVersionLT(RHS[0], RHS[1], RHS[2]);
+  }
+
   /// isMacOSXVersionLT - Comparison function for checking OS X version
   /// compatibility, which handles supporting skewed version numbering schemes
   /// used by the "darwin" triples.
@@ -428,7 +459,7 @@ public:
 
   /// \brief Tests whether the OS is Windows.
   bool isOSWindows() const {
-    return getOS() == Triple::Win32 || isOSCygMing();
+    return getOS() == Triple::Win32;
   }
 
   /// \brief Tests whether the OS is NaCl (Native Client)

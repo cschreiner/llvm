@@ -26,9 +26,7 @@
 #include <iostream> //;;
 
 namespace llvm {
-class Deserializer;
 class FoldingSetNodeID;
-class Serializer;
 class StringRef;
 class hash_code;
 class raw_ostream;
@@ -413,8 +411,7 @@ public:
   /// This checks to see if the value of this APInt is the maximum signed
   /// value for the APInt's bit width.
   bool isMaxSignedValue() const {
-    return BitWidth == 1 ? VAL == 0
-                         : !isNegative() && countPopulation() == BitWidth - 1;
+    return !isNegative() && countPopulation() == BitWidth - 1;
   }
 
   /// \brief Determine if this is the smallest unsigned value.
@@ -428,7 +425,7 @@ public:
   /// This checks to see if the value of this APInt is the minimum signed
   /// value for the APInt's bit width.
   bool isMinSignedValue() const {
-    return BitWidth == 1 ? VAL == 1 : isNegative() && isPowerOf2();
+    return isNegative() && isPowerOf2();
   }
 
   /// \brief Check if this APInt has an N-bits unsigned integer value.
@@ -468,6 +465,13 @@ public:
     return (getActiveBits() > 64 || getZExtValue() > Limit) ? Limit
                                                             : getZExtValue();
   }
+
+  /// \brief Check if the APInt consists of a repeated bit pattern.
+  ///
+  /// e.g. 0x01010101 satisfies isSplat(8).
+  /// \param SplatSizeInBits The size of the pattern in bits. Must divide bit
+  /// width without remainder.
+  bool isSplat(unsigned SplatSizeInBits) const;
 
   /// @}
   /// \name Value Generators
@@ -1470,7 +1474,7 @@ public:
 
   /// \brief Count the number of leading one bits.
   ///
-  /// This function is an APInt version of the countLeadingOnes_{32,64}
+  /// This function is an APInt version of the countLeadingOnes
   /// functions in MathExtras.h. It counts the number of ones from the most
   /// significant bit to the first zero bit.
   ///
@@ -1486,7 +1490,7 @@ public:
 
   /// \brief Count the number of trailing zero bits.
   ///
-  /// This function is an APInt version of the countTrailingZeros_{32,64}
+  /// This function is an APInt version of the countTrailingZeros
   /// functions in MathExtras.h. It counts the number of zeros from the least
   /// significant bit to the first set bit.
   ///
@@ -1496,7 +1500,7 @@ public:
 
   /// \brief Count the number of trailing one bits.
   ///
-  /// This function is an APInt version of the countTrailingOnes_{32,64}
+  /// This function is an APInt version of the countTrailingOnes
   /// functions in MathExtras.h. It counts the number of ones from the least
   /// significant bit to the first zero bit.
   ///
@@ -1504,19 +1508,19 @@ public:
   /// of ones from the least significant bit to the first zero bit.
   unsigned countTrailingOnes() const {
     if (isSingleWord())
-      return CountTrailingOnes_64(VAL);
+      return llvm::countTrailingOnes(VAL);
     return countTrailingOnesSlowCase();
   }
 
   /// \brief Count the number of bits set.
   ///
-  /// This function is an APInt version of the countPopulation_{32,64} functions
+  /// This function is an APInt version of the countPopulation functions
   /// in MathExtras.h. It counts the number of 1 bits in the APInt value.
   ///
   /// \returns 0 if the value is zero, otherwise returns the number of set bits.
   unsigned countPopulation() const {
     if (isSingleWord())
-      return CountPopulation_64(VAL);
+      return llvm::countPopulation(VAL);
     return countPopulationSlowCase();
   }
 

@@ -42,6 +42,7 @@
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
@@ -176,7 +177,7 @@ namespace {
       AU.addPreservedID(LCSSAID);
       AU.addPreserved<DominatorTreeWrapperPass>();
       AU.addPreserved<ScalarEvolution>();
-      AU.addRequired<TargetTransformInfo>();
+      AU.addRequired<TargetTransformInfoWrapperPass>();
     }
 
   private:
@@ -333,7 +334,7 @@ void LUAnalysisCache::cloneData(const Loop *NewLoop, const Loop *OldLoop,
 char LoopUnswitch::ID = 0;
 INITIALIZE_PASS_BEGIN(LoopUnswitch, "loop-unswitch", "Unswitch loops",
                       false, false)
-INITIALIZE_AG_DEPENDENCY(TargetTransformInfo)
+INITIALIZE_PASS_DEPENDENCY(TargetTransformInfoWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(AssumptionCacheTracker)
 INITIALIZE_PASS_DEPENDENCY(LoopSimplify)
 INITIALIZE_PASS_DEPENDENCY(LoopInfoWrapperPass)
@@ -432,8 +433,10 @@ bool LoopUnswitch::processCurrentLoop() {
 
   // Probably we reach the quota of branches for this loop. If so
   // stop unswitching.
-  if (!BranchesInfo.countLoop(currentLoop, getAnalysis<TargetTransformInfo>(),
-                              AC))
+  if (!BranchesInfo.countLoop(
+          currentLoop, getAnalysis<TargetTransformInfoWrapperPass>().getTTI(
+                           *currentLoop->getHeader()->getParent()),
+          AC))
     return false;
 
   // Loop over all of the basic blocks in the loop.  If we find an interior
@@ -655,9 +658,7 @@ bool LoopUnswitch::UnswitchIfProfitable(Value *LoopCond, Constant *Val) {
   // Check to see if it would be profitable to unswitch current loop.
 
   // Do not do non-trivial unswitch while optimizing for size.
-  if (OptimizeForSize ||
-      F->getAttributes().hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::OptimizeForSize))
+  if (OptimizeForSize || F->hasFnAttribute(Attribute::OptimizeForSize))
     return false;
 
   UnswitchNontrivialCondition(LoopCond, Val, currentLoop);
@@ -769,16 +770,9 @@ void LoopUnswitch::SplitExitEdges(Loop *L,
 
     // Although SplitBlockPredecessors doesn't preserve loop-simplify in
     // general, if we call it on all predecessors of all exits then it does.
-    if (!ExitBlock->isLandingPad()) {
-      SplitBlockPredecessors(ExitBlock, Preds, ".us-lcssa",
-                             /*AliasAnalysis*/ nullptr, DT, LI,
-                             /*PreserveLCSSA*/ true);
-    } else {
-      SmallVector<BasicBlock*, 2> NewBBs;
-      SplitLandingPadPredecessors(ExitBlock, Preds, ".us-lcssa", ".us-lcssa",
-                                  NewBBs, /*AliasAnalysis*/ nullptr, DT, LI,
-                                  /*PreserveLCSSA*/ true);
-    }
+    SplitBlockPredecessors(ExitBlock, Preds, ".us-lcssa",
+                           /*AliasAnalysis*/ nullptr, DT, LI,
+                           /*PreserveLCSSA*/ true);
   }
 }
 
@@ -1089,6 +1083,7 @@ void LoopUnswitch::RewriteLoopBodyWithConditionConstant(Loop *L, Value *LIC,
 /// pass.
 ///
 void LoopUnswitch::SimplifyCode(std::vector<Instruction*> &Worklist, Loop *L) {
+  const DataLayout &DL = L->getHeader()->getModule()->getDataLayout();
   while (!Worklist.empty()) {
     Instruction *I = Worklist.back();
     Worklist.pop_back();
@@ -1111,7 +1106,7 @@ void LoopUnswitch::SimplifyCode(std::vector<Instruction*> &Worklist, Loop *L) {
     // See if instruction simplification can hack this up.  This is common for
     // things like "select false, X, Y" after unswitching made the condition be
     // 'false'.  TODO: update the domtree properly so we can pass it here.
-    if (Value *V = SimplifyInstruction(I))
+    if (Value *V = SimplifyInstruction(I, DL))
       if (LI->replacementPreservesLCSSAForm(I, V)) {
         ReplaceUsesOfWith(I, V, Worklist, L, LPM);
         continue;

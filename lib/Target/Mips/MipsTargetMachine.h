@@ -14,12 +14,13 @@
 #ifndef LLVM_LIB_TARGET_MIPS_MIPSTARGETMACHINE_H
 #define LLVM_LIB_TARGET_MIPS_MIPSTARGETMACHINE_H
 
+#include "MCTargetDesc/MipsABIInfo.h"
 #include "MipsSubtarget.h"
+#include "llvm/CodeGen/BasicTTIImpl.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
-#include "MCTargetDesc/MipsABIInfo.h"
 
 namespace llvm {
 class formatted_raw_ostream;
@@ -30,7 +31,6 @@ class MipsTargetMachine : public LLVMTargetMachine {
   std::unique_ptr<TargetLoweringObjectFile> TLOF;
   // Selected ABI
   MipsABIInfo ABI;
-  const DataLayout DL; // Calculates type size & alignment
   MipsSubtarget *Subtarget;
   MipsSubtarget DefaultSubtarget;
   MipsSubtarget NoMips16Subtarget;
@@ -44,10 +44,9 @@ public:
                     CodeModel::Model CM, CodeGenOpt::Level OL, bool isLittle);
   ~MipsTargetMachine() override;
 
-  void addAnalysisPasses(PassManagerBase &PM) override;
+  TargetIRAnalysis getTargetIRAnalysis() override;
 
-  const DataLayout *getDataLayout() const override { return &DL; }
-  const MipsSubtarget *getSubtargetImpl() const override {
+  const MipsSubtarget *getSubtargetImpl() const {
     if (Subtarget)
       return Subtarget;
     return &DefaultSubtarget;

@@ -20,6 +20,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include <iostream> //@casdbg@
 
+
 namespace llvm {
 
 // We operate on opaque instruction classes, so forward declare all instruction
@@ -161,15 +162,14 @@ public:
 	  DELEGATE(CLASS); \
       }
 #else // debugging definition
-  #define HANDLE_INST(NUM, OPCODE, CLASS)				\
+  #define HANDLE_INST(NUM, OPCODE, CLASS)			\
       RetTy visit##OPCODE(CLASS &I) {				\
 	if (NUM == Instruction::Call) {				\
-	  std::cout << "About to delegate \"" << #OPCODE <<	\
-	     "\" instruction \n"; //@casdbg@			\
+           std::cout << "About to delegate \"" << #OPCODE <<	\
+            "\" instruction \n"; //@casdbg@			\
 	  return delegateCallInst(I);				\
 	} else							\
-	  return static_cast<SubClass*>(this)->			\
-	      visit##CLASS(static_cast<CLASS&>(I));		\
+	  DELEGATE(CLASS);					\
       }
 #endif
 #include "llvm/IR/Instruction.def"
@@ -273,7 +273,7 @@ private:
   // Special helper function to delegate to CallInst subclass visitors.
   RetTy delegateCallInst(CallInst &I) {
     if (const Function *F = I.getCalledFunction()) {
-      switch ((Intrinsic::ID)F->getIntrinsicID()) {
+      switch (F->getIntrinsicID()) {
       default:                     DELEGATE(IntrinsicInst);
       case Intrinsic::dbg_declare: DELEGATE(DbgDeclareInst);
       case Intrinsic::dbg_value:   DELEGATE(DbgValueInst);

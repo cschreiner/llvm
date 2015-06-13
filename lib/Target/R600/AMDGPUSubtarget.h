@@ -44,6 +44,10 @@ public:
     VOLCANIC_ISLANDS,
   };
 
+  enum {
+    FIXED_SGPR_COUNT_FOR_INIT_BUG = 80
+  };
+
 private:
   std::string DevName;
   bool Is64bit;
@@ -55,6 +59,7 @@ private:
   bool FP64;
   bool FP64Denormals;
   bool FP32Denormals;
+  bool FastFMAF32;
   bool CaymanISA;
   bool FlatAddressSpace;
   bool EnableIRStructurizer;
@@ -65,6 +70,13 @@ private:
   bool CFALUBug;
   int LocalMemorySize;
   bool EnableVGPRSpilling;
+  bool SGPRInitBug;
+  bool IsGCN;
+  bool GCN1Encoding;
+  bool GCN3Encoding;
+  bool CIInsts;
+  bool FeatureDisable;
+  int LDSBankCount;
 
   AMDGPUFrameLowering FrameLowering;
   std::unique_ptr<AMDGPUTargetLowering> TLInfo;
@@ -127,6 +139,10 @@ public:
     return FP64Denormals;
   }
 
+  bool hasFastFMAF32() const {
+    return FastFMAF32;
+  }
+
   bool hasFlatAddressSpace() const {
     return FlatAddressSpace;
   }
@@ -170,6 +186,14 @@ public:
     return (getGeneration() >= EVERGREEN);
   }
 
+  bool hasCARRY() const {
+    return (getGeneration() >= EVERGREEN);
+  }
+
+  bool hasBORROW() const {
+    return (getGeneration() >= EVERGREEN);
+  }
+
   bool IsIRStructurizerEnabled() const {
     return EnableIRStructurizer;
   }
@@ -201,11 +225,23 @@ public:
     return LocalMemorySize;
   }
 
+  bool hasSGPRInitBug() const {
+    return SGPRInitBug;
+  }
+
+  int getLDSBankCount() const {
+    return LDSBankCount;
+  }
+
   unsigned getAmdKernelCodeChipID() const;
 
   bool enableMachineScheduler() const override {
-    return getGeneration() <= NORTHERN_ISLANDS;
+    return true;
   }
+
+  void overrideSchedPolicy(MachineSchedPolicy &Policy,
+                           MachineInstr *begin, MachineInstr *end,
+                           unsigned NumRegionInstrs) const override;
 
   // Helper functions to simplify if statements
   bool isTargetELF() const {
@@ -226,6 +262,18 @@ public:
     return TargetTriple.getOS() == Triple::AMDHSA;
   }
   bool isVGPRSpillingEnabled(const SIMachineFunctionInfo *MFI) const;
+
+  unsigned getMaxWavesPerCU() const {
+    if (getGeneration() >= AMDGPUSubtarget::SOUTHERN_ISLANDS)
+      return 10;
+
+    // FIXME: Not sure what this is for other subtagets.
+    llvm_unreachable("do not know max waves per CU for this subtarget.");
+  }
+
+  bool enableSubRegLiveness() const override {
+    return true;
+  }
 };
 
 } // End namespace llvm

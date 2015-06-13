@@ -88,8 +88,7 @@ PrintAfterAll("print-after-all",
 
 static bool ShouldPrintBeforeOrAfterPass(const PassInfo *PI,
                                          PassOptionList &PassesToPrint) {
-  for (unsigned i = 0, ie = PassesToPrint.size(); i < ie; ++i) {
-    const llvm::PassInfo *PassInf = PassesToPrint[i];
+  for (auto *PassInf : PassesToPrint) {
     if (PassInf)
       if (PassInf->getPassArgument() == PI->getPassArgument()) {
         return true;
@@ -293,7 +292,7 @@ public:
     Pass(PT_PassManager, ID), PMDataManager() { }
 
   // Delete on the fly managers.
-  virtual ~MPPassManager() {
+  ~MPPassManager() override {
     for (std::map<Pass *, FunctionPassManagerImpl *>::iterator
            I = OnTheFlyManagers.begin(), E = OnTheFlyManagers.end();
          I != E; ++I) {
@@ -652,7 +651,7 @@ void PMTopLevelManager::schedulePass(Pass *P) {
           // are already checked are still available.
           checkAnalysis = true;
         } else
-          // Do not schedule this analysis. Lower level analsyis
+          // Do not schedule this analysis. Lower level analysis
           // passes are run on the fly.
           delete AnalysisPass;
       }
@@ -1554,8 +1553,8 @@ bool FPPassManager::runOnFunction(Function &F) {
 bool FPPassManager::runOnModule(Module &M) {
   bool Changed = false;
 
-  for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I)
-    Changed |= runOnFunction(*I);
+  for (Function &F : M)
+    Changed |= runOnFunction(F);
 
   return Changed;
 }
@@ -1589,10 +1588,8 @@ MPPassManager::runOnModule(Module &M) {
   bool Changed = false;
 
   // Initialize on-the-fly passes
-  for (std::map<Pass *, FunctionPassManagerImpl *>::iterator
-       I = OnTheFlyManagers.begin(), E = OnTheFlyManagers.end();
-       I != E; ++I) {
-    FunctionPassManagerImpl *FPP = I->second;
+  for (auto &OnTheFlyManager : OnTheFlyManagers) {
+    FunctionPassManagerImpl *FPP = OnTheFlyManager.second;
     Changed |= FPP->doInitialization(M);
   }
 
@@ -1633,10 +1630,8 @@ MPPassManager::runOnModule(Module &M) {
     Changed |= getContainedPass(Index)->doFinalization(M);
 
   // Finalize on-the-fly passes
-  for (std::map<Pass *, FunctionPassManagerImpl *>::iterator
-       I = OnTheFlyManagers.begin(), E = OnTheFlyManagers.end();
-       I != E; ++I) {
-    FunctionPassManagerImpl *FPP = I->second;
+  for (auto &OnTheFlyManager : OnTheFlyManagers) {
+    FunctionPassManagerImpl *FPP = OnTheFlyManager.second;
     // We don't know when is the last time an on-the-fly pass is run,
     // so we need to releaseMemory / finalize here
     FPP->releaseMemoryOnTheFly();
@@ -1712,11 +1707,8 @@ bool PassManagerImpl::run(Module &M) {
   dumpArguments();
   dumpPasses();
 
-  SmallVectorImpl<ImmutablePass *>& IPV = getImmutablePasses();
-  for (SmallVectorImpl<ImmutablePass *>::const_iterator I = IPV.begin(),
-       E = IPV.end(); I != E; ++I) {
-    Changed |= (*I)->doInitialization(M);
-  }
+  for (ImmutablePass *ImPass : getImmutablePasses())
+    Changed |= ImPass->doInitialization(M);
 
   initializeAllAnalysisInfo();
   for (unsigned Index = 0; Index < getNumContainedManagers(); ++Index) {
@@ -1724,10 +1716,8 @@ bool PassManagerImpl::run(Module &M) {
     M.getContext().yield();
   }
 
-  for (SmallVectorImpl<ImmutablePass *>::const_iterator I = IPV.begin(),
-       E = IPV.end(); I != E; ++I) {
-    Changed |= (*I)->doFinalization(M);
-  }
+  for (ImmutablePass *ImPass : getImmutablePasses())
+    Changed |= ImPass->doFinalization(M);
 
   return Changed;
 }

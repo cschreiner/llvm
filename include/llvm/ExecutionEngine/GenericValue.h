@@ -39,9 +39,9 @@ struct GenericValue {
   // For aggregate data types.
   std::vector<GenericValue> AggregateVal;
 
-  // To make code faster, setting GenericValue to zero could be
-  // omitted, but ommitting it can cause problems by sometimes making
-  // the GenericValue store garbage instead of zero.
+  // to make code faster, set GenericValue to zero could be omitted, but it is
+  // potentially can cause problems, since GenericValue to store garbage
+  // instead of zero.
   GenericValue() : IntVal(1,0) {UIntPairVal.first = 0; UIntPairVal.second = 0;}
   explicit GenericValue(void *V) : PointerVal(V), IntVal(1,0) { }
 };
