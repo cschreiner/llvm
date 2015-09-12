@@ -47,10 +47,14 @@ namespace lli_undef_fix {
 	operand.  I.e. the return value is only poisoned if the condition is
 	poisoned, or if the chosen operand is poisoned.
 */
+// Commented out, we're psssing in test parameters via environment
+// variable instead of via command line.
+#if 0
 llvm::cl::opt<bool> arg_luf_antidote_select( 
     "luf-antidote-select",
     cl::desc("make SELECT ignore poison from the unselected operand"),   
     cl::init(false) );
+#endif
 
 
 
